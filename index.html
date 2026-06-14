@@ -81,6 +81,8 @@ window.addEventListener('error',function(ev){
 });
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
 'use strict';
 var TODAY=new Date().toISOString().split('T')[0];
@@ -175,10 +177,27 @@ var DB={
   load:function(k){return new Promise(function(res){try{var v=localStorage.getItem('dltate:'+k);res(v!=null?JSON.parse(v):null)}catch(e){res(null)}})},
   save:function(k,v){try{localStorage.setItem('dltate:'+k,JSON.stringify(v))}catch(e){}},
   del:function(k){try{localStorage.removeItem('dltate:'+k)}catch(e){}},
-  ldSh:function(k){return new Promise(function(res){try{var v=localStorage.getItem('dltate:sh:'+k);res(v!=null?JSON.parse(v):null)}catch(e){res(null)}})},
-  svSh:function(k,v){try{localStorage.setItem('dltate:sh:'+k,JSON.stringify(v))}catch(e){}},
-  lsSh:function(pfx){return new Promise(function(res){try{var keys=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.startsWith('dltate:sh:'+pfx))keys.push(k.replace('dltate:sh:',''))}res(keys)}catch(e){res([])}})}
+  ldSh:function(k){return new Promise(function(res){RTDB.ref('sh/'+k.replace(/:/g,'/')).get().then(function(s){res(s.exists()?s.val():null)}).catch(function(){res(null)})})},
+  svSh:function(k,v){RTDB.ref('sh/'+k.replace(/:/g,'/')).set(v).catch(function(){})},
+  lsSh:function(pfx){return new Promise(function(res){var path='sh/'+pfx.replace(/:/g,'/').replace(/\/$/,'');RTDB.ref(path).get().then(function(s){if(!s.exists())return res([]);var ks=[];s.forEach(function(c){ks.push(pfx+c.key)});res(ks)}).catch(function(){res([])})})}
 };
+var _fbCfg={apiKey:'AIzaSyBX2huR3_9oyq_EF8uRMDDk8ROzg7PM5-s',authDomain:'dltate-162f6.firebaseapp.com',databaseURL:'https://dltate-162f6-default-rtdb.europe-west1.firebasedatabase.app',projectId:'dltate-162f6',storageBucket:'dltate-162f6.firebasestorage.app',messagingSenderId:'332774279694',appId:'1:332774279694:web:190e3f0cb7c6319b550a5f'};
+firebase.initializeApp(_fbCfg);
+var RTDB=firebase.database();
+var UID=(function(){var u=localStorage.getItem('dltate:uid');if(!u){u='u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5);localStorage.setItem('dltate:uid',u)}return u})();
+var PCODE=UID.substr(-8).toUpperCase();
+function syncUserToFB(){if(!S.profile)return;RTDB.ref('users/'+UID).set({name:S.profile.name,code:PCODE,uid:UID,lastSeen:TODAY}).catch(function(){})}
+var _gangUnsub=null;
+function setupGangListener(code){
+  if(_gangUnsub){_gangUnsub();_gangUnsub=null;}
+  if(!code)return;
+  var ref=RTDB.ref('sh/gang/'+code);
+  ref.on('value',function(snap){S.gangMembers=[];snap.forEach(function(c){S.gangMembers.push(c.val())});try{render()}catch(e){}});
+  _gangUnsub=function(){ref.off()};
+}
+RTDB.ref('friendReqs/'+UID).on('value',function(snap){S.fbFriendReqs=[];snap.forEach(function(c){S.fbFriendReqs.push(Object.assign({_id:c.key},c.val()))});try{render()}catch(e){}});
+RTDB.ref('friends/'+UID).on('value',function(snap){S.fbFriends=[];snap.forEach(function(c){S.fbFriends.push(Object.assign({_id:c.key},c.val()))});try{render()}catch(e){}});
+RTDB.ref('notifs/'+UID).on('value',function(snap){S.fbNotifs=[];snap.forEach(function(c){S.fbNotifs.push(Object.assign({_id:c.key},c.val()))});try{render()}catch(e){}});
 // load UI settings
 DB.load('appLogo').then(function(lg){if(lg){S.logoData=lg;try{render()}catch(e){}}});
 DB.load('uiLang').then(function(v){if(v){S.lang=v;try{render()}catch(e){}}});
@@ -233,7 +252,7 @@ function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).in
 var S={
   view:'loading',nav:'dash',profile:null,metrics:null,
   progress:[],food:[],workouts:[],waterLog:[],sleepLog:[],measurements:[],photos:[],doneChals:[],chat:[],
-  friends:[],notifs:[],
+  friends:[],notifs:[],gangMembers:[],fbFriends:[],fbFriendReqs:[],fbNotifs:[],
   obStep:0,
   ob:{name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''},
   
@@ -1095,32 +1114,128 @@ function vChal(){
 }
 function vFriends(){
   var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Prieteni';
-  var card=el('div',{c:'card cp'});
-  var list=el('div',{s:'display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto'});
-  (S.friends||[]).forEach(function(fr){
-    var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px'});
-    var l=el('div',null);var n=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600'});n.textContent=fr.name||fr.id;var s=el('div',{s:'color:#64748b;font-size:11px'});s.textContent=fr.status||'acceptat';l.appendChild(n);l.appendChild(s);
-    var rm=el('button',{c:'btn bg',s:'font-size:11px'});rm.textContent='\u0218terge';rm.onclick=function(){if(!confirm(t('remove_confirm')))return;S.friends=S.friends.filter(function(x){return x.id!==fr.id});DB.save('friends',S.friends);render()};row.appendChild(l);row.appendChild(rm);list.appendChild(row);
+  // My code card
+  var myCodeCard=el('div',{c:'card cp'});
+  var mcH=el('div',{s:'color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});mcH.textContent='Codul tau de jucator';
+  var mcV=el('div',{s:'display:flex;align-items:center;gap:8px'});
+  var mcCode=el('div',{s:'font-size:20px;font-weight:700;font-family:ui-monospace,monospace;color:#4ade80;letter-spacing:2px'});mcCode.textContent=PCODE;
+  var mcCopy=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcCopy.textContent='Copiaza';mcCopy.onclick=function(){navigator.clipboard.writeText(PCODE);mcCopy.textContent='Copiat!';setTimeout(function(){mcCopy.textContent='Copiaza'},1500)};
+  mcV.appendChild(mcCode);mcV.appendChild(mcCopy);
+  var mcTip=el('div',{s:'color:#475569;font-size:11px;margin-top:4px'});mcTip.textContent='Trimite acest cod prietenilor ca sa te adauge.';
+  myCodeCard.appendChild(mcH);myCodeCard.appendChild(mcV);myCodeCard.appendChild(mcTip);
+  // Friend requests
+  var reqCards=[];
+  if(S.fbFriendReqs&&S.fbFriendReqs.length){
+    var reqCard=el('div',{c:'card cp'});
+    var rqH=el('div',{s:'color:#fbbf24;font-size:12px;font-weight:600;margin-bottom:8px'});rqH.textContent='Cereri primite ('+S.fbFriendReqs.length+')';reqCard.appendChild(rqH);
+    S.fbFriendReqs.forEach(function(req){
+      var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #1e293b'});
+      var rL=el('div',null);
+      var rN=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600'});rN.textContent=req.name||'Utilizator';
+      var rC=el('div',{s:'color:#64748b;font-size:10px'});rC.textContent='Cod: '+(req.code||req._id);
+      rL.appendChild(rN);rL.appendChild(rC);
+      var rR=el('div',{s:'display:flex;gap:5px'});
+      var acc=el('button',{c:'btn bp',s:'font-size:11px;padding:5px 9px'});acc.textContent='Accepta';
+      acc.onclick=function(){
+        var fromUid=req._id;
+        RTDB.ref('friends/'+UID+'/'+fromUid).set({name:req.name,code:req.code||'',uid:fromUid,since:TODAY});
+        RTDB.ref('friends/'+fromUid+'/'+UID).set({name:S.profile.name,code:PCODE,uid:UID,since:TODAY});
+        RTDB.ref('notifs/'+fromUid).push({title:'Cerere acceptata!',body:S.profile.name+' ('+PCODE+') ti-a acceptat cererea de prietenie.',read:false,time:TODAY,type:'info'});
+        RTDB.ref('friendReqs/'+UID+'/'+fromUid).remove();
+      };
+      var dec=el('button',{c:'btn bg',s:'font-size:11px;padding:5px 9px'});dec.textContent='Refuza';
+      dec.onclick=function(){RTDB.ref('friendReqs/'+UID+'/'+req._id).remove()};
+      rR.appendChild(acc);rR.appendChild(dec);row.appendChild(rL);row.appendChild(rR);reqCard.appendChild(row);
+    });
+    reqCards.push(reqCard);
+  }
+  // Friends list
+  var listCard=el('div',{c:'card cp'});
+  var lH=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600;margin-bottom:8px'});lH.textContent='Prietenii mei ('+(S.fbFriends||[]).length+')';listCard.appendChild(lH);
+  if(!(S.fbFriends&&S.fbFriends.length)){var emp=el('div',{s:'color:#475569;font-size:11px;text-align:center;padding:12px 0'});emp.textContent='Niciun prieten inca. Trimite codul tau unui prieten!';listCard.appendChild(emp);}
+  (S.fbFriends||[]).forEach(function(fr){
+    var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #1e293b'});
+    var rL=el('div',null);
+    var rN=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600'});rN.textContent=fr.name||fr._id;
+    var rD=el('div',{s:'color:#64748b;font-size:10px'});rD.textContent='Cod: '+(fr.code||fr._id)+' \u00b7 Prieteni din: '+fr.since;
+    rL.appendChild(rN);rL.appendChild(rD);
+    var rm=el('button',{c:'btn bg',s:'font-size:11px;padding:5px 9px'});rm.textContent='Sterge';
+    rm.onclick=function(){
+      if(!confirm('Stergi prietenia cu '+fr.name+'?'))return;
+      RTDB.ref('friends/'+UID+'/'+fr._id).remove();
+      RTDB.ref('friends/'+fr._id+'/'+UID).remove();
+    };
+    row.appendChild(rL);row.appendChild(rm);listCard.appendChild(row);
   });
-  card.appendChild(list);
-  var addRow=el('div',{s:'display:flex;gap:6px;margin-top:8px'});
-  var addI=el('input',{c:'inp',ph:'Nume prieten',id:'friendName',s:'flex:1;font-size:11px'});
-  var addB=el('button',{c:'btn bp'});addB.textContent='Adaug\u0103';addB.onclick=function(){var v=document.getElementById('friendName').value.trim();if(!v)return;var id='f'+Date.now();S.friends=S.friends||[];S.friends.push({id:id,name:v,status:'acceptat',since:TODAY});DB.save('friends',S.friends);render()};addRow.appendChild(addI);addRow.appendChild(addB);card.appendChild(addRow);
-  return mkSec(h1,card)
+  // Add friend
+  var addCard=el('div',{c:'card cp'});
+  var aH=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600;margin-bottom:8px'});aH.textContent='Adauga prieten dupa cod';addCard.appendChild(aH);
+  var aRow=el('div',{s:'display:flex;gap:6px'});
+  var aI=el('input',{c:'inp',s:'flex:1;font-size:12px;text-transform:uppercase',ph:'Cod de 8 caractere (ex: A1B2C3D4)'});
+  var aBtn=el('button',{c:'btn bp'});aBtn.textContent='Trimite cerere';
+  aBtn.onclick=function(){
+    var code=aI.value.trim().toUpperCase();
+    if(code.length<6){notify('Cod invalid','Introdu un cod valid de 8 caractere.');return;}
+    if(code===PCODE){notify('Eroare','Nu te poti adauga pe tine insuti.');return;}
+    RTDB.ref('users').orderByChild('code').equalTo(code).get().then(function(snap){
+      if(!snap.exists()){notify('Cod negasit','Niciun utilizator cu codul '+code+'. Verifica codul si incearca din nou.');return;}
+      snap.forEach(function(child){
+        var tUid=child.key,tData=child.val();
+        if(S.fbFriends&&S.fbFriends.find(function(f){return f._id===tUid})){notify('Deja prieteni','Esti deja prieten cu '+tData.name+'.');return;}
+        RTDB.ref('friendReqs/'+tUid+'/'+UID).set({name:S.profile.name,code:PCODE,uid:UID,time:TODAY});
+        RTDB.ref('notifs/'+tUid).push({title:'Cerere de prietenie',body:S.profile.name+' ('+PCODE+') vrea sa fie prietenul tau!',read:false,time:TODAY,type:'friendReq',fromUid:UID});
+        notify('Cerere trimisa!','Cererea a fost trimisa catre '+tData.name+'.');
+        aI.value='';
+      });
+    }).catch(function(){notify('Eroare','Nu s-a putut conecta la server. Verifica conexiunea.');});
+  };
+  aRow.appendChild(aI);aRow.appendChild(aBtn);addCard.appendChild(aRow);
+  var args=[h1,myCodeCard].concat(reqCards).concat([listCard,addCard]);
+  return mkSec.apply(null,args)
 }
 function vNotif(){
-  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Notific\u0103ri';
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Notificari';
+  // Merge Firebase + local notifs, newest first
+  var allNotifs=[].concat(
+    (S.fbNotifs||[]).map(function(n){return Object.assign({src:'fb'},n)}),
+    (S.notifs||[]).map(function(n){return Object.assign({src:'local'},n)})
+  ).sort(function(a,b){return (b.time||'')>(a.time||'')?1:-1});
   var card=el('div',{c:'card cp'});
-  var list=el('div',{s:'display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto'});
-  (S.notifs||[]).slice().reverse().forEach(function(nf){
-    var row=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between;gap:8px'});
-    var l=el('div',null);var t=el('div',{s:'font-weight:700;color:#f1f5f9'});t.textContent=nf.title||'';var b=el('div',{s:'color:#94a3b8;font-size:12px'});b.textContent=nf.body||'';l.appendChild(t);l.appendChild(b);
-    var r=el('div',{s:'display:flex;flex-direction:column;gap:6px'});
-    var m=el('button',{c:'btn bg',s:'font-size:11px'});m.textContent=(nf.read?'Marcat':'Marcheaz\u0103 citit');m.onclick=function(){nf.read=true;DB.save('notifs',S.notifs);render()};
-    var d=el('button',{c:'btn',s:'font-size:11px'});d.textContent='\u0218terge';d.onclick=function(){S.notifs=S.notifs.filter(function(x){return x.id!==nf.id});DB.save('notifs',S.notifs);render()};r.appendChild(m);r.appendChild(d);
-    row.appendChild(l);row.appendChild(r);list.appendChild(row);
+  if(!allNotifs.length){var emp=el('div',{s:'color:#475569;font-size:11px;text-align:center;padding:16px 0'});emp.textContent='Nicio notificare inca.';card.appendChild(emp);}
+  allNotifs.forEach(function(nf){
+    var row=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #1e293b'+(nf.read?'':';background:rgba(74,222,128,.03);border-left:2px solid #4ade80;padding-left:8px')});
+    var rL=el('div',{s:'flex:1;min-width:0'});
+    var rT=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:'+(nf.read?'500':'700')});rT.textContent=nf.title||'';
+    var rB=el('div',{s:'color:#94a3b8;font-size:11px;margin-top:2px;line-height:1.4'});rB.textContent=nf.body||'';
+    var rD=el('div',{s:'color:#475569;font-size:10px;margin-top:3px'});rD.textContent=nf.time||'';
+    rL.appendChild(rT);if(nf.body)rL.appendChild(rB);rL.appendChild(rD);
+    var rR=el('div',{s:'display:flex;flex-direction:column;gap:4px;flex-shrink:0'});
+    if(!nf.read){
+      var mk=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 7px'});mk.textContent='Citit';
+      mk.onclick=function(){
+        if(nf.src==='fb')RTDB.ref('notifs/'+UID+'/'+nf._id+'/read').set(true);
+        else{nf.read=true;DB.save('notifs',S.notifs);}
+        render();
+      };
+      rR.appendChild(mk);
+    }
+    var del=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 7px'});del.textContent='\u00d7';
+    del.onclick=function(){
+      if(nf.src==='fb')RTDB.ref('notifs/'+UID+'/'+nf._id).remove();
+      else{S.notifs=S.notifs.filter(function(x){return x.id!==nf.id});DB.save('notifs',S.notifs);render();}
+    };
+    rR.appendChild(del);row.appendChild(rL);row.appendChild(rR);card.appendChild(row);
   });
-  var clear=el('button',{c:'btn bg',s:'margin-top:8px'});clear.textContent='\u0218terge tot';clear.onclick=function(){if(!confirm(t('remove_confirm')))return;S.notifs=[];DB.save('notifs',S.notifs);render()};card.appendChild(list);card.appendChild(clear);return mkSec(h1,card)
+  if(allNotifs.length){
+    var clr=el('button',{c:'btn bg',s:'margin-top:8px;font-size:11px'});clr.textContent='Sterge toate';
+    clr.onclick=function(){
+      if(!confirm('Stergi toate notificarile?'))return;
+      RTDB.ref('notifs/'+UID).remove();
+      S.notifs=[];DB.save('notifs',S.notifs);render();
+    };
+    card.appendChild(clr);
+  }
+  return mkSec(h1,card)
 }
 function vAch(){
   var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Realiz\u0103ri';
@@ -1173,11 +1288,14 @@ function vGang(){
     var codeI=el('input',{c:'inp',s:'font-size:12px;margin-bottom:6px;text-transform:uppercase',ph:'Cod gang (ex: WOLVES)',val:S.gangCode||'',inp:function(e2){S.gangCode=e2.target.value.toUpperCase()}});
     var nickI=el('input',{c:'inp',s:'font-size:12px;margin-bottom:9px',ph:'Porecla ta (ex: BigBoss)',val:S.gangNick||'',inp:function(e2){S.gangNick=e2.target.value}});
     var jBtn=el('button',{c:'btn bp bw',s:'font-size:11px'});jBtn.textContent='Intr\u0103 \u00een gang';jBtn.prepend(ic('users',11));
-    jBtn.onclick=async function(){
+    jBtn.onclick=function(){
       if(!S.gangCode||!S.gangNick)return;
       p.gangCode=S.gangCode;p.gangNick=S.gangNick;
       var md={nick:S.gangNick,name:p.name,xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};
-      DB.svSh('gang:'+S.gangCode+':'+p.name,md);DB.save('profile',p);render();
+      RTDB.ref('sh/gang/'+S.gangCode+'/'+UID).set(md).catch(function(){});
+      DB.save('profile',p);
+      setupGangListener(S.gangCode);
+      render();
     };
     joinCard.appendChild(jH);joinCard.appendChild(jNote);joinCard.appendChild(codeI);joinCard.appendChild(nickI);joinCard.appendChild(jBtn);
     var tipDiv=el('div',{s:'background:rgba(30,41,59,.4);border:1px solid #334155;border-radius:8px;padding:9px 11px;font-size:11px;color:#64748b'});
@@ -1191,7 +1309,7 @@ function vGang(){
   var myHNick=el('div',{s:'color:#64748b;font-size:11px'});myHNick.textContent='Porecla: '+p.gangNick;
   myHL.appendChild(myHN);myHL.appendChild(myHNick);
   var syncB=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});syncB.textContent='Sync';syncB.prepend(ic('refresh',10));
-  syncB.onclick=async function(){var md2={nick:p.gangNick,name:p.name,xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};DB.svSh('gang:'+p.gangCode+':'+p.name,md2);render()};
+  syncB.onclick=function(){var md2={nick:p.gangNick,name:p.name,xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};RTDB.ref('sh/gang/'+p.gangCode+'/'+UID).set(md2).catch(function(){});render()};
   myH.appendChild(myHL);myH.appendChild(syncB);myCard.appendChild(myH);
   var meRow=el('div',{s:'display:flex;align-items:center;gap:8px;background:#1e293b;border-radius:8px;padding:8px 11px'});
   var meE=el('span',{s:'font-size:18px'});meE.textContent=lvl.e;
@@ -1200,28 +1318,25 @@ function vGang(){
   var meW=el('div',{s:'color:#64748b;font-size:10px'});meW.textContent=S.workouts.length+' antrenamente \u00b7 '+fmt(p.weight,1)+'kg';
   meI.appendChild(meN);meI.appendChild(meX);meI.appendChild(meW);meRow.appendChild(meE);meRow.appendChild(meI);myCard.appendChild(meRow);
   var leaveB=el('button',{c:'btn bg bw',s:'font-size:10px;margin-top:9px'});leaveB.textContent='Ieire din gang';
-  leaveB.onclick=function(){p.gangCode='';p.gangNick='';DB.save('profile',p);render()};myCard.appendChild(leaveB);
+  leaveB.onclick=function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+UID).remove().catch(function(){});if(_gangUnsub){_gangUnsub();_gangUnsub=null;}S.gangMembers=[];p.gangCode='';p.gangNick='';DB.save('profile',p);render()};myCard.appendChild(leaveB);
   var membersDiv=el('div',{c:'card'});
-  var mbH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});mbH.textContent='Membri gang (se ncarc\u0103...)';membersDiv.appendChild(mbH);
-  DB.lsSh('gang:'+p.gangCode+':').then(function(keys){
-    var promises=keys.map(function(k){return DB.ldSh(k.replace('pq4:sh:',''))});
-    Promise.all(promises).then(function(members){
-      while(membersDiv.children.length>1)membersDiv.removeChild(membersDiv.lastChild);
-      var sorted=members.filter(Boolean).sort(function(a,b){return(b.xp||0)-(a.xp||0)});
-      sorted.forEach(function(m3,i){
-        var r=el('div',{s:'display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid #0f172a'});
-        var rRk=el('span',{s:'color:#64748b;font-family:ui-monospace,monospace;font-size:11px;width:18px;flex-shrink:0'});rRk.textContent='#'+(i+1);
-        var rE2=el('span',{s:'font-size:15px'});rE2.textContent=m3.emoji||'\uD83D\uDC64';
-        var rI=el('div',{s:'flex:1;min-width:0'});var rN2=el('div',{s:'color:#e2e8f0;font-size:11px;font-weight:500'});rN2.textContent=m3.nick||m3.name;
-        var rL2=el('div',{s:'color:#64748b;font-size:10px'});rL2.textContent=(m3.level||'')+(m3.workouts?' \u00b7 '+m3.workouts+' antren.':'');
-        rI.appendChild(rN2);rI.appendChild(rL2);
-        var rXP=el('div',{s:'text-align:right'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:12px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';
-        var rW3=el('div',{s:'color:#64748b;font-size:10px'});rW3.textContent=fmt(m3.weight,1)+'kg';
-        rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rE2);r.appendChild(rI);r.appendChild(rXP);membersDiv.appendChild(r);
-      });
-      if(!sorted.length){var em3=el('div',{s:'text-align:center;padding:18px;color:#475569;font-size:11px'});em3.textContent='Niciun alt membru sincronizat. Trimite codul: '+p.gangCode;membersDiv.appendChild(em3)}
+  var mbH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});mbH.textContent='Membri gang';membersDiv.appendChild(mbH);
+  var sorted=(S.gangMembers||[]).slice().sort(function(a,b){return(b.xp||0)-(a.xp||0)});
+  if(sorted.length){
+    sorted.forEach(function(m3,i){
+      var r=el('div',{s:'display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid #0f172a'});
+      var rRk=el('span',{s:'color:#64748b;font-family:ui-monospace,monospace;font-size:11px;width:18px;flex-shrink:0'});rRk.textContent='#'+(i+1);
+      var rE2=el('span',{s:'font-size:15px'});rE2.textContent=m3.emoji||'\uD83D\uDC64';
+      var rI=el('div',{s:'flex:1;min-width:0'});var rN2=el('div',{s:'color:#e2e8f0;font-size:11px;font-weight:500'});rN2.textContent=m3.nick||m3.name;
+      var rL2=el('div',{s:'color:#64748b;font-size:10px'});rL2.textContent=(m3.level||'')+(m3.workouts?' \u00b7 '+m3.workouts+' antren.':'');
+      rI.appendChild(rN2);rI.appendChild(rL2);
+      var rXP=el('div',{s:'text-align:right'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:12px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';
+      var rW3=el('div',{s:'color:#64748b;font-size:10px'});rW3.textContent=fmt(m3.weight,1)+'kg';
+      rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rE2);r.appendChild(rI);r.appendChild(rXP);membersDiv.appendChild(r);
     });
-  });
+  }else{
+    var em3=el('div',{s:'text-align:center;padding:18px;color:#475569;font-size:11px'});em3.textContent='Niciun alt membru. Trimite codul: '+p.gangCode;membersDiv.appendChild(em3);
+  }
   return mkSec(h1,myCard,membersDiv)
 }
 function vAI(){
@@ -1413,7 +1528,10 @@ DB.load('profile').then(function(p){
     S.profile=p;S.metrics=Calc.getM(p);
     Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs'].map(function(k){return DB.load(k)})).then(function(r){
       S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];
-      S.view='app';render();
+      S.view='app';
+      syncUserToFB();
+      if(p.gangCode)setupGangListener(p.gangCode);
+      render();
     }).catch(function(){S.view='app';render()});
   }else{S.view='onboarding';render();}
 }).catch(function(){S.view='onboarding';render()});
