@@ -150,7 +150,7 @@ var Calc={
   macros:function(kcal,lbm,gid,did){var pr={pA:2.4,p:2.2,r:2.2,m:1.6,mc:1.8,mb:1.8};var prot=Math.round(lbm*(pr[gid]||1.8));var fp=did==='keto'?.7:did==='lowCarb'?.4:.28;var fat=Math.max(Math.round(kcal*fp/9),Math.round(lbm*0.4));var carbs=Math.max(0,Math.round((kcal-prot*4-fat*9)/4));return{prot:prot,fat:fat,carbs:carbs}},
   wGoal:function(p){var g=Math.round((+p.weight)*33);if(+p.trainingFrequency>=4)g+=500;return Math.min(Math.max(g,1500),4000)},
   getM:function(p){
-    var h=Calc.nH(p.height),bf=p.bodyFat||Calc.navyBF(p.sex,h,p.neck,p.waist,p.hip);
+    var h=Calc.nH(p.height),_bfIn=(p.bodyFat!==undefined&&p.bodyFat!==null&&p.bodyFat!=='')?+p.bodyFat:null,bf=_bfIn!==null?_bfIn:Calc.navyBF(p.sex,h,p.neck,p.waist,p.hip);
     var bmi=(p.bmi!==undefined&&p.bmi!==null&&p.bmi!=='')?+p.bmi:Calc.bmi(p.weight,h),lbm=bf?+(p.weight*(1-bf/100)).toFixed(1):null;
     var ffmi=lbm?+(lbm/((h/100)*(h/100))).toFixed(1):null;
     if(ffmi&&(ffmi<5||ffmi>40))ffmi=null;
@@ -234,7 +234,7 @@ var S={
   wtIn:'',bfIn:'',pnote:'',
   sportType:'Alergare',sportDur:'',sportInt:5,sportNote:'',
   gangCode:'',gangNick:'',
-  ntab:'s',ptab:'g',wellTab:'a',chTab:'d',
+  ntab:'s',ptab:'g',wellTab:'a',chTab:'d',dropdown:null,
   chatIn:'',chatLoading:false,editing:false,
   lang:'ro',
   logoData:null
@@ -479,7 +479,7 @@ function vOB(){
   logoDiv.appendChild(logoBox);logoDiv.appendChild(logoTitle);logoDiv.appendChild(logoSub);logoDiv.appendChild(logoControls);
   oc.appendChild(logoDiv);oc.appendChild(prog);oc.appendChild(frm);wrap.appendChild(oc);return wrap
 }
-var NAV=[{id:'dash',l:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutritie & Jurnal',ic:'apple'},{id:'stat',l:'Hidratare & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',ic:'barbell'},{id:'chal',l:'Provocari',ic:'trophy'},{id:'ach',l:'Realizari',ic:'award'},{id:'gang',l:'Gang',ic:'users'},{id:'ai',l:'Antrenor AI',ic:'message-circle-2'},{id:'friends',l:'Prieteni',ic:'user-plus'},{id:'notif',l:'Notific\u0103ri',ic:'bell'},{id:'prof',l:'Profil',ic:'user'}];
+var NAV=[{id:'dash',l:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutritie & Jurnal',ic:'apple'},{id:'stat',l:'Hidratare & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',ic:'barbell'},{id:'chal',l:'Provocari',ic:'trophy'},{id:'ach',l:'Realizari',ic:'award'},{id:'gang',l:'Gang',ic:'users'},{id:'ai',l:'Antrenor AI',ic:'message-circle-2'},{id:'prof',l:'Profil',ic:'user'}];
 function vMain(){
   var p=S.profile,lvl=getLvl(),xp=getXP();
   var sbWrap=el('div',{c:'sb'});
@@ -502,14 +502,33 @@ function vMain(){
   var ucInfo=el('div',null);
   var ucName=el('div',{s:'color:#cbd5e1;font-size:11px;font-weight:500'});ucName.textContent=p.name;
   var ucXP=el('div',{s:'color:#64748b;font-size:10px'});ucXP.textContent=xp+' XP';
-  ucInfo.appendChild(ucName);ucInfo.appendChild(ucXP);uc.appendChild(em);uc.appendChild(ucInfo);sbF.appendChild(uc);sbWrap.appendChild(sbF);
+  ucInfo.appendChild(ucName);ucInfo.appendChild(ucXP);uc.appendChild(em);uc.appendChild(ucInfo);
+  var sbIcons=el('div',{s:'display:flex;gap:4px;margin-top:8px'});
+  [['bell','notif'],['user-plus','friends']].forEach(function(pair){
+    var hasNew=(pair[1]==='notif'&&(S.notif||[]).some(function(n){return !n.read}));
+    var btn=el('button',{s:'flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 4px;border-radius:7px;border:none;cursor:pointer;font-size:10px;font-family:inherit;position:relative;'+(S.dropdown===pair[1]?'background:#1e3a5f;color:#38bdf8':'background:#1e293b;color:#64748b'),click:function(e){e.stopPropagation();S.dropdown=(S.dropdown===pair[1]?null:pair[1]);render()}});
+    btn.appendChild(ic(pair[0],12));
+    if(hasNew){var dot=el('span',{s:'position:absolute;top:4px;right:6px;width:5px;height:5px;border-radius:50%;background:#f87171'});btn.appendChild(dot)}
+    sbIcons.appendChild(btn);
+  });
+  sbF.appendChild(sbIcons);sbWrap.appendChild(sbF);
   var mc=el('div',{c:'mc'});
-  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,ai:vAI,friends:vFriends,notif:vNotif,prof:vProf};
+  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,ai:vAI,prof:vProf};
   var fn=views[S.nav]||vDash;
   var content=null;
   try{content=fn();}catch(er){content=el('div',{s:'padding:20px;color:#f87171;font-size:12px;font-family:monospace'});content.textContent='Eroare: '+er.message;}
   mc.appendChild(content);
-  var wrap=el('div',{c:'wrap'});wrap.appendChild(sbWrap);wrap.appendChild(mc);return wrap
+  var wrap=el('div',{c:'wrap',s:'position:relative'});wrap.appendChild(sbWrap);wrap.appendChild(mc);
+  if(S.dropdown){
+    var ddView=S.dropdown==='notif'?vNotif:vFriends;
+    var ddContent=null;try{ddContent=ddView();}catch(e2){ddContent=el('div',null);ddContent.textContent='Eroare';}
+    var overlay=el('div',{s:'position:absolute;left:220px;bottom:0;width:340px;max-height:80vh;overflow-y:auto;background:#0f172a;border:1px solid #1e293b;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:100;padding:4px'});
+    var ddClose=el('button',{s:'position:absolute;top:8px;right:10px;background:none;border:none;cursor:pointer;color:#64748b;font-size:14px;line-height:1',click:function(){S.dropdown=null;render()}});ddClose.textContent='×';
+    overlay.appendChild(ddClose);overlay.appendChild(ddContent);
+    wrap.appendChild(overlay);
+    document.addEventListener('click',function _dd(){S.dropdown=null;render();document.removeEventListener('click',_dd)},{once:true});
+  }
+  return wrap
 }
 function mkSec(){var d=el('div',{c:'sec'});for(var i=0;i<arguments.length;i++)if(arguments[i])d.appendChild(arguments[i]);return d}
 function mkCard(cls){return el('div',{c:'card '+(cls||'')})}
@@ -636,14 +655,14 @@ function vNutr(){
   });calCard.appendChild(cg);
   if(m.macros){
     var sep=el('div',{s:'border-top:1px solid #1e293b;padding-top:9px'});
-    [['Proteine',m.macros.prot,m.macros.prot*4,'#38bdf8'],['Carbohidrati',m.macros.carbs,m.macros.carbs*4,'#fbbf24'],['Grasimi',m.macros.fat,m.macros.fat*9,'#a78bfa']].forEach(function(a){
-      var pct2=Math.round(a[2]/m.kcal*100);
+    [['Proteine',Math.round(tots.p),m.macros.prot,'#38bdf8'],['Carbohidrati',Math.round(tots.h),m.macros.carbs,'#fbbf24'],['Grasimi',Math.round(tots.f),m.macros.fat,'#a78bfa']].forEach(function(a){
+      var pct2=a[2]>0?Math.min(100,Math.round(a[1]/a[2]*100)):0;
       var r=el('div',{s:'display:flex;align-items:center;gap:9px;margin-bottom:7px'});
-      var vDiv=el('div',{s:'width:42px;text-align:right;flex-shrink:0'});
-      var vSpan=el('span',{s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:'+a[3]});vSpan.textContent=a[1]+'g';vDiv.appendChild(vSpan);
+      var vDiv=el('div',{s:'width:56px;text-align:right;flex-shrink:0'});
+      var vSpan=el('span',{s:'font-size:11px;font-weight:700;font-family:ui-monospace,monospace;color:'+a[3]});vSpan.textContent=a[1]+'/'+a[2]+'g';vDiv.appendChild(vSpan);
       var mid=el('div',{s:'flex:1'});
       var top2=el('div',{s:'display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:2px'});
-      var tl2=el('span',null);tl2.textContent=a[0];var tr3=el('span',null);tr3.textContent=pct2+'%';
+      var tl2=el('span',null);tl2.textContent=a[0];var tr3=el('span',null);tr3.textContent=(pct2>0?pct2+'%':'');
       top2.appendChild(tl2);top2.appendChild(tr3);mid.appendChild(top2);
       var bar2=el('div',{c:'bar'});var bf2=el('div',{c:'bf',s:'background:'+a[3]+';width:'+pct2+'%'});bar2.appendChild(bf2);mid.appendChild(bar2);
       r.appendChild(vDiv);r.appendChild(mid);sep.appendChild(r);
