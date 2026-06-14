@@ -1583,7 +1583,7 @@ function vProf(){
     pc.appendChild(svBtn);
   }else{
     var grid=el('div',{c:'g2',s:'gap:6px'});
-    [{l:'Obiectiv',v:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label},{l:'Diet\u0103',v:(DIETS.filter(function(d){return d.id===p.diet})[0]||{label:p.diet}).label},{l:'\u021Atint\u0103 greutate',v:p.targetWeight+'kg'},{l:'Antrenamente',v:p.trainingFrequency+'x/s\u0103pt.'},{l:'Somn',v:p.sleepHours+'h/noapte'},{l:bom('Echip\u0103','Gang'),v:p.gangCode||'\u2014'}].forEach(function(r){
+    [{l:'Obiectiv',v:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label},{l:'Diet\u0103',v:(DIETS.filter(function(d){return d.id===p.diet})[0]||{label:p.diet}).label},{l:'\u021Aint\u0103 greutate',v:p.targetWeight+'kg'},{l:'Antrenamente',v:p.trainingFrequency+'x/s\u0103pt.'},{l:'Somn',v:p.sleepHours+'h/noapte'},{l:bom('Echip\u0103','Gang'),v:p.gangCode||'\u2014'}].forEach(function(r){
       var d=el('div',{s:'background:var(--bg2);border-radius:7px;padding:7px 10px'});
       var dL=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:1px'});dL.textContent=r.l;
       var dV=el('div',{s:'color:var(--tx2b);font-size:11px;font-weight:500'});dV.textContent=r.v;
@@ -1591,7 +1591,7 @@ function vProf(){
     });pc.appendChild(grid);
   }
   var mc=el('div',{c:'card'});var mcH=el('div',{s:'padding:6px 11px;border-bottom:1px solid var(--bd);color:var(--tx3);font-size:10px;font-weight:500'});mcH.textContent=bom('Metrici calculate','Numerele tale, boss');mc.appendChild(mcH);
-  [{l:'BMR',v:m.bmr+' kcal',n:p.bodyFat?'Katch-McArdle':'Mifflin-St Jeor'},{l:'TDEE',v:m.tdee+' kcal',n:''},{l:'\u021Atint\u0103 calorii',v:m.kcal+' kcal',n:''},{l:'Gr\u0103sime corp.',v:m.bf?fmt(m.bf,1)+'%':'\u2014',n:'\u00b14% vs DEXA'},{l:'Mas\u0103 slab\u0103',v:m.lbm?fmt(m.lbm,1)+'kg':'\u2014',n:''},{l:'FFMI',v:m.ffmi?fmt(m.ffmi):'\u2014',n:''},{l:'IMC',v:m.bmi?fmt(m.bmi):'\u2014',n:''}].forEach(function(r){
+  [{l:'BMR',v:m.bmr+' kcal',n:p.bodyFat?'Katch-McArdle':'Mifflin-St Jeor'},{l:'TDEE',v:m.tdee+' kcal',n:''},{l:'\u021Aint\u0103 calorii',v:m.kcal+' kcal',n:''},{l:'Gr\u0103sime corp.',v:m.bf?fmt(m.bf,1)+'%':'\u2014',n:'\u00b14% vs DEXA'},{l:'Mas\u0103 slab\u0103',v:m.lbm?fmt(m.lbm,1)+'kg':'\u2014',n:''},{l:'FFMI',v:m.ffmi?fmt(m.ffmi):'\u2014',n:''},{l:'IMC',v:m.bmi?fmt(m.bmi):'\u2014',n:''}].forEach(function(r){
     var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:5px 11px;border-bottom:1px solid var(--bg1)'});
     var rL=el('div',null);var rLN=el('span',{s:'color:var(--tx3);font-size:11px'});rLN.textContent=r.l;rL.appendChild(rLN);
     if(r.n){var rLN2=el('span',{s:'color:var(--tx5);font-size:10px;margin-left:5px'});rLN2.textContent='\u00b7 '+r.n;rL.appendChild(rLN2)}
