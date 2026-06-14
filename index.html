@@ -139,7 +139,7 @@ var ACH_DEF=[
   {id:'wk50',icon:'\uD83C\uDFC6',title:'Warrior',desc:'50 antrenamente',xp:750,cond:function(s){return s.workouts.length>=50}},
   {id:'m1',icon:'\uD83D\uDCCF',title:'Masurat',desc:'Prima masuratoare',xp:75,cond:function(s){return s.measurements.length>=1}},
   {id:'m10',icon:'\uD83D\uDD2C',title:'Analitic',desc:'10 seturi masuratori',xp:300,cond:function(s){return s.measurements.length>=10}},
-  {id:'g1',icon:'\uD83E\uDD1D',title:bom('Echip\u0103','Gang'),desc:bom('Ai intrat \u00EEntr-o echip\u0103','E\u0219ti \u00EEn Gang, boss!'),xp:100,cond:function(s){return !!(s.profile&&s.profile.gangCode)}},
+  {id:'g1',icon:'\uD83E\uDD1D',title:'Echip\u0103 / Gang',desc:'Ai intrat \u00EEntr-o echip\u0103',xp:100,cond:function(s){return !!(s.profile&&s.profile.gangCode)}},
   {id:'ch1',icon:'\uD83C\uDFAF',title:'Provocatorul',desc:'Prima provocare completata',xp:100,cond:function(s){return cntChals(s)>=1}},
   {id:'ch10',icon:'\uD83C\uDFC5',title:'Campionul',desc:'10 provocari completate',xp:500,cond:function(s){return cntChals(s)>=10}},
   {id:'g25',icon:'\uD83C\uDF1F',title:'25% din obiectiv',desc:'Quart din drum parcurs',xp:150,cond:function(s){return gPct(s)>=25}},
