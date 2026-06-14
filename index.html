@@ -1,0 +1,1304 @@
+﻿<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dl. Muie Tate — Fitness Tracker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4AA;</text></svg>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020617;color:#f1f5f9;font-family:'Noto Sans',Segoe UI,Roboto,ui-sans-serif,system-ui,sans-serif;font-size:14px}
+#app{min-height:840px;background:#020617}
+.wrap{display:flex;height:840px;overflow:hidden}
+.sb{width:172px;flex-shrink:0;background:#020617;border-right:1px solid #0f172a;display:flex;flex-direction:column}
+.sb-h{padding:11px 10px;border-bottom:1px solid #0f172a;display:flex;align-items:center;gap:7px}
+.lb{width:25px;height:25px;border-radius:7px;background:#14b8a6;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-n{flex:1;padding:5px 4px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;cursor:pointer;border:none;background:none;color:#64748b;font-size:11px;width:100%;text-align:left;font-family:inherit}
+.ni:hover{background:#0f172a;color:#94a3b8}
+.ni.act{background:rgba(20,184,166,.1);color:#2dd4bf}
+.sb-f{padding:5px 4px;border-top:1px solid #0f172a}
+.uc{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;cursor:pointer}
+.uc:hover{background:#0f172a}
+.mc{flex:1;overflow-y:auto;min-width:0}
+.sec{padding:14px;display:flex;flex-direction:column;gap:10px}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:11px;overflow:hidden}
+.cp{padding:13px}
+.inp{width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:7px 11px;color:#f1f5f9;font-size:12px;outline:none;font-family:inherit}
+.inp:focus{border-color:#14b8a6}
+.inp::placeholder{color:#475569}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 13px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit}
+.bp{background:#14b8a6;color:#fff}.bp:hover{background:#2dd4bf}.bp:disabled{opacity:.3;cursor:not-allowed}
+.bg{background:none;border:1px solid #334155;color:#94a3b8}.bg:hover{border-color:#475569;color:#f1f5f9}
+.bw{width:100%}
+.ob2{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:7px 11px;cursor:pointer;text-align:left;color:#cbd5e1;font-size:12px;font-weight:500;font-family:inherit;width:100%}
+.ob2.sel{border-color:#14b8a6;background:rgba(20,184,166,.07);color:#2dd4bf}
+.bar{height:5px;background:#1e293b;border-radius:99px;overflow:hidden}
+.bf{height:100%;border-radius:99px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.iw{position:relative}
+.iu{position:absolute;right:9px;top:50%;transform:translateY(-50%);color:#64748b;font-size:10px;pointer-events:none}
+.ob{min-height:840px;display:flex;align-items:center;justify-content:center;padding:14px}
+.oc{width:100%;max-width:410px}
+.opr{display:flex;gap:3px;margin-bottom:13px}
+.opb{height:3px;flex:1;border-radius:99px;background:#1e293b}
+.opb.dn{background:#2dd4bf}
+.ofrm{background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:18px}
+.tg{display:flex;background:#1e293b;border-radius:7px;padding:2px;gap:2px}
+.tb{padding:4px 10px;border-radius:5px;border:none;background:none;cursor:pointer;font-size:11px;font-weight:500;font-family:inherit;color:#64748b}
+.tb.ac{background:#334155;color:#f1f5f9}
+.ach{border-radius:10px;padding:11px;display:flex;align-items:flex-start;gap:9px;border:1px solid}
+.ach.lk{border-color:#1e293b;background:#0f172a;opacity:.5}
+.ach.ul{border-color:#fbbf24;background:rgba(251,191,36,.06)}
+.chal{border-radius:9px;padding:10px;border:1px solid #1e293b;background:#0f172a}
+.chal.done{border-color:#34d399;background:rgba(52,211,153,.04)}
+.fi{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:6px;cursor:pointer}
+.fi:hover{border-color:#475569}
+.cm{display:flex;margin-bottom:7px}
+.cm.u{justify-content:flex-end}
+.cb{max-width:84%;padding:8px 11px;border-radius:11px;font-size:12px;line-height:1.5;white-space:pre-wrap}
+.cb.u{background:#14b8a6;color:#fff;border-bottom-right-radius:2px}
+.cb.a{background:#0f172a;border:1px solid #1e293b;color:#cbd5e1;border-bottom-left-radius:2px}
+.ci{flex:1;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:8px 11px;color:#f1f5f9;font-size:12px;outline:none;font-family:inherit}
+.ci:focus{border-color:#14b8a6}
+.dot{width:6px;height:6px;border-radius:50%;background:#2dd4bf;display:inline-block;animation:bn 1s infinite ease}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+.wqb{padding:5px 9px;border-radius:6px;border:1px solid #334155;background:#1e293b;cursor:pointer;font-size:10px;font-family:inherit;color:#38bdf8;font-weight:500}
+.wqb:hover{border-color:#38bdf8}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes bn{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1.2);opacity:1}}
+</style>
+<div id="app"><div style="display:flex;align-items:center;justify-content:center;min-height:840px;background:#020617;color:#64748b;font-size:12px">Dl. Muie \u021a\u00e2\u021be se nc\u0103rc\u0103...</div></div>
+<script>
+window.addEventListener('error',function(ev){
+  var r=document.getElementById('app');
+  if(r){r.innerHTML='<div style="padding:22px;color:#f87171;font-family:monospace;font-size:12px;background:#020617;min-height:200px"><b>Eroare JS</b><br><br>'+String(ev.message)+'<br>Linia: '+String(ev.lineno)+'</div>';}
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+'use strict';
+var TODAY=new Date().toISOString().split('T')[0];
+var ACT=[{id:'sedentar',label:'Sedentar',sub:'Birou, mișcare minimă',mult:1.2},{id:'usor',label:'Ușor activ',sub:'1-3x/săpt.',mult:1.375},{id:'moderat',label:'Moderat activ',sub:'3-5x/săpt.',mult:1.55},{id:'activ',label:'Foarte activ',sub:'6-7x/săpt.',mult:1.725},{id:'extrem',label:'Extrem activ',sub:'Muncă fizică + training zilnic',mult:1.9}];
+var GOALS=[{id:'pA',label:'Pierdere agresivă (-650 kcal)',delta:-650},{id:'p',label:'Pierdere de grăsime (-400 kcal)',delta:-400},{id:'r',label:'Recompoziție (-100 kcal)',delta:-100},{id:'m',label:'Mentenanță',delta:0},{id:'mc',label:'Masă curată (+250 kcal)',delta:250},{id:'mb',label:'Masă / Bulking (+450 kcal)',delta:450}];
+var DIETS=[{id:'omnivor',label:'Omnivor'},{id:'vegetarian',label:'Vegetarian'},{id:'vegan',label:'Vegan'},{id:'keto',label:'Ketogenic'},{id:'lowCarb',label:'Low Carb'},{id:'mediteranean',label:'Mediteranean'}];
+var MEALS=[{id:'md',label:'Mic dejun'},{id:'pr',label:'Prânz'},{id:'cn',label:'Cină'},{id:'gs',label:'Gustări'}];
+var SPORTS=['Alergare','Ciclism','Înot','Sala (forță)','Yoga','CrossFit','Fotbal','Baschet','Tenis','Volei','Box','Maraton','HIIT','Pilates','Drumeție','Dans','Schi','Karate'];
+var FOODS=[
+{id:1,n:'Piept de pui',cat:'Proteine',s:100,c:165,p:31,f:3.6,h:0,u:'g'},{id:2,n:'Somon',cat:'Proteine',s:100,c:208,p:20,f:13,h:0,u:'g'},{id:3,n:'Piept de curcan',cat:'Proteine',s:100,c:135,p:30,f:1,h:0,u:'g'},{id:4,n:'Ton (conservă)',cat:'Proteine',s:100,c:116,p:26,f:1,h:0,u:'g'},{id:5,n:'Macrou',cat:'Proteine',s:100,c:205,p:19,f:14,h:0,u:'g'},{id:6,n:'Sardine',cat:'Proteine',s:100,c:208,p:24.6,f:11.5,h:0,u:'g'},{id:7,n:'Creveti',cat:'Proteine',s:100,c:99,p:24,f:0.3,h:0,u:'g'},{id:8,n:'Carne vită 90%',cat:'Proteine',s:100,c:215,p:26,f:12,h:0,u:'g'},{id:9,n:'Ou întreg',cat:'Proteine',s:50,c:78,p:6,f:5,h:0.6,u:'g'},{id:10,n:'Albușuri',cat:'Proteine',s:100,c:52,p:11,f:0.2,h:0.7,u:'g'},
+{id:11,n:'Porc pulpă slabă',cat:'Proteine',s:100,c:180,p:26,f:8,h:0,u:'g'},{id:12,n:'Mici (grătar)',cat:'Românești',s:100,c:230,p:15,f:18,h:0,u:'g'},{id:13,n:'Iaurt grecesc 0%',cat:'Lactate',s:170,c:100,p:17,f:0.7,h:6,u:'g'},{id:14,n:'Iaurt natural',cat:'Lactate',s:150,c:90,p:5,f:5,h:6,u:'g'},{id:15,n:'Brânză de vaci',cat:'Lactate',s:100,c:98,p:11,f:4.3,h:3.4,u:'g'},{id:16,n:'Telemea',cat:'Lactate',s:30,c:75,p:5,f:6,h:0.5,u:'g'},{id:17,n:'Lapte integral',cat:'Lactate',s:240,c:146,p:7.7,f:7.9,h:11.5,u:'ml'},{id:18,n:'Chefir',cat:'Lactate',s:240,c:100,p:8,f:2.5,h:9,u:'ml'},{id:19,n:'Mozzarella',cat:'Lactate',s:28,c:85,p:6.3,f:6.3,h:0.6,u:'g'},{id:20,n:'Caș proaspăt',cat:'Lactate',s:100,c:120,p:10,f:8,h:2,u:'g'},
+{id:21,n:'Tofu ferm',cat:'Prot.veg.',s:100,c:76,p:8,f:4,h:2,u:'g'},{id:22,n:'Tempeh',cat:'Prot.veg.',s:100,c:193,p:19,f:11,h:9,u:'g'},{id:23,n:'Linte fiartă',cat:'Prot.veg.',s:150,c:174,p:13.5,f:0.6,h:30,u:'g'},{id:24,n:'Fasole neagră',cat:'Prot.veg.',s:150,c:198,p:13.4,f:0.8,h:36,u:'g'},{id:25,n:'Năut fiert',cat:'Prot.veg.',s:150,c:218,p:11.9,f:3.6,h:36,u:'g'},{id:26,n:'Edamame',cat:'Prot.veg.',s:100,c:121,p:11,f:5,h:9,u:'g'},{id:27,n:'Proteină zer',cat:'Suplim.',s:30,c:120,p:24,f:2,h:4,u:'g'},{id:28,n:'Shake proteic',cat:'Suplim.',s:300,c:150,p:28,f:2.5,h:6,u:'ml'},{id:29,n:'Baton proteic',cat:'Suplim.',s:60,c:220,p:20,f:8,h:22,u:'g'},{id:30,n:'Creatină (5g)',cat:'Suplim.',s:5,c:0,p:0,f:0,h:0,u:'g'},
+{id:31,n:'Fulgi ovăz uscat',cat:'Carbo.',s:80,c:311,p:13.6,f:5.6,h:53,u:'g'},{id:32,n:'Orez alb fiert',cat:'Carbo.',s:150,c:195,p:4,f:0.4,h:42,u:'g'},{id:33,n:'Orez brun fiert',cat:'Carbo.',s:150,c:185,p:4,f:1.5,h:39,u:'g'},{id:34,n:'Quinoa fiartă',cat:'Carbo.',s:150,c:180,p:6.6,f:2.9,h:32,u:'g'},{id:35,n:'Cartofi dulci',cat:'Carbo.',s:150,c:129,p:2.4,f:0.2,h:30,u:'g'},{id:36,n:'Cartofi albi fierți',cat:'Carbo.',s:150,c:104,p:2.4,f:0.1,h:24,u:'g'},{id:37,n:'Paste integrale',cat:'Carbo.',s:150,c:215,p:8,f:1.5,h:42,u:'g'},{id:38,n:'Paste albe',cat:'Carbo.',s:150,c:237,p:9,f:1.4,h:47,u:'g'},{id:39,n:'Pâine integrală',cat:'Carbo.',s:30,c:79,p:4,f:1,h:15,u:'g'},{id:40,n:'Pâine albă',cat:'Carbo.',s:30,c:80,p:2.5,f:0.5,h:16,u:'g'},
+{id:41,n:'Mămăligă fiartă',cat:'Carbo.',s:150,c:135,p:3.7,f:0.7,h:30,u:'g'},{id:42,n:'Porumb fiert',cat:'Carbo.',s:100,c:96,p:3.4,f:1.5,h:21,u:'g'},{id:43,n:'Banană',cat:'Fructe',s:118,c:105,p:1.3,f:0.4,h:27,u:'g'},{id:44,n:'Mere',cat:'Fructe',s:182,c:95,p:0.5,f:0.3,h:25,u:'g'},{id:45,n:'Afine',cat:'Fructe',s:100,c:57,p:0.7,f:0.3,h:14,u:'g'},{id:46,n:'Căpșuni',cat:'Fructe',s:100,c:32,p:0.7,f:0.3,h:8,u:'g'},{id:47,n:'Portocale',cat:'Fructe',s:130,c:62,p:1.2,f:0.2,h:15,u:'g'},{id:48,n:'Kiwi',cat:'Fructe',s:100,c:61,p:1.1,f:0.5,h:15,u:'g'},{id:49,n:'Mango',cat:'Fructe',s:100,c:60,p:0.8,f:0.4,h:15,u:'g'},{id:50,n:'Pepene roșu',cat:'Fructe',s:200,c:60,p:1.2,f:0.4,h:15,u:'g'},
+{id:51,n:'Broccoli',cat:'Legume',s:100,c:34,p:2.8,f:0.4,h:7,u:'g'},{id:52,n:'Spanac',cat:'Legume',s:100,c:23,p:2.9,f:0.4,h:3.6,u:'g'},{id:53,n:'Salată mixtă',cat:'Legume',s:100,c:15,p:1.5,f:0.2,h:2.9,u:'g'},{id:54,n:'Ardei gras',cat:'Legume',s:100,c:31,p:1,f:0.3,h:7,u:'g'},{id:55,n:'Conopidă',cat:'Legume',s:100,c:25,p:1.9,f:0.3,h:5,u:'g'},{id:56,n:'Morcov',cat:'Legume',s:100,c:41,p:0.9,f:0.2,h:10,u:'g'},{id:57,n:'Roșii cherry',cat:'Legume',s:100,c:18,p:0.9,f:0.2,h:3.9,u:'g'},{id:58,n:'Castraveți',cat:'Legume',s:100,c:15,p:0.7,f:0.1,h:3.6,u:'g'},{id:59,n:'Dovlecel',cat:'Legume',s:100,c:17,p:1.2,f:0.3,h:3.1,u:'g'},{id:60,n:'Ciuperci',cat:'Legume',s:100,c:22,p:3.1,f:0.3,h:3.3,u:'g'},
+{id:61,n:'Varză albă',cat:'Legume',s:100,c:25,p:1.3,f:0.1,h:6,u:'g'},{id:62,n:'Fasole verde',cat:'Legume',s:100,c:31,p:1.8,f:0.1,h:7,u:'g'},{id:63,n:'Avocado',cat:'Grăsimi',s:150,c:240,p:3,f:22,h:13,u:'g'},{id:64,n:'Ulei de măsline',cat:'Grăsimi',s:14,c:120,p:0,f:14,h:0,u:'g'},{id:65,n:'Migdale',cat:'Grăsimi',s:28,c:164,p:6,f:14,h:6,u:'g'},{id:66,n:'Nuci',cat:'Grăsimi',s:28,c:185,p:4.3,f:18.5,h:4,u:'g'},{id:67,n:'Unt de arahide',cat:'Grăsimi',s:32,c:190,p:8,f:16,h:7,u:'g'},{id:68,n:'Semințe chia',cat:'Grăsimi',s:28,c:138,p:4.7,f:8.7,h:12,u:'g'},{id:69,n:'Semințe dovleac',cat:'Grăsimi',s:28,c:151,p:7,f:13,h:5,u:'g'},{id:70,n:'Unt',cat:'Grăsimi',s:14,c:100,p:0.1,f:11,h:0,u:'g'},
+{id:71,n:'Sarmale (1 buc.)',cat:'Românești',s:120,c:216,p:9.6,f:12,h:18,u:'g'},{id:72,n:'Ciorbă burtă (bol)',cat:'Românești',s:300,c:180,p:12,f:10,h:8,u:'ml'},{id:73,n:'Tochitura',cat:'Românești',s:150,c:350,p:22,f:26,h:3,u:'g'},{id:74,n:'Fasole bătută',cat:'Românești',s:100,c:120,p:6,f:3,h:16,u:'g'},{id:75,n:'Cabanos',cat:'Românești',s:50,c:190,p:8,f:17,h:0,u:'g'},{id:76,n:'Mămăligă cu brânză',cat:'Românești',s:200,c:280,p:10,f:12,h:33,u:'g'},{id:77,n:'Ciorbă pui (bol)',cat:'Românești',s:300,c:120,p:10,f:4,h:10,u:'ml'},{id:78,n:'Plăcintă brânză',cat:'Românești',s:100,c:280,p:8,f:14,h:32,u:'g'},{id:79,n:'Drob de miel',cat:'Românești',s:100,c:280,p:14,f:22,h:3,u:'g'},{id:80,n:'Cozonac (felie)',cat:'Românești',s:60,c:220,p:4,f:8,h:33,u:'g'},
+{id:81,n:'Pizza Margherita f.',cat:'Fast Food',s:100,c:266,p:11,f:10,h:33,u:'g'},{id:82,n:'Burger simplu',cat:'Fast Food',s:150,c:370,p:21,f:18,h:30,u:'g'},{id:83,n:'Cartofi prăjiți',cat:'Fast Food',s:100,c:312,p:3.4,f:15,h:41,u:'g'},{id:84,n:'Kebab (pită)',cat:'Fast Food',s:250,c:500,p:30,f:22,h:40,u:'g'},{id:85,n:'Cafea neagră',cat:'Băuturi',s:240,c:5,p:0.3,f:0,h:1,u:'ml'},{id:86,n:'Suc de portocale',cat:'Băuturi',s:240,c:112,p:1.7,f:0.5,h:26,u:'ml'},{id:87,n:'Lapte de soia',cat:'Băuturi',s:240,c:80,p:7,f:4,h:4,u:'ml'},{id:88,n:'Lapte de migdale',cat:'Băuturi',s:240,c:40,p:1.5,f:3,h:3.5,u:'ml'},{id:89,n:'Bere (0.5L)',cat:'Băuturi',s:500,c:215,p:1.5,f:0,h:17,u:'ml'},{id:90,n:'Vin roșu (pahar)',cat:'Băuturi',s:150,c:125,p:0.1,f:0,h:3.8,u:'ml'},
+{id:91,n:'Ciocolată neagră 85%',cat:'Gustări',s:28,c:170,p:2.2,f:14,h:13,u:'g'},{id:92,n:'Granola',cat:'Gustări',s:40,c:196,p:4.5,f:8,h:28,u:'g'},{id:93,n:'Hummus',cat:'Gustări',s:60,c:140,p:4,f:12,h:8,u:'g'},{id:94,n:'Iaurt cu fructe',cat:'Gustări',s:125,c:120,p:3.5,f:2.5,h:21,u:'g'},{id:95,n:'Corn Flakes',cat:'Gustări',s:30,c:113,p:2.4,f:0.2,h:25,u:'g'},{id:96,n:'Covrigi',cat:'Gustări',s:50,c:184,p:5,f:1.5,h:38,u:'g'},{id:97,n:'Popcorn simplu',cat:'Gustări',s:30,c:110,p:3.6,f:1.3,h:22,u:'g'},{id:98,n:'Ananas',cat:'Fructe',s:100,c:50,p:0.5,f:0.1,h:13,u:'g'},{id:99,n:'Struguri',cat:'Fructe',s:100,c:67,p:0.6,f:0.4,h:17,u:'g'},{id:100,n:'Semințe de in',cat:'Grăsimi',s:15,c:80,p:2.7,f:6,h:4.4,u:'g'}
+];
+var ACH_DEF=[
+  {id:'ff',icon:'\uD83C\uDF4E',title:'Prima masă',desc:'Prima înregistrare de aliment',xp:50,cond:function(s){return s.food.length>=1}},
+  {id:'f10',icon:'\uD83C\uDF7D\uFE0F',title:'Mâncătorul conștient',desc:'10 înregistrări aliment',xp:100,cond:function(s){return s.food.length>=10}},
+  {id:'w1',icon:'\uD83D\uDCA7',title:'Prima hidratare',desc:'Primul log de apă',xp:50,cond:function(s){return s.waterLog.length>=1}},
+  {id:'w7',icon:'\uD83C\uDF0A',title:'Sursa de apă',desc:'7 zile hidratare completă',xp:200,cond:function(s){return cntHyd(s)>=7}},
+  {id:'sl1',icon:'\uD83C\uDF19',title:'Dormitor',desc:'Prima înregistrare somn',xp:50,cond:function(s){return s.sleepLog.length>=1}},
+  {id:'sl7',icon:'\uD83D\uDE34',title:'Dormitor de fier',desc:'7 nopți calitate ≥4',xp:250,cond:function(s){return s.sleepLog.filter(function(e){return e.q>=4}).length>=7}},
+  {id:'wp5',icon:'\u2696\uFE0F',title:'Cântarul fidel',desc:'5 înregistrări greutate',xp:100,cond:function(s){return s.progress.length>=5}},
+  {id:'wp30',icon:'\uD83D\uDCC8',title:'30 zile tracking',desc:'30 înregistrări greutate',xp:400,cond:function(s){return s.progress.length>=30}},
+  {id:'wk1',icon:'\uD83C\uDFCB\uFE0F',title:'Prima sesiune',desc:'Primul antrenament',xp:75,cond:function(s){return s.workouts.length>=1}},
+  {id:'wk10',icon:'\uD83D\uDCAA',title:'Atletic',desc:'10 antrenamente',xp:200,cond:function(s){return s.workouts.length>=10}},
+  {id:'wk50',icon:'\uD83C\uDFC6',title:'Warrior',desc:'50 antrenamente',xp:750,cond:function(s){return s.workouts.length>=50}},
+  {id:'m1',icon:'\uD83D\uDCCF',title:'Măsurat',desc:'Prima măsurătoare',xp:75,cond:function(s){return s.measurements.length>=1}},
+  {id:'m10',icon:'\uD83D\uDD2C',title:'Analitic',desc:'10 seturi măsurători',xp:300,cond:function(s){return s.measurements.length>=10}},
+  {id:'g1',icon:'\uD83E\uDD1D',title:'Gang Member',desc:'Ai intrat într-un gang',xp:100,cond:function(s){return !!(s.profile&&s.profile.gangCode)}},
+  {id:'ch1',icon:'\uD83C\uDFAF',title:'Provocatorul',desc:'Prima provocare completată',xp:100,cond:function(s){return cntChals(s)>=1}},
+  {id:'ch10',icon:'\uD83C\uDFC5',title:'Campionul',desc:'10 provocări completate',xp:500,cond:function(s){return cntChals(s)>=10}},
+  {id:'g25',icon:'\uD83C\uDF1F',title:'25% din obiectiv',desc:'Quart din drum parcurs',xp:150,cond:function(s){return gPct(s)>=25}},
+  {id:'g50',icon:'\u2B50',title:'Jumătatea drumului',desc:'50% din obiectiv atins',xp:300,cond:function(s){return gPct(s)>=50}},
+  {id:'g100',icon:'\uD83D\uDC51',title:'OBIECTIV ATINS!',desc:'Ai atins greutatea \u021Bint\u0103!',xp:1000,cond:function(s){return gPct(s)>=100}},
+  {id:'photo1',icon:'\uD83D\uDCF8',title:'Fotograf',desc:'Prima poză de progres marcată',xp:75,cond:function(s){return s.photos.length>=1}}
+];
+var CHALS=[
+  {id:'cd1',type:'d',cat:'nutriție',icon:'\uD83D\uDCA7',title:'Hidrat azi',desc:'Bea 2L de apă',xp:30,check:function(s){return watToday(s)>=2000}},
+  {id:'cd2',type:'d',cat:'nutriție',icon:'\uD83C\uDF7D\uFE0F',title:'3 mese azi',desc:'Înregistrează micul dejun, prânzul și cina',xp:40,check:function(s){var dl=s.food.filter(function(e){return e.date===TODAY});return['md','pr','cn'].every(function(m){return dl.some(function(e){return e.meal===m})})}},
+  {id:'cd3',type:'d',cat:'fitness',icon:'\uD83C\uDFC3',title:'Antrenament azi',desc:'Înregistrează un antrenament',xp:50,check:function(s){return s.workouts.some(function(w){return w.date===TODAY})}},
+  {id:'cd4',type:'d',cat:'wellness',icon:'\uD83C\uDF19',title:'Somn bun',desc:'≥7h somn cu calitate ≥4',xp:35,check:function(s){var l=s.sleepLog[s.sleepLog.length-1];return !!(l&&l.hours>=7&&l.q>=4)}},
+  {id:'cw1',type:'w',cat:'fitness',icon:'\uD83D\uDCAA',title:'5 antrenamente',desc:'5 antrenamente săptămâna asta',xp:150,check:function(s){var m=getMonday();return s.workouts.filter(function(w){return w.date>=m}).length>=5}},
+  {id:'cw2',type:'w',cat:'nutriție',icon:'\uD83D\uDCCA',title:'Jurnal 5 zile',desc:'Înregistrează mâncare 5 zile',xp:120,check:function(s){var m=getMonday();var days=new Set(s.food.filter(function(e){return e.date>=m}).map(function(e){return e.date}));return days.size>=5}},
+  {id:'cw3',type:'w',cat:'wellness',icon:'\uD83D\uDCA7',title:'Hidratare 7 zile',desc:'2L apă în fiecare zi',xp:200,check:function(s){return cntHyd7(s)>=7}},
+  {id:'cm1',type:'m',cat:'fitness',icon:'\uD83C\uDFC6',title:'20 antrenamente/lună',desc:'20 antrenamente luna asta',xp:500,check:function(s){var ms=TODAY.slice(0,7);return s.workouts.filter(function(w){return w.date.startsWith(ms)}).length>=20}},
+  {id:'cm2',type:'m',cat:'sănătate',icon:'\u2696\uFE0F',title:'15 cântăriri/lună',desc:'Cântărire de 15 ori luna asta',xp:300,check:function(s){var ms=TODAY.slice(0,7);return s.progress.filter(function(e){return e.date.startsWith(ms)}).length>=15}}
+];
+function getMonday(){var d=new Date(),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff)).toISOString().split('T')[0]}
+function watToday(s){return (s.waterLog||[]).filter(function(e){return e.date===TODAY}).reduce(function(a,e){return a+e.amt},0)}
+function cntHyd(s){var days={};(s.waterLog||[]).forEach(function(e){days[e.date]=(days[e.date]||0)+e.amt});return Object.values(days).filter(function(v){return v>=2000}).length}
+function cntHyd7(s){var m=getMonday();var days={};(s.waterLog||[]).filter(function(e){return e.date>=m}).forEach(function(e){days[e.date]=(days[e.date]||0)+e.amt});return Object.values(days).filter(function(v){return v>=2000}).length}
+function gPct(s){if(!s.profile||!s.progress||!s.progress.length)return 0;var f=s.progress[0].weight,cur=s.progress[s.progress.length-1].weight,tgt=s.profile.targetWeight,gd=f-tgt;if(gd<=0)return 0;return Math.min(100,Math.round(((f-cur)/gd)*100))}
+function cntChals(s){return (s.doneChals||[]).filter(function(id){return id.startsWith('chal:')}).length}
+var Calc={
+  nH:function(h){var v=Number(h);if(!v||isNaN(v))return 170; if(v<3) return v*100; if(v>50) return v; return v},
+  bmi:function(w,h){h=Calc.nH(h);var v=w/((h/100)*(h/100));return(v<10||v>80)?null:+(v.toFixed(1))},
+  bmr:function(p){var h=Calc.nH(p.height);if(p.bodyFat){return Math.round(370+21.6*(p.weight*(1-p.bodyFat/100)))}var b=10*p.weight+6.25*h-5*p.age;return Math.round(p.sex==='M'?b+5:b-161)},
+  tdee:function(bmr,aid){var a=ACT.filter(function(x){return x.id===aid})[0]||ACT[1];return Math.round(bmr*a.mult)},
+  navyBF:function(sex,h,neck,waist,hip){try{h=Calc.nH(h);neck=Number(neck);waist=Number(waist);hip=hip!==undefined?Number(hip):null; if(!h||isNaN(h))return null; if(sex==='M'){ if(!neck||!waist) return null; var diff=waist-neck; if(diff<=0) return null; var bf=495/(1.0324-0.19077*Math.log10(diff)+0.15456*Math.log10(h))-450 } else { if(!neck||!waist||!hip) return null; var sum=waist+hip-neck; if(sum<=0) return null; var bf=495/(1.29579-0.35004*Math.log10(sum)+0.22100*Math.log10(h))-450 } if(!isFinite(bf)||bf<3||bf>65) return null; return +(bf.toFixed(1))}catch(e2){return null}},
+  calTgt:function(tdee,gid){var g=GOALS.filter(function(x){return x.id===gid})[0]||GOALS[1];return Math.round(tdee+g.delta)},
+  macros:function(kcal,lbm,gid,did){var pr={pA:2.4,p:2.2,r:2.2,m:1.6,mc:1.8,mb:1.8};var prot=Math.round(lbm*(pr[gid]||1.8));var fp=did==='keto'?.7:did==='lowCarb'?.4:.28;var fat=Math.max(Math.round(kcal*fp/9),Math.round(lbm*0.4));var carbs=Math.max(0,Math.round((kcal-prot*4-fat*9)/4));return{prot:prot,fat:fat,carbs:carbs}},
+  wGoal:function(p){var g=Math.round((+p.weight)*33);if(+p.trainingFrequency>=4)g+=500;return Math.min(Math.max(g,1500),4000)},
+  getM:function(p){
+    var h=Calc.nH(p.height),bf=p.bodyFat||Calc.navyBF(p.sex,h,p.neck,p.waist,p.hip);
+    var bmi=(p.bmi!==undefined&&p.bmi!==null&&p.bmi!=='')?+p.bmi:Calc.bmi(p.weight,h),lbm=bf?+(p.weight*(1-bf/100)).toFixed(1):null;
+    var ffmi=lbm?+(lbm/((h/100)*(h/100))).toFixed(1):null;
+    if(ffmi&&(ffmi<5||ffmi>40))ffmi=null;
+    var bmr=Calc.bmr(Object.assign({},p,{height:h,bodyFat:bf}));
+    var tdee=Calc.tdee(bmr,p.activityLevel),raw=Calc.calTgt(tdee,p.goal);
+    var floor=p.sex==='M'?1400:1200,kcal=Math.max(raw,floor);
+    var macros=lbm?Calc.macros(kcal,lbm,p.goal,p.diet):null;
+    return{bf:bf,bmi:bmi,lbm:lbm,ffmi:ffmi,bmr:bmr,tdee:tdee,kcal:kcal,macros:macros,warn:raw<floor}
+  }
+};
+var _M={};
+var DB={
+  load:function(k){return new Promise(function(res){if(window.storage){window.storage.get('pq4:'+k).then(function(r){res(r?JSON.parse(r.value):(_M[k]||null))}).catch(function(){res(_M[k]||null)})}else res(_M[k]||null)})},
+  save:function(k,v){_M[k]=v;if(window.storage)window.storage.set('pq4:'+k,JSON.stringify(v)).catch(function(){})},
+  del:function(k){delete _M[k];if(window.storage)window.storage.delete('pq4:'+k).catch(function(){})},
+  ldSh:function(k){return new Promise(function(res){if(window.storage){window.storage.get('pq4:sh:'+k,true).then(function(r){res(r?JSON.parse(r.value):null)}).catch(function(){res(null)})}else res(null)})},
+  svSh:function(k,v){if(window.storage)window.storage.set('pq4:sh:'+k,JSON.stringify(v),true).catch(function(){})},
+  lsSh:function(pfx){return new Promise(function(res){if(window.storage){window.storage.list('pq4:sh:'+pfx,true).then(function(r){res(r?r.keys:[])}).catch(function(){res([])})}else res([])})}
+};
+// load UI settings
+DB.load('appLogo').then(function(lg){if(lg){S.logoData=lg;try{render()}catch(e){}}});
+DB.load('uiLang').then(function(v){if(v){S.lang=v;try{render()}catch(e){}}});
+DB.load('anthropicKey').then(function(k){if(k){S.anthropicKey=k}});
+// Debounced render helper to avoid re-rendering on every keystroke
+var __rtd=null;
+var __siTimer=null;
+function debouncedRender(ms){ms=Math.max(ms||1000,1000);clearTimeout(__rtd);__rtd=setTimeout(function(){try{render()}catch(e){}},ms)}
+// Numeric constraints and helpers
+var NUM_CONSTRAINTS={age:{min:10,max:120,step:1},height:{min:50,max:260,step:0.1},weight:{min:20,max:500,step:0.1},neck:{min:5,max:150,step:0.1},waist:{min:20,max:300,step:0.1},hip:{min:20,max:300,step:0.1},bodyFat:{min:3,max:65,step:0.1},bfIn:{min:3,max:65,step:0.1},slD:{min:0,max:100,step:1},trainingFrequency:{min:0,max:21,step:1},sleepHours:{min:0,max:24,step:0.5},targetWeight:{min:20,max:500,step:0.1},wtIn:{min:20,max:500,step:0.1},foodQty:{min:0,max:10000,step:0.1},sportDur:{min:0,max:1440,step:1},bmi:{min:10,max:80,step:0.1},waterQty:{min:0,max:10000,step:1}};
+function roundToStep(n,step){if(!step)return Math.round(n);var inv=1/step;return Math.round(n*inv)/inv}
+function clampToConstraints(key,val){var c=NUM_CONSTRAINTS[key];if(!c)return val; if(val===''||val==null) return '';var n=Number(val);if(isNaN(n))return'';n=Math.max(c.min,Math.min(c.max,roundToStep(n,c.step||1)));var digits=(String(c.step).indexOf('.')>-1)?String(c.step).split('.')[1].length:0;return digits? n.toFixed(digits):String(Math.round(n))}
+function fmt(n,d){if(n==null||isNaN(n))return'\u2014';return(+n).toFixed(d===undefined?1:d)}
+function notify(title,body,ttl,action){ttl=ttl||4200;try{var c=document.getElementById('pq4-toasts');if(!c){c=document.createElement('div');c.id='pq4-toasts';c.style.cssText='position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column-reverse;gap:8px;z-index:9999';document.body.appendChild(c)}var t=document.createElement('div');t.style.cssText='background:#0f172a;border:1px solid #334155;padding:10px 12px;border-radius:9px;color:#f1f5f9;min-width:220px;box-shadow:0 10px 30px rgba(2,6,23,.6);opacity:0;transform:translateY(6px);transition:all .22s;cursor:'+(action?'pointer':'default');';var h=document.createElement('div');h.style.fontWeight='700';h.style.marginBottom='6px';h.textContent=title||'';var b=document.createElement('div');b.style.fontSize='12px';b.textContent=body||'';t.appendChild(h);t.appendChild(b);if(action){t.onclick=function(){try{if(typeof action==='function')action();else if(typeof action==='string'){S.nav=action}DB.save('notifs',S.notifs);render()}catch(e){}}}c.appendChild(t);setTimeout(function(){t.style.opacity='1';t.style.transform='translateY(0)'},10);S.notifs=S.notifs||[];S.notifs.push({id:String(Date.now()),title:title,body:body,ts:new Date().toISOString(),read:false});DB.save('notifs',S.notifs);setTimeout(function(){t.style.opacity='0';t.style.transform='translateY(12px)';setTimeout(function(){try{t.parentNode&&t.parentNode.removeChild(t)}catch(e){}},240)},ttl)}catch(e){}
+}
+function fmtD(s){if(!s)return'';var d=new Date(s+'T00:00:00');return d.toLocaleDateString('ro-RO',{month:'short',day:'numeric'})}
+function el(t,p){
+  var e=document.createElement(t);
+  var a=[].slice.call(arguments,2);
+  if(p){var ks=Object.keys(p);for(var i=0;i<ks.length;i++){var k=ks[i],v=p[k];switch(k){case 'c':e.className=v;break;case 's':e.style.cssText=v;break;case 'click':e.onclick=v;break;case 'inp':e.oninput=v;break;case 'kd':e.onkeydown=v;break;case 'blur':e.onblur=v;break;case 'change':e.onchange=v;break;case 'disabled':if(v)e.disabled=true;break;case 'type':e.type=v;break;case 'val':e.value=v;break;case 'ph':e.placeholder=v;break;case 'id':e.id=v;break;case 'step':e.step=v;break;case 'min':e.min=v;break;case 'max':e.max=v;break;default:e.setAttribute(k,v);}}}
+  
+  // wrap input handlers to debounce renders (prevents caret loss on every keystroke)
+  try{
+    if(p&&p.inp&&typeof p.inp==='function'){
+      // replace the raw assignment we did above; assign a wrapped handler
+      e.oninput=function(ev){try{p.inp(ev)}catch(ex){console.error(ex)};debouncedRender()}
+    }
+  }catch(er){}
+  // prevent button clicks stealing focus
+  try{if(t==='button'&&(!e.getAttribute('type')||e.getAttribute('type')!=='submit')){e.onmousedown=function(ev){ev.preventDefault()};e.setAttribute('tabindex','-1')}}catch(e2){}
+  function add(c){if(c==null||c===false)return;if(Array.isArray(c)){c.forEach(add);return;}e.appendChild(c instanceof Node?c:document.createTextNode(String(c)));}
+  a.forEach(add);return e
+}
+function ic(n,sz){var i=document.createElement('i');i.className='ti ti-'+n;i.style.fontSize=(sz||13)+'px';i.setAttribute('aria-hidden','true');return i}
+function mkGauge(cons,tgt){
+  var r=50,cx=68,cy=68,circ=2*Math.PI*r,pct=Math.min(cons/tgt,1.1),off=circ*(1-Math.min(pct,1));
+  var col=pct>1?'#f87171':pct>0.9?'#fbbf24':'#2dd4bf';
+  var rem=Math.max(tgt-cons,0);
+  var ns='http://www.w3.org/2000/svg';
+  var svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 136 136');svg.setAttribute('width','136');svg.setAttribute('height','136');
+  var bg=document.createElementNS(ns,'circle');['cx','cy','r','fill','stroke','stroke-width'].forEach(function(a,i){bg.setAttribute(a,[cx,cy,r,'none','#1e293b','11'][i])});svg.appendChild(bg);
+  var arc=document.createElementNS(ns,'circle');[['cx',cx],['cy',cy],['r',r],['fill','none'],['stroke',col],['stroke-width','11'],['stroke-linecap','round'],['stroke-dasharray',String(circ)],['stroke-dashoffset',String(off)],['transform','rotate(-90 '+cx+' '+cy+')']].forEach(function(a){arc.setAttribute(a[0],a[1])});arc.style.transition='stroke-dashoffset .8s ease';svg.appendChild(arc);
+  function tx(x,y,txt,sz,fill,fw){var t2=document.createElementNS(ns,'text');[['x',x],['y',y],['text-anchor','middle'],['fill',fill],['font-size',sz],['font-family','ui-monospace,monospace']].forEach(function(a){t2.setAttribute(a[0],String(a[1]))});if(fw)t2.setAttribute('font-weight',fw);t2.textContent=String(txt);return t2}
+  svg.appendChild(tx(cx,cx-4,rem,22,'#f1f5f9','700'));
+  svg.appendChild(tx(cx,cx+10,'kcal rămase',8,'#94a3b8','400'));
+  svg.appendChild(tx(cx,cx+21,Math.round(cons)+'/'+tgt,7,'#64748b','400'));
+  return svg
+}
+function getXP(){var x=0;(S.doneChals||[]).forEach(function(id){if(id.startsWith('ach:')){var a=ACH_DEF.find(function(x2){return'ach:'+x2.id===id});if(a)x+=a.xp}});return x}
+function getLvl(){var x=getXP();if(x>=5000)return{n:'Legend\u0103',c:'#fbbf24',e:'\uD83D\uDC51'};if(x>=2000)return{n:'Elite',c:'#a78bfa',e:'\u26A1'};if(x>=1000)return{n:'Avansat',c:'#38bdf8',e:'\uD83D\uDCAA'};if(x>=400)return{n:'Intermediar',c:'#34d399',e:'\uD83C\uDF1F'};if(x>=100)return{n:'\u00CEncep\u0103tor',c:'#94a3b8',e:'\uD83C\uDF31'};return{n:'Nou',c:'#64748b',e:'\uD83D\uDC76'}}
+function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).indexOf('ach:'+a.id)<0){(S.doneChals=S.doneChals||[]).push('ach:'+a.id);DB.save('doneChals',S.doneChals);try{notify(a.title||'Realizare',a.desc||'')}catch(e){}}})}
+var S={
+  view:'loading',nav:'dash',profile:null,metrics:null,
+  progress:[],food:[],workouts:[],waterLog:[],sleepLog:[],measurements:[],photos:[],doneChals:[],chat:[],
+  friends:[],notifs:[],
+  obStep:0,
+  ob:{name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''},
+  
+  fmeal:'md',fsearch:'',fsel:null,fqty:'',showManual:false,manF:{name:'',c:'',p:'',f:'',h:''},
+  wIn:'',slH:'',slQ:0,slD:'',
+  mIn:{piept:'',sold:'',pulpa:'',biceps:''},photoNote:'',
+  wtIn:'',bfIn:'',pnote:'',
+  sportType:'Alergare',sportDur:'',sportInt:5,sportNote:'',
+  gangCode:'',gangNick:'',
+  ntab:'s',ptab:'g',wellTab:'a',chTab:'d',
+  chatIn:'',chatLoading:false,editing:false,
+  lang:'ro',
+  logoData:null
+};
+var CR={};
+var I18N={
+  ro:{
+    loading:'Se încarcă...',
+    add:'Adaugă',
+    remove_confirm:'Sigur vrei să ștergi?',
+    ai_title:'Antrenor AI',
+    ai_powered:'Powered by Claude · Date complete active',
+    ai_tagline:'Antrenorul tău personal',
+    ai_intro_blurb:'Ține totul despre tine: mâncare, somn, apă, sport, XP.',
+    ai_suggested:'Întrebări sugerate',
+    ai_q1:'De ce nu scade greutatea mea?',
+    ai_q2:'Ce mănânc înainte de antrenament?',
+    ai_q3:'Câtă apă trebuie să beau?',
+    ai_q4:'Cum îmbunătățesc somnul profund?',
+    ai_q5:'Ce sport e bun pentru obiectivul meu?',
+    ai_q6:'Explică-mi scorul FFMI',
+    ai_q7:'De câte proteine am nevoie zilnic?',
+    ai_key_placeholder:'Cheie API Anthropic',
+    ai_save_key:'Salvează cheia',
+    ai_no_key:'Cheie API lipsă — salvează cheia pentru a folosi AI',
+    macros_today:'Macronutrienți azi',
+    water_today:'Apă azi',
+    greet:'Salut, '
+  },
+  en:{
+    loading:'Loading...',
+    add:'Add',
+    remove_confirm:'Are you sure you want to remove this?',
+    ai_title:'AI Coach',
+    ai_powered:'Powered by Claude · Live data active',
+    ai_tagline:'Your personal coach',
+    ai_intro_blurb:'It knows everything about you: food, sleep, water, exercise, XP.',
+    ai_suggested:'Suggested questions',
+    ai_q1:"Why isn't my weight going down?",
+    ai_q2:'What should I eat before training?',
+    ai_q3:'How much water should I drink?',
+    ai_q4:'How can I improve deep sleep?',
+    ai_q5:'Which sport is good for my goal?',
+    ai_q6:'Explain my FFMI score',
+    ai_q7:'How much protein do I need daily?',
+    ai_key_placeholder:'Anthropic API key',
+    ai_save_key:'Save key',
+    ai_no_key:'Missing API key — save key to use AI',
+    macros_today:"Today's macronutrients",
+    water_today:'Water today',
+    greet:'Hi, '
+  }
+};
+function t(key){return (I18N[S.lang]&&I18N[S.lang][key])||I18N['ro'][key]||key}
+function render(){
+  var r=document.getElementById('app');if(!r)return;
+  // preserve focused input state
+  var _focusInfo=null;try{_focusInfo=(function(){var ae=document.activeElement;if(!ae||!document.contains(ae))return null;var id=ae.id||null;var tag=ae.tagName;var selStart=ae.selectionStart,selEnd=ae.selectionEnd;var ph=ae.placeholder||null;return{id:id,tag:tag,selStart:selStart,selEnd:selEnd,value:ae.value,placeholder:ph};})()}catch(e){}
+  try{
+    while(r.firstChild)r.removeChild(r.firstChild);
+  }catch(clearErr){
+    console.warn('Render clear race, falling back to innerHTML clear',clearErr);
+    try{r.innerHTML=''}catch(e2){}
+  }
+  try{
+    if(S.view==='loading')r.appendChild(vLoad());
+    else if(S.view==='onboarding')r.appendChild(vOB());
+    else{chkAch();r.appendChild(vMain());}
+  }catch(er){
+    r.style.cssText='padding:20px;background:#020617;color:#f87171;font-family:monospace;font-size:12px';
+    r.textContent='Render error: '+er.message;
+    console.error(er);
+  }
+  // restore focus if possible (try id first, then fallback by tag/placeholder/value)
+  try{
+    if(_focusInfo){
+      var elr=null;
+      if(_focusInfo.id)elr=document.getElementById(_focusInfo.id);
+      if(!elr){
+        try{
+          var tag=_focusInfo.tag?_focusInfo.tag.toLowerCase():null;
+          if(tag){
+            var cands=document.getElementsByTagName(tag);
+            for(var i=0;i<cands.length;i++){var c=cands[i];if(!document.contains(c))continue;if(_focusInfo.placeholder&&c.placeholder===_focusInfo.placeholder){elr=c;break}if(_focusInfo.value!=null&&c.value===_focusInfo.value){elr=c;break}}
+          }
+        }catch(e4){}
+      }
+      if(elr&&typeof elr.focus==='function'){
+        elr.focus();
+        try{
+          if(typeof elr.setSelectionRange==='function'&&_focusInfo.selStart!=null){elr.setSelectionRange(_focusInfo.selStart,_focusInfo.selEnd)}
+          else if(elr.value!=null){elr.selectionStart=_focusInfo.selStart;elr.selectionEnd=_focusInfo.selEnd}
+        }catch(e2){}
+      }
+    }
+  }catch(e3){}
+}
+function vLoad(){
+  var d=el('div',{s:'display:flex;align-items:center;justify-content:center;height:840px;background:#020617'});
+  var inner=el('div',{s:'display:flex;align-items:center;gap:10px;color:#64748b'});
+  var spinner=el('div',{s:'width:18px;height:18px;border:2px solid #14b8a6;border-top-color:transparent;border-radius:50%;animation:sp .8s linear infinite'});
+  inner.appendChild(spinner);inner.appendChild(document.createTextNode(t('loading')));d.appendChild(inner);return d
+}
+var OBS=['Informații personale','Măsurători corporale','Stil de viață','Obiectivele tale','Dietă'];
+function vOB(){
+  var step=S.obStep,D=S.ob;
+  var ok=[
+    !!(D.name&&D.age&&D.sex&&D.height&&D.weight),
+    !!(D.neck&&D.waist&&(D.sex==='M'||D.hip)),
+    !!D.activityLevel,
+    !!(D.goal&&D.targetWeight),
+    !!D.diet
+  ];
+  function sd(k){return function(e2){S.ob[k]=e2.target.value}}
+  function fld(l,k,ph,u,t){
+    var d=el('div',{s:'margin-bottom:9px'});
+    var lbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:3px'});
+    lbl.textContent=l;
+    d.appendChild(lbl);
+    var iw=el('div',{c:'iw'});
+    var props={c:'inp',type:t||'number',ph:ph||'',val:D[k]||'',id:k,inp:sd(k)};
+    var cons=NUM_CONSTRAINTS[k];
+    if(cons){if(cons.min!=null)props.min=cons.min;if(cons.max!=null)props.max=cons.max;if(cons.step!=null)props.step=cons.step}
+    var inp=el('input',props);
+    // don't clamp while typing; clamp on blur to avoid overwriting partial input
+    try{inp.onblur=function(){S.ob[k]=clampToConstraints(k,this.value);render()}}catch(e3){}
+    iw.appendChild(inp);
+    if(u){var iu=el('span',{c:'iu'});iu.textContent=u;iw.appendChild(iu);} 
+    d.appendChild(iw);
+    // special-case: when asking for bodyFat, show an estimated Navy BF hint if possible
+    try{if(k==='bodyFat'){var est=Calc.navyBF(D.sex,D.height,D.neck,D.waist,D.hip);if(!D.bodyFat&&est){var hint=el('div',{s:'display:flex;align-items:center;gap:8px;margin-top:8px'});var t=el('div',{s:'color:#94a3b8;font-size:11px'});t.textContent='Estimare BF: '+est+'% (Navy)';var b=el('button',{c:'btn bg',s:'font-size:11px'});b.textContent='Folose\u0219te';b.onclick=function(){S.ob.bodyFat=String(est);render()};hint.appendChild(t);hint.appendChild(b);d.appendChild(hint)}}}catch(e4){}
+    return d
+  }
+  function opts(k,items){
+    var w=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-bottom:9px'});
+    items.forEach(function(o){
+      var b=el('button',{c:'ob2'+(D[k]===o.id?' sel':''),click:function(){S.ob[k]=o.id;render()}});
+      b.textContent=o.label;
+      if(o.sub){var sub=el('span',{s:'display:block;font-size:10px;color:'+(D[k]===o.id?'rgba(45,212,191,.4)':'#475569')+';margin-top:1px;font-weight:400'});sub.textContent=o.sub;b.appendChild(sub);}
+      w.appendChild(b);
+    });return w
+  }
+  var content=[];
+  if(step===0){
+    content.push(fld('Numele tău','name','Alex','','text'));
+    var ageRow=el('div',{c:'g2'});
+    ageRow.appendChild(fld('Vârstă','age','28','ani'));
+    var sexDiv=el('div',{s:'margin-bottom:9px'});
+    var sexLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:3px'});sexLbl.textContent='Sex';
+    sexDiv.appendChild(sexLbl);
+    var sexBtns=el('div',{c:'g2'});
+    var bM=el('button',{c:'ob2'+(D.sex==='M'?' sel':''),click:function(){S.ob.sex='M';render()}});bM.textContent='Masculin';
+    var bF=el('button',{c:'ob2'+(D.sex==='F'?' sel':''),click:function(){S.ob.sex='F';render()}});bF.textContent='Feminin';
+    sexBtns.appendChild(bM);sexBtns.appendChild(bF);sexDiv.appendChild(sexBtns);
+    ageRow.appendChild(sexDiv);content.push(ageRow);
+    var hwRow=el('div',{c:'g2'});hwRow.appendChild(fld('Înălțime','height','175','cm'));hwRow.appendChild(fld('Greutate','weight','82','kg'));content.push(hwRow);
+    if(D.height&&D.weight&&+D.height>0&&+D.weight>0){
+      var computedBV=Calc.bmi(+D.weight,Calc.nH(D.height));
+      var currentBV=(D.bmi!==undefined&&D.bmi!==null&&D.bmi!=='')?+D.bmi:computedBV;
+      if(currentBV){
+        var bcat=currentBV<18.5?{l:'Subponderal',c:'#fbbf24'}:currentBV<25?{l:'Normal',c:'#2dd4bf'}:currentBV<30?{l:'Supraponderal',c:'#fbbf24'}:{l:'Obez',c:'#f87171'};
+        var bmiDiv=el('div',{s:'background:#1e293b;border-radius:7px;padding:7px 11px;display:flex;align-items:center;justify-content:space-between;margin-bottom:9px'});
+        var bmiL=el('span',{s:'color:#64748b;font-size:11px'});bmiL.textContent='IMC';
+        var bmiV=el('div',null);
+        var bmiInput=el('input',{id:'bmi',c:'inp',type:'number',s:'width:80px;text-align:right;font-family:ui-monospace,monospace',val:currentBV?String(currentBV):'',step:NUM_CONSTRAINTS.bmi.step,min:NUM_CONSTRAINTS.bmi.min,max:NUM_CONSTRAINTS.bmi.max,inp:function(e2){S.ob.bmi=e2.target.value;debouncedRender(440)}});
+        try{bmiInput.onblur=function(){S.ob.bmi=clampToConstraints('bmi',this.value);render()}}catch(e4){}
+        var bmiC=el('span',{s:'color:'+bcat.c+';font-size:11px;margin-left:8px'});bmiC.textContent=bcat.l;
+        bmiV.appendChild(bmiInput);bmiV.appendChild(bmiC);bmiDiv.appendChild(bmiL);bmiDiv.appendChild(bmiV);content.push(bmiDiv);
+      }
+    }
+  }else if(step===1){
+    var tip=el('div',{s:'background:rgba(20,184,166,.07);border:1px solid rgba(20,184,166,.15);border-radius:7px;padding:7px 11px;margin-bottom:9px;font-size:11px;color:#94a3b8'});
+    tip.textContent='Metoda Navy (\u00b13-4% vs DEXA). Talie = cel mai \u00eengust punct.';content.push(tip);
+    var r1=el('div',{c:'g2'});r1.appendChild(fld('G\u00e2t','neck','37','cm'));r1.appendChild(fld('Talie','waist','88','cm'));content.push(r1);
+    if(D.sex==='F')content.push(fld('\u015eold','hip','95','cm'));
+    content.push(fld('% Gr\u0103sime (opțional)','bodyFat','22.5','%'));
+  }else if(step===2){
+    var aLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:5px'});aLbl.textContent='Nivel de activitate';
+    content.push(aLbl);content.push(opts('activityLevel',ACT));
+    var r2=el('div',{c:'g2'});r2.appendChild(fld('Antrenamente','trainingFrequency','3','/s\u0103pt.'));r2.appendChild(fld('Somn','sleepHours','7','h'));
+    content.push(r2);
+  }else if(step===3){
+    var gLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:5px'});gLbl.textContent='Obiectiv';
+    content.push(gLbl);content.push(opts('goal',GOALS));
+    content.push(fld('Greutate \u021bint\u0103','targetWeight','75','kg'));
+  }else{
+    var dLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:5px'});dLbl.textContent='Diet\u0103';
+    content.push(dLbl);content.push(opts('diet',DIETS));
+    var optLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;border-top:1px solid #1e293b;padding-top:9px;margin-bottom:8px'});optLbl.textContent='Op\u021bional: s\u0103n\u0103tate';
+    content.push(optLbl);content.push(fld('Glicemie \u00e0 jeun','bloodGlucose','4.8','mmol/L'));
+  }
+  function finish(){
+    var D2=S.ob;
+    var p={name:D2.name,age:+D2.age,sex:D2.sex,height:Calc.nH(D2.height),weight:+D2.weight,neck:+D2.neck,waist:+D2.waist,hip:D2.hip?+D2.hip:null,bodyFat:D2.bodyFat?+D2.bodyFat:null,bmi:(D2.bmi?+D2.bmi:null),activityLevel:D2.activityLevel,trainingFrequency:+D2.trainingFrequency||3,sleepHours:+D2.sleepHours||7,goal:D2.goal,targetWeight:+D2.targetWeight,diet:D2.diet,bloodGlucose:D2.bloodGlucose?+D2.bloodGlucose:null,gangCode:'',gangNick:'',createdAt:new Date().toISOString()};
+    S.profile=p;S.metrics=Calc.getM(p);
+    S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];
+    S.view='app';S.nav='dash';
+    ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.save(k,S[k])});
+    render();
+  }
+  var prog=el('div',{c:'opr'});
+  OBS.forEach(function(_,i){var pb=el('div',{c:'opb'+(i<=step?' dn':'')});prog.appendChild(pb)});
+  var frm=el('div',{c:'ofrm'});
+  var pStep=el('p',{s:'color:#2dd4bf;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px'});pStep.textContent='Pasul '+(step+1)+' din '+OBS.length;frm.appendChild(pStep);
+  var pTitle=el('h2',{s:'color:#f1f5f9;font-size:16px;font-weight:700;margin-bottom:13px'});pTitle.textContent=OBS[step];frm.appendChild(pTitle);
+  content.filter(Boolean).forEach(function(c){frm.appendChild(c)});
+  var nav=el('div',{s:'display:flex;gap:6px;margin-top:14px'});
+  if(step>0){var bb=el('button',{c:'btn bg',s:'font-size:11px',click:function(){S.obStep--;render()}});bb.textContent='\u00cenapo\u012b';nav.appendChild(bb);}
+  var bn=el('button',{c:'btn bp',s:'flex:1;font-size:11px'});
+  if(!ok[step])bn.disabled=true;
+  bn.textContent=step<OBS.length-1?'Continu\u0103 \u2192':'Creeaz\u0103 planul meu \u2192';
+  bn.onclick=function(){if(!ok[step])return;if(step<OBS.length-1){S.obStep++;render();}else finish();};
+  nav.appendChild(bn);frm.appendChild(nav);
+  var wrap=el('div',{c:'ob'});
+  var oc=el('div',{c:'oc'});
+  var logoDiv=el('div',{s:'text-align:center;margin-bottom:16px'});
+  var logoBox=el('div',{s:'display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;background:#14b8a6;border-radius:8px;margin-bottom:5px'});
+  if(S.logoData){var img=el('img',{s:'width:42px;height:42px;border-radius:8px;object-fit:cover',src:S.logoData});logoBox.appendChild(img);}else{logoBox.appendChild(ic('activity',13))}
+  var logoTitle=el('div',{s:'color:#f1f5f9;font-size:18px;font-weight:700;letter-spacing:-.3px'});logoTitle.textContent='Dl. Muie \u021a\u00e2\u021be';
+  var logoSub=el('p',{s:'color:#64748b;font-size:11px;margin-top:2px'});logoSub.textContent='Corpul t\u0103u. \u00cen\u021beles.';
+  var logoControls=el('div',{s:'margin-top:8px;display:flex;align-items:center;gap:6px;justify-content:center'});
+  var fileIn=el('input',{type:'file',accept:'image/*',s:'display:none',id:'logoFile'});
+  fileIn.onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){S.logoData=r.result;DB.save('appLogo',S.logoData);render()};r.readAsDataURL(f)};
+  var upBtn=el('button',{c:'btn bg',click:function(){document.getElementById('logoFile').click()}});upBtn.textContent='Încărcă logo';
+  var rmBtn=el('button',{c:'btn bg',click:function(){S.logoData=null;DB.save('appLogo',null);render()}});rmBtn.textContent='Șterge';
+  if(S.logoData){
+    // logo already uploaded: only show remove
+    logoControls.appendChild(rmBtn);
+  }else{
+    logoControls.appendChild(fileIn);logoControls.appendChild(upBtn);logoControls.appendChild(rmBtn);
+  }
+  logoDiv.appendChild(logoBox);logoDiv.appendChild(logoTitle);logoDiv.appendChild(logoSub);logoDiv.appendChild(logoControls);
+  oc.appendChild(logoDiv);oc.appendChild(prog);oc.appendChild(frm);wrap.appendChild(oc);return wrap
+}
+var NAV=[{id:'dash',l:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutriție & Jurnal',ic:'apple'},{id:'stat',l:'Hidratare & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',ic:'barbell'},{id:'chal',l:'Provocări',ic:'trophy'},{id:'ach',l:'Realizări',ic:'award'},{id:'gang',l:'Gang',ic:'users'},{id:'ai',l:'Antrenor AI',ic:'message-circle-2'},{id:'friends',l:'Prieteni',ic:'user-plus'},{id:'notif',l:'Notific\u0103ri',ic:'bell'},{id:'prof',l:'Profil',ic:'user'}];
+function vMain(){
+  var p=S.profile,lvl=getLvl(),xp=getXP();
+  var sbWrap=el('div',{c:'sb'});
+  var sbH=el('div',{c:'sb-h'});
+  var lb=el('div',{c:'lb'});
+  if(S.logoData){var limg=el('img',{s:'width:25px;height:25px;border-radius:7px;object-fit:cover',src:S.logoData});lb.appendChild(limg);}else{lb.appendChild(ic('activity',12))}
+  var ltxt=el('span',{s:'color:#f1f5f9;font-weight:700;font-size:11px;letter-spacing:-.2px'});ltxt.textContent='Dl. Muie \u021a\u00e2\u021be';
+  // language toggle
+  var langBtn=el('button',{c:'btn bg',s:'margin-left:6px;padding:4px 8px;font-size:11px',click:function(){S.lang=S.lang==='ro'?'en':'ro';DB.save('uiLang',S.lang);render()}});
+  langBtn.textContent=(S.lang==='ro'?'RO':'EN');
+  sbH.appendChild(lb);sbH.appendChild(ltxt);sbH.appendChild(langBtn);sbWrap.appendChild(sbH);
+  var sbN=el('div',{c:'sb-n'});
+  NAV.forEach(function(n){
+    var btn=el('button',{c:'ni'+(S.nav===n.id?' act':''),click:function(){S.nav=n.id;render()}});
+    btn.appendChild(ic(n.ic,11));
+    var ltxt2=document.createTextNode(n.l);btn.appendChild(ltxt2);
+    sbN.appendChild(btn);
+  });
+  sbWrap.appendChild(sbN);
+  var sbF=el('div',{c:'sb-f'});
+  var uc=el('div',{c:'uc',click:function(){S.nav='prof';render()}});
+  var em=el('div',{s:'font-size:15px'});em.textContent=lvl.e;
+  var ucInfo=el('div',null);
+  var ucName=el('div',{s:'color:#cbd5e1;font-size:11px;font-weight:500'});ucName.textContent=p.name;
+  var ucXP=el('div',{s:'color:#64748b;font-size:10px'});ucXP.textContent=xp+' XP';
+  ucInfo.appendChild(ucName);ucInfo.appendChild(ucXP);uc.appendChild(em);uc.appendChild(ucInfo);sbF.appendChild(uc);sbWrap.appendChild(sbF);
+  var mc=el('div',{c:'mc'});
+  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,ai:vAI,friends:vFriends,notif:vNotif,prof:vProf};
+  var fn=views[S.nav]||vDash;
+  var content=null;
+  try{content=fn();}catch(er){content=el('div',{s:'padding:20px;color:#f87171;font-size:12px;font-family:monospace'});content.textContent='Eroare: '+er.message;}
+  mc.appendChild(content);
+  var wrap=el('div',{c:'wrap'});wrap.appendChild(sbWrap);wrap.appendChild(mc);return wrap
+}
+function mkSec(){var d=el('div',{c:'sec'});for(var i=0;i<arguments.length;i++)if(arguments[i])d.appendChild(arguments[i]);return d}
+function mkCard(cls){return el('div',{c:'card '+(cls||'')})}
+function mkRow(items,cls){var d=el('div',{c:cls||'g2'});items.forEach(function(i){if(i)d.appendChild(i)});return d}
+function mkStatCard(l,v,col){
+  var d=el('div',{c:'card cp',s:'text-align:center'});
+  var lt=el('div',{s:'font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});lt.textContent=l;
+  var vt=el('div',{s:'font-size:15px;font-weight:700;font-family:ui-monospace,monospace;color:'+(col||'#2dd4bf')});vt.textContent=v;
+  d.appendChild(lt);d.appendChild(vt);return d
+}
+function mkBarRow(l,g,t,col,type,kcal){
+  var r=el('div',{s:'margin-bottom:8px'});
+  var top=el('div',{s:'display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px'});
+  var tl=el('span',{s:'color:'+col});tl.textContent=l;
+  var tr2=el('span',{s:'color:#94a3b8;font-family:ui-monospace,monospace'});
+  var calPerGram=(type==='f'?9:4);
+  var pctCal=(kcal?Math.round((g*calPerGram)/kcal*100):null);
+  tr2.textContent=g+(t?'/'+t:'')+'g'+(pctCal!=null?' · '+pctCal+'%':'');
+  top.appendChild(tl);top.appendChild(tr2);r.appendChild(top);
+  var bar=el('div',{c:'bar'});
+  var width=kcal?Math.min(100,Math.max(0,pctCal||0)):(t?Math.min(100,Math.max(0,Math.round(g/t*100))):0);
+  var bf=el('div',{c:'bf',s:'background:'+col+';width:'+width+'%;transition:width .7s ease'});
+  bar.appendChild(bf);r.appendChild(bar);return r
+}
+function vDash(){
+  var p=S.profile,m=S.metrics;
+  var tl=S.food.filter(function(e){return e.date===TODAY});
+  var tots=tl.reduce(function(a,e){return{c:a.c+e.c,p:a.p+e.p,f:a.f+e.f,h:a.h+e.h}},{c:0,p:0,f:0,h:0});
+  var tw=watToday(S),wg=Calc.wGoal(p);
+  var pl=S.progress,first=pl.length?pl[0].weight:p.weight,last=pl.length?pl[pl.length-1].weight:p.weight;
+  var wch=+(last-first).toFixed(1),gd=first-p.targetWeight,pct=gd>0?Math.min(100,Math.round(((first-last)/gd)*100)):0;
+  var lvl=getLvl(),xp=getXP();
+  // Header
+  var hdrDiv=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between'});
+  var hdrL=el('div',null);
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700;margin-bottom:2px'});
+  h1.textContent=t('greet')+p.name+' '+lvl.e;
+  var hdate=el('p',{s:'color:#64748b;font-size:11px'});
+  var _loc=(S.lang==='en'?'en-US':'ro-RO');
+  hdate.textContent=new Date().toLocaleDateString(_loc,{weekday:'long',month:'long',day:'numeric'});
+  hdrL.appendChild(h1);hdrL.appendChild(hdate);
+  var hdrR=el('div',{s:'text-align:right'});
+  var actWrap=el('div',{s:'display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:6px'});
+  var fBtn=el('button',{s:'background:none;border:none;cursor:pointer;color:#64748b',click:function(){S.nav='friends';render()}});fBtn.appendChild(ic('users',13));
+  var nBtn=el('button',{s:'background:none;border:none;cursor:pointer;color:#64748b',click:function(){S.nav='notif';render()}});nBtn.appendChild(ic('bell',13));
+  actWrap.appendChild(fBtn);actWrap.appendChild(nBtn);hdrR.appendChild(actWrap);
+  var lvlName=el('div',{s:'color:'+lvl.c+';font-size:11px;font-weight:600'});lvlName.textContent=lvl.n;
+  var xpTxt=el('div',{s:'color:#64748b;font-size:10px'});xpTxt.textContent=xp+' XP';
+  hdrR.appendChild(lvlName);hdrR.appendChild(xpTxt);hdrDiv.appendChild(hdrL);hdrDiv.appendChild(hdrR);
+  // Cal + Macros row
+  var calRow=el('div',{c:'g2'});
+  var gCard=el('div',{c:'card cp',s:'display:flex;align-items:center;justify-content:center'});
+  gCard.appendChild(mkGauge(Math.round(tots.c),m.kcal));calRow.appendChild(gCard);
+  var mCard=el('div',{c:'card cp'});
+  var mHdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:9px'});
+  var mTxt=el('span',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#64748b'});mTxt.textContent=t('macros_today');
+  var mBtn=el('button',{s:'font-size:10px;color:#2dd4bf;background:none;border:none;cursor:pointer',click:function(){S.nav='nutr';render()}});mBtn.textContent='+Log';
+  mHdr.appendChild(mTxt);mHdr.appendChild(mBtn);mCard.appendChild(mHdr);
+  mCard.appendChild(mkBarRow('Proteine',Math.round(tots.p),m.macros?m.macros.prot:null,'#38bdf8','p',m.kcal));
+  mCard.appendChild(mkBarRow('Carbohidrați',Math.round(tots.h),m.macros?m.macros.carbs:null,'#fbbf24','c',m.kcal));
+  mCard.appendChild(mkBarRow('Grăsimi',Math.round(tots.f),m.macros?m.macros.fat:null,'#a78bfa','f',m.kcal));
+  calRow.appendChild(mCard);
+  // Stats row
+  var sg=el('div',{c:'g4'});
+  sg.appendChild(mkStatCard('Grăsime',fmt(m.bf)+'%',m.bf?((m.bf<25&&p.sex==='M')||(m.bf<32&&p.sex==='F')?'#2dd4bf':'#f87171'):'#64748b'));
+  sg.appendChild(mkStatCard('Masă slabă',fmt(m.lbm)+'kg','#38bdf8'));
+  sg.appendChild(mkStatCard('FFMI',m.ffmi?fmt(m.ffmi):'\u2014','#a78bfa'));
+  sg.appendChild(mkStatCard('Apă',(tw/1000).toFixed(2)+'L','#38bdf8'));
+  // Water quick
+  var wCard=el('div',{c:'card cp'});
+  var wTop=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px'});
+  var wL=el('div',{s:'display:flex;align-items:center;gap:5px'});wL.appendChild(ic('droplet',11));
+  var wLt=el('span',{s:'color:#94a3b8;font-size:11px'});wLt.textContent=t('water_today');wL.appendChild(wLt);
+  var wR=el('span',{s:'color:#38bdf8;font-size:11px;font-family:ui-monospace,monospace'});wR.textContent=(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L';
+  wTop.appendChild(wL);wTop.appendChild(wR);wCard.appendChild(wTop);
+  var wBar=el('div',{c:'bar'});var wBf=el('div',{c:'bf',s:'background:#38bdf8;width:'+Math.round(Math.min(tw/wg,1)*100)+'%'});wBar.appendChild(wBf);wCard.appendChild(wBar);
+  var qRow=el('div',{s:'display:flex;gap:4px;margin-top:7px'});
+  [250,500,750].forEach(function(ml){
+    var b=el('button',{c:'wqb',click:function(){S.waterLog.push({id:String(Date.now()),date:TODAY,amt:ml});DB.save('waterLog',S.waterLog);render()}});
+    b.textContent='+'+ml+'ml';qRow.appendChild(b);
+  });wCard.appendChild(qRow);
+  // Goal progress
+  var gCard2=el('div',{c:'card cp'});
+  var gHdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px'});
+  var gTxt=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:500'});gTxt.textContent=(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label;
+  var gPctDiv=el('span',{s:'color:#2dd4bf;font-family:ui-monospace,monospace;font-weight:700;font-size:12px'});gPctDiv.textContent=pct+'%';
+  gHdr.appendChild(gTxt);gHdr.appendChild(gPctDiv);gCard2.appendChild(gHdr);
+  var gt=el('div',{c:'bar',s:'height:6px;margin-bottom:6px'});var gtBf=el('div',{c:'bf',s:'background:linear-gradient(90deg,#14b8a6,#34d399);width:'+pct+'%;transition:width 1s ease'});gt.appendChild(gtBf);gCard2.appendChild(gt);
+  var gFoot=el('div',{s:'display:flex;justify-content:space-between;font-size:10px;color:#64748b'});
+  var gF1=el('span',null);gF1.textContent='Start ';var gF1v=el('span',{s:'font-family:ui-monospace,monospace;color:#94a3b8'});gF1v.textContent=fmt(first,1)+'kg';gF1.appendChild(gF1v);
+  var gF2=el('span',null);gF2.textContent='Acum ';var gF2v=el('span',{s:'font-family:ui-monospace,monospace;color:#2dd4bf'});gF2v.textContent=fmt(p.weight,1)+'kg';gF2.appendChild(gF2v);
+  var gF3=el('span',null);gF3.textContent='Tint\u0103 ';var gF3v=el('span',{s:'font-family:ui-monospace,monospace;color:#94a3b8'});gF3v.textContent=fmt(p.targetWeight,1)+'kg';gF3.appendChild(gF3v);
+  gFoot.appendChild(gF1);gFoot.appendChild(gF2);gFoot.appendChild(gF3);gCard2.appendChild(gFoot);
+  // AI Recs
+  var aiCard=el('div',{c:'card cp'});
+  var aiH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:8px'});
+  aiH.appendChild(ic('bulb',11));var aiHT=el('span',{s:'color:#fbbf24;font-size:11px;font-weight:600'});aiHT.textContent='Recomand\u0103ri AI';aiH.appendChild(aiHT);aiCard.appendChild(aiH);
+  var recs=[];
+  if(m.bf&&p.sex==='M'&&m.bf>25)recs.push('\uD83D\uDD34 Gr\u0103sime '+fmt(m.bf)+'% \u2014 risc metabolic. Deficit 400 kcal + cardio 3x/s\u0103pt.');
+  if(m.bf&&p.sex==='F'&&m.bf>32)recs.push('\uD83D\uDD34 Gr\u0103sime '+fmt(m.bf)+'% \u2014 peste medie. Deficit -300 kcal + antrenamente de for\u021b\u0103.');
+  if(m.ffmi&&m.ffmi<18&&p.sex==='M')recs.push('\uD83D\uDCAA FFMI '+fmt(m.ffmi)+' \u2014 sub medie. Prioritizeaz\u0103 c\u00e2\u015ftigul muscular: surplus +250 kcal, proteine 2g/kg.');
+  if(!S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]}).length)recs.push('\uD83C\uDFC3 Niciun antrenament \u00een 7 zile \u2014 ad\u0103uga\u021bi minim 2-3 sesiuni/s\u0103pt\u0103m\u00e2n\u0103.');
+  if(tw<wg*0.5)recs.push('\uD83D\uDCA7 Hidratare insuficient\u0103 azi ('+Math.round(tw/100)/10+'L). Bea \u00eenc\u0103 '+(Math.round((wg-tw)/100)/10)+'L.');
+  if(!recs.length)recs.push('\u2705 Totul arat\u0103 bine! Continu\u0103 s\u0103 fii consistent.');
+  recs.forEach(function(r){var rt=el('div',{s:'color:#94a3b8;font-size:11px;margin-bottom:4px;line-height:1.5'});rt.textContent=r;aiCard.appendChild(rt)});
+  return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,calRow,sg,wCard,gCard2,aiCard)
+}
+function vNutr(){
+  var p=S.profile,m=S.metrics,tab=S.ntab;
+  var dl=S.food.filter(function(e){return e.date===TODAY});
+  var tots=dl.reduce(function(a,e){return{c:a.c+e.c,p:a.p+e.p,f:a.f+e.f,h:a.h+e.h}},{c:0,p:0,f:0,h:0});
+  var hdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between'});
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Nutriție & Jurnal';
+  var tg=el('div',{c:'tg'});
+  ['s','l'].forEach(function(t,i){var b=el('button',{c:'tb'+(tab===t?' ac':''),click:function(){S.ntab=t;render()}});b.textContent=['Sumar','Jurnal'][i];tg.appendChild(b)});
+  hdr.appendChild(h1);hdr.appendChild(tg);
+  var calCard=el('div',{c:'card cp'});
+  var cg=el('div',{s:'display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-bottom:10px'});
+  [[m.bmr,'BMR','#94a3b8'],[m.tdee,'TDEE','#fbbf24'],[m.kcal,'Țintă','#2dd4bf']].forEach(function(a,i){
+    var d=el('div',{s:i===1?'border-left:1px solid #1e293b;border-right:1px solid #1e293b':''});
+    var dl2=el('div',{s:'font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:1px'});dl2.textContent=a[1];
+    var dv=el('div',{s:'font-size:16px;font-weight:700;font-family:ui-monospace,monospace;color:'+a[2]});dv.textContent=String(a[0]);
+    d.appendChild(dl2);d.appendChild(dv);cg.appendChild(d);
+  });calCard.appendChild(cg);
+  if(m.macros){
+    var sep=el('div',{s:'border-top:1px solid #1e293b;padding-top:9px'});
+    [['Proteine',m.macros.prot,m.macros.prot*4,'#38bdf8'],['Carbohidrați',m.macros.carbs,m.macros.carbs*4,'#fbbf24'],['Grăsimi',m.macros.fat,m.macros.fat*9,'#a78bfa']].forEach(function(a){
+      var pct2=Math.round(a[2]/m.kcal*100);
+      var r=el('div',{s:'display:flex;align-items:center;gap:9px;margin-bottom:7px'});
+      var vDiv=el('div',{s:'width:42px;text-align:right;flex-shrink:0'});
+      var vSpan=el('span',{s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:'+a[3]});vSpan.textContent=a[1]+'g';vDiv.appendChild(vSpan);
+      var mid=el('div',{s:'flex:1'});
+      var top2=el('div',{s:'display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:2px'});
+      var tl2=el('span',null);tl2.textContent=a[0];var tr3=el('span',null);tr3.textContent=pct2+'%';
+      top2.appendChild(tl2);top2.appendChild(tr3);mid.appendChild(top2);
+      var bar2=el('div',{c:'bar'});var bf2=el('div',{c:'bf',s:'background:'+a[3]+';width:'+pct2+'%'});bar2.appendChild(bf2);mid.appendChild(bar2);
+      r.appendChild(vDiv);r.appendChild(mid);sep.appendChild(r);
+    });calCard.appendChild(sep);
+  }
+  if(tab==='s'){
+    // Food suggestions
+    var fsCard=el('div',{c:'card cp'});var fsH=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:500;margin-bottom:9px'});fsH.textContent='Alimente recomandate';fsCard.appendChild(fsH);
+    var tp=FOODS.filter(function(f){return f.p>=12}).sort(function(a,b){return(b.p/b.c)-(a.p/a.c)}).slice(0,4);
+    var tc=FOODS.filter(function(f){return f.h>=20&&f.c>50}).slice(0,4);
+    [['Proteine','#38bdf8',tp,'p'],['Carbohidrați','#fbbf24',tc,'h']].forEach(function(arr){
+      var aH=el('div',{s:'font-size:10px;color:'+arr[1]+';text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;margin-top:7px'});aH.textContent=arr[0];fsCard.appendChild(aH);
+      var tags=el('div',{s:'display:flex;flex-wrap:wrap;gap:3px'});
+      arr[2].forEach(function(f){var tag=el('span',{s:'padding:2px 7px;background:#1e293b;border:1px solid #334155;border-radius:99px;font-size:10px;color:#94a3b8'});tag.textContent=f.n+' ('+f[arr[3]]+'g P)';tags.appendChild(tag)});
+      fsCard.appendChild(tags);
+    });
+    return mkSec(hdr,calCard,fsCard)
+  }
+  // Journal tab
+  var sumRow=el('div',{c:'g4'});
+  [{l:'Calorii',v:Math.round(tots.c),t:m.kcal,c:'#2dd4bf'},{l:'Proteine',v:Math.round(tots.p)+'g',t:(m.macros?m.macros.prot:'')+'g',c:'#38bdf8'},{l:'Carbo.',v:Math.round(tots.h)+'g',t:(m.macros?m.macros.carbs:'')+'g',c:'#fbbf24'},{l:'Grăsimi',v:Math.round(tots.f)+'g',t:(m.macros?m.macros.fat:'')+'g',c:'#a78bfa'}].forEach(function(mk){
+    var d=el('div',{c:'card cp',s:'text-align:center'});
+    var lt=el('div',{s:'font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b'});lt.textContent=mk.l;
+    var vt=el('div',{s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:'+mk.c});vt.textContent=String(mk.v);
+    var tt=el('div',{s:'color:#334155;font-size:9px'});tt.textContent='/'+String(mk.t);
+    d.appendChild(lt);d.appendChild(vt);d.appendChild(tt);sumRow.appendChild(d);
+  });
+  var addCard=el('div',{c:'card cp'});
+  var addH=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:7px'});
+  var addHT=el('div',{s:'color:#cbd5e1;font-size:12px;font-weight:500'});addHT.textContent='Adaug\u0103 aliment';
+  var modeRow=el('div',{s:'display:flex;gap:4px'});
+  [false,true].forEach(function(isManual){
+    var b=el('button',{s:'padding:3px 8px;border-radius:6px;border:none;background:'+(S.showManual===isManual?'rgba(20,184,166,.1)':'#1e293b')+';color:'+(S.showManual===isManual?'#2dd4bf':'#64748b')+';cursor:pointer;font-size:10px;font-family:inherit',click:function(){S.showManual=isManual;S.fsel=null;S.fsearch='';render()}});
+    b.textContent=isManual?'\u270D\uFE0F Manual':'\uD83D\uDD0D Caut\u0103';modeRow.appendChild(b);
+  });
+  addH.appendChild(addHT);addH.appendChild(modeRow);addCard.appendChild(addH);
+  var mealRow=el('div',{s:'display:flex;gap:3px;margin-bottom:6px'});
+  MEALS.forEach(function(ml){
+    var b=el('button',{s:'flex:1;padding:5px;border-radius:6px;border:none;background:'+(S.fmeal===ml.id?'rgba(20,184,166,.1)':'none')+';color:'+(S.fmeal===ml.id?'#2dd4bf':'#475569')+';cursor:pointer;font-size:10px;font-weight:500;font-family:inherit',click:function(){S.fmeal=ml.id;render()}});
+    b.textContent=ml.label;mealRow.appendChild(b);
+  });addCard.appendChild(mealRow);
+  if(S.showManual){
+    var mf=S.manF;var mForm=el('div',{s:'background:#1e293b;border:1px solid #334155;border-radius:7px;padding:9px'});
+    var n1=el('div',{s:'margin-bottom:7px'});var nl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});nl.textContent='Denumire *';n1.appendChild(nl);
+    var nI=el('input',{c:'inp',s:'font-size:11px',type:'text',ph:'ex: Ciorbă de burtă',val:mf.name||'',inp:function(e2){S.manF.name=e2.target.value}});n1.appendChild(nI);mForm.appendChild(n1);
+    var numRow=el('div',{c:'g2',s:'margin-bottom:7px'});
+    [['Calorii','c','kcal'],['Proteine','p','g']].forEach(function(a){
+      var d2=el('div',null);var l2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});l2.textContent=a[0];
+      var iw=el('div',{c:'iw'});var i2=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'0',val:mf[a[1]]||'',inp:(function(fk){return function(e2){S.manF[fk]=e2.target.value}})(a[1])});
+      var iu=el('span',{c:'iu'});iu.textContent=a[2];iw.appendChild(i2);iw.appendChild(iu);d2.appendChild(l2);d2.appendChild(iw);numRow.appendChild(d2);
+    });mForm.appendChild(numRow);
+    var numRow2=el('div',{c:'g2',s:'margin-bottom:7px'});
+    [['Grăsimi','f','g'],['Carbohidrați','h','g']].forEach(function(a){
+      var d3=el('div',null);var l3=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});l3.textContent=a[0];
+      var iw2=el('div',{c:'iw'});var i3=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'0',val:mf[a[1]]||'',inp:(function(fk2){return function(e2){S.manF[fk2]=e2.target.value}})(a[1])});
+      var iu2=el('span',{c:'iu'});iu2.textContent=a[2];iw2.appendChild(i3);iw2.appendChild(iu2);d3.appendChild(l3);d3.appendChild(iw2);numRow2.appendChild(d3);
+    });mForm.appendChild(numRow2);
+    var addBtn=el('button',{c:'btn bp bw',s:'font-size:11px',disabled:!mf.name||!mf.c,click:function(){if(!S.manF.name||!S.manF.c)return;S.food.push({id:String(Date.now()),date:TODAY,meal:S.fmeal,n:S.manF.name,qty:null,c:+S.manF.c,p:+(S.manF.p||0),f:+(S.manF.f||0),h:+(S.manF.h||0),custom:true});S.manF={name:'',c:'',p:'',f:'',h:''};DB.save('food',S.food);render()}});
+    addBtn.textContent='Adaug\u0103';addBtn.prepend(ic('plus',11));mForm.appendChild(addBtn);addCard.appendChild(mForm);
+  }else{
+    var si=el('input',{c:'inp',s:'margin-bottom:6px;font-size:11px',ph:'Caut\u0103 \u00een 100 alimente...',val:S.fsearch||''});
+    si.id='foodSearch';
+    si.oninput=function(){
+      S.fsearch=this.value;S.fsel=null;
+      clearTimeout(__siTimer);__siTimer=setTimeout(function(){try{rbFL()}catch(e){}},180);
+    };
+    addCard.appendChild(si);
+    var rw=el('div',{id:'fl-r'});addCard.appendChild(rw);setTimeout(function(){rbFL()},0);
+  }
+  var sections=MEALS.map(function(meal){
+    var me=dl.filter(function(e){return e.meal===meal.id});if(!me.length)return null;
+    var mc2=me.reduce(function(a,e){return a+e.c},0);
+    var mc3=el('div',{c:'card'});
+    var mh=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:7px 11px;border-bottom:1px solid #1e293b'});
+    var mhL=el('span',{s:'color:#cbd5e1;font-size:11px;font-weight:500'});mhL.textContent=meal.label;
+    var mhR=el('span',{s:'color:#2dd4bf;font-family:ui-monospace,monospace;font-size:11px'});mhR.textContent=mc2+' kcal';
+    mh.appendChild(mhL);mh.appendChild(mhR);mc3.appendChild(mh);
+    me.forEach(function(e){
+      var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:5px 11px'});
+      var rL=el('div',null);
+      var rN=el('div',{s:'color:#e2e8f0;font-size:11px'});rN.textContent=e.n+(e.custom?' \u270D\uFE0F':'');
+      var rM=el('div',{s:'color:#64748b;font-size:10px;font-family:ui-monospace,monospace'});rM.textContent=(e.qty?e.qty+'g \u00b7 ':'')+e.p+'P '+e.f+'F '+e.h+'C';
+      rL.appendChild(rN);rL.appendChild(rM);
+      var rR=el('div',{s:'display:flex;align-items:center;gap:7px'});
+      var rC=el('span',{s:'color:#94a3b8;font-family:ui-monospace,monospace;font-size:11px'});rC.textContent=String(e.c);
+      var xb=el('button',{s:'background:none;border:none;cursor:pointer;color:#334155;font-size:13px'});xb.textContent='\u00d7';
+      xb.onclick=(function(eid){return function(){if(!confirm(t('remove_confirm')))return;S.food=S.food.filter(function(x){return x.id!==eid});DB.save('food',S.food);render()}})(e.id);
+      xb.onmouseenter=function(){this.style.color='#f87171'};xb.onmouseleave=function(){this.style.color='#334155'};
+      rR.appendChild(rC);rR.appendChild(xb);r.appendChild(rL);r.appendChild(rR);mc3.appendChild(r);
+    });return mc3;
+  }).filter(Boolean);
+  var args=[hdr,calCard,sumRow,addCard];sections.forEach(function(s2){args.push(s2)});
+  return mkSec.apply(null,args)
+}
+function rbFL(){
+  var r=document.getElementById('fl-r');if(!r)return;
+  while(r.firstChild)r.removeChild(r.firstChild);
+  if(S.fsel){
+    var sf=S.fsel;
+    var sc=el('div',{s:'background:#1e293b;border:1px solid #334155;border-radius:7px;padding:9px'});
+    var sfTop=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px'});
+    var sfL=el('div',null);var sfN=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:500'});sfN.textContent=sf.n;
+    var sfM=el('div',{s:'color:#64748b;font-size:10px;font-family:ui-monospace,monospace'});sfM.textContent='per '+sf.s+sf.u+': '+sf.c+'cal '+sf.p+'P '+sf.f+'F '+sf.h+'C';
+    sfL.appendChild(sfN);sfL.appendChild(sfM);
+    var xb2=el('button',{s:'background:none;border:none;cursor:pointer;color:#475569;font-size:13px',click:function(){S.fsel=null;S.fsearch='';rbFL()}});xb2.textContent='\u00d7';
+    sfTop.appendChild(sfL);sfTop.appendChild(xb2);sc.appendChild(sfTop);
+    var qRow=el('div',{s:'display:flex;gap:7px;align-items:flex-end;margin-bottom:7px'});
+    var qD=el('div',null);var qL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});qL.textContent='Cantitate ('+sf.u+')';qD.appendChild(qL);
+    var qi=el('input',{id:'foodQty',c:'inp',s:'font-size:11px;width:90px',type:'number',ph:String(sf.s),val:S.fqty||String(sf.s),min:NUM_CONSTRAINTS.foodQty.min,max:NUM_CONSTRAINTS.foodQty.max,step:NUM_CONSTRAINTS.foodQty.step,inp:function(e2){S.fqty=e2.target.value;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal';debouncedRender(400)}});
+    try{qi.onblur=function(){S.fqty=clampToConstraints('foodQty',this.value);var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal';render()}}catch(e5){}
+    qD.appendChild(qi);
+    var pvDiv=el('div',{id:'fl-pv',s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:#2dd4bf;flex-shrink:0'});
+    pvDiv.textContent=Math.round(sf.c*((+(S.fqty||sf.s))/sf.s))+' kcal';
+    qRow.appendChild(qD);qRow.appendChild(pvDiv);sc.appendChild(qRow);
+    var ab=el('button',{c:'btn bp bw',s:'font-size:11px',click:function(){var qty=+(S.fqty||sf.s);if(!qty)return;var rv=qty/sf.s;S.food.push({id:String(Date.now()),date:TODAY,meal:S.fmeal,n:sf.n,qty:qty,c:Math.round(sf.c*rv),p:+(sf.p*rv).toFixed(1),f:+(sf.f*rv).toFixed(1),h:+(sf.h*rv).toFixed(1)});S.fsel=null;S.fsearch='';S.fqty='';DB.save('food',S.food);render()}});
+    ab.textContent='Adaug\u0103';ab.prepend(ic('plus',11));sc.appendChild(ab);r.appendChild(sc);
+  }else{
+    var q2=(S.fsearch||'').toLowerCase();
+    var flt=q2?FOODS.filter(function(f){return f.n.toLowerCase().indexOf(q2)>-1}):FOODS.slice(0,16);
+    var gr=el('div',{s:'display:grid;grid-template-columns:1fr 1fr;gap:4px;max-height:180px;overflow-y:auto'});
+    flt.slice(0,20).forEach(function(f){
+      var b2=el('div',{c:'fi',click:function(){S.fsel=f;S.fqty=String(f.s);S.fsearch=f.n;rbFL()}});
+      var bN=el('div',{s:'color:#e2e8f0;font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});bN.textContent=f.n;
+      var bM2=el('div',{s:'color:#64748b;font-size:10px;font-family:ui-monospace,monospace'});bM2.textContent=f.c+'cal \u00b7 '+f.p+'P \u00b7 '+f.cat;
+      b2.appendChild(bN);b2.appendChild(bM2);gr.appendChild(b2);
+    });r.appendChild(gr);
+  }
+}
+function vStat(){
+  var p=S.profile,wg=Calc.wGoal(p),tw=watToday(S),tab=S.wellTab;
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Hidratare & Somn';
+  var tg=el('div',{c:'tg'});
+  [['a','Apă'],['s','Somn'],['r','Recuperare']].forEach(function(t){var b=el('button',{c:'tb'+(tab===t[0]?' ac':''),click:function(){S.wellTab=t[0];render()}});b.textContent=t[1];tg.appendChild(b)});
+  var hdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between'});hdr.appendChild(h1);hdr.appendChild(tg);
+  if(tab==='a'){
+    var wpct=Math.min(tw/wg,1);
+    var wc=el('div',{c:'card cp'});
+    var wTop=el('div',{s:'display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:7px'});
+    var wL=el('div',null);var wN=el('div',{s:'font-size:22px;font-weight:700;font-family:ui-monospace,monospace;color:#38bdf8'});wN.textContent=(tw/1000).toFixed(2)+'L';
+    var wS=el('div',{s:'color:#64748b;font-size:10px'});wS.textContent='din '+(wg/1000).toFixed(1)+'L \u021bint\u0103 \u00b7 '+Math.round(wpct*100)+'%';
+    wL.appendChild(wN);wL.appendChild(wS);
+    var wR2=el('div',{s:'font-size:10px;color:#64748b'});wR2.textContent=p.weight+'kg \u00d7 33ml';
+    wTop.appendChild(wL);wTop.appendChild(wR2);wc.appendChild(wTop);
+    var wBar=el('div',{c:'bar',s:'height:7px;margin-bottom:11px'});var wBf=el('div',{c:'bf',s:'background:linear-gradient(90deg,#0ea5e9,#38bdf8);width:'+Math.round(wpct*100)+'%'});wBar.appendChild(wBf);wc.appendChild(wBar);
+    var qLbl=el('div',{s:'color:#64748b;font-size:10px;margin-bottom:6px'});qLbl.textContent='Adaug\u0103 rapid:';wc.appendChild(qLbl);
+    var qRow=el('div',{s:'display:flex;gap:4px;flex-wrap:wrap;margin-bottom:9px'});
+    [150,250,350,500,750].forEach(function(ml){var b=el('button',{c:'wqb',click:function(){S.waterLog.push({id:String(Date.now()),date:TODAY,amt:ml});DB.save('waterLog',S.waterLog);render()}});b.textContent=ml+'ml';qRow.appendChild(b)});wc.appendChild(qRow);
+    var cRow=el('div',{s:'display:flex;gap:6px'});
+    var ci=el('input',{id:'waterQty',c:'inp',s:'flex:1;font-size:11px',type:'number',ph:'Cantitate (ml)',val:S.wIn||'',min:NUM_CONSTRAINTS.waterQty.min,max:NUM_CONSTRAINTS.waterQty.max,step:NUM_CONSTRAINTS.waterQty.step,inp:function(e2){S.wIn=e2.target.value;debouncedRender(400)}});
+    try{ci.onblur=function(){S.wIn=clampToConstraints('waterQty',this.value);render()}}catch(e6){}
+    var cb=el('button',{c:'btn bp',s:'font-size:11px'});cb.disabled=!S.wIn;cb.textContent='Add';cb.prepend(ic('plus',11));
+    cb.onclick=function(){if(!S.wIn)return;S.waterLog.push({id:String(Date.now()),date:TODAY,amt:+S.wIn});S.wIn='';DB.save('waterLog',S.waterLog);render()};
+    cRow.appendChild(ci);cRow.appendChild(cb);wc.appendChild(cRow);
+    var wHist=null;var wh=S.waterLog.filter(function(e){return e.date===TODAY});
+    if(wh.length){
+      wHist=el('div',{c:'card'});var whH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});whH.textContent='Azi';wHist.appendChild(whH);
+      [].concat(wh).reverse().forEach(function(e){
+        var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:5px 11px'});
+        var rL=el('span',{s:'color:#38bdf8;font-family:ui-monospace,monospace;font-size:11px'});rL.textContent='\uD83D\uDCA7 '+e.amt+'ml';
+        var xb3=el('button',{s:'background:none;border:none;cursor:pointer;color:#334155;font-size:13px'});xb3.textContent='\u00d7';
+        xb3.onclick=(function(eid){return function(){if(!confirm(t('remove_confirm')))return;S.waterLog=S.waterLog.filter(function(x){return x.id!==eid});DB.save('waterLog',S.waterLog);render()}})(e.id);
+        xb3.onmouseenter=function(){this.style.color='#f87171'};xb3.onmouseleave=function(){this.style.color='#334155'};
+        r.appendChild(rL);r.appendChild(xb3);wHist.appendChild(r);
+      });
+    }
+    return mkSec(hdr,wc,wHist)
+  }
+  if(tab==='s'){
+    var sf=el('div',{c:'card cp'});var sfH=el('div',{s:'color:#cbd5e1;font-size:12px;font-weight:500;margin-bottom:9px'});sfH.textContent='\u00cenregistreaz\u0103 somnul de azi-noapte';sf.appendChild(sfH);
+    var sRow=el('div',{c:'g2',s:'margin-bottom:9px'});
+    var hD=el('div',null);var hL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});hL.textContent='Ore de somn *';
+    var hIw=el('div',{c:'iw'});var hI=el('input',{id:'sleepHours',c:'inp',s:'font-size:11px',type:'number',ph:'7.5',step:NUM_CONSTRAINTS.sleepHours.step,val:S.slH||'',min:NUM_CONSTRAINTS.sleepHours.min,max:NUM_CONSTRAINTS.sleepHours.max,inp:function(e2){S.slH=e2.target.value;debouncedRender(400)}});var hIu=el('span',{c:'iu'});hIu.textContent='h';hIw.appendChild(hI);hIw.appendChild(hIu);hD.appendChild(hL);hD.appendChild(hIw);
+    try{hI.onblur=function(){S.slH=clampToConstraints('sleepHours',this.value);render()}}catch(e7){}
+    var dD=el('div',null);var dL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});dL.textContent='Somn profund (opt.)';
+    var dIw=el('div',{c:'iw'});var dI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'20',val:S.slD||'',min:NUM_CONSTRAINTS.slD.min,max:NUM_CONSTRAINTS.slD.max,step:NUM_CONSTRAINTS.slD.step,inp:function(e2){S.slD=e2.target.value;debouncedRender(400)}});var dIu=el('span',{c:'iu'});dIu.textContent='%';dIw.appendChild(dI);dIw.appendChild(dIu);dD.appendChild(dL);dD.appendChild(dIw);
+    try{dI.onblur=function(){S.slD=clampToConstraints('slD',this.value);render()}}catch(e8){}
+    sRow.appendChild(hD);sRow.appendChild(dD);sf.appendChild(sRow);
+    var qualDiv=el('div',{s:'margin-bottom:9px'});
+    var qL2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:5px'});qL2.textContent='Calitate somn';qualDiv.appendChild(qL2);
+    var stRow=el('div',{s:'display:flex;gap:4px'});
+    for(var qi=1;qi<=5;qi++){
+      (function(idx){
+        var sb=el('button',{s:'background:none;border:none;cursor:pointer;font-size:20px;color:'+(S.slQ>=idx?'#fbbf24':'#334155'),click:function(){S.slQ=idx;render()}});
+        sb.textContent=S.slQ>=idx?'\u2605':'\u2606';stRow.appendChild(sb);
+      })(qi);
+    }
+    qualDiv.appendChild(stRow);sf.appendChild(qualDiv);
+    var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.slH||!S.slQ;svB.textContent='Salveaz\u0103';svB.prepend(ic('moon',11));
+    svB.onclick=function(){if(!S.slH||!S.slQ)return;S.sleepLog.push({id:String(Date.now()),date:TODAY,hours:+S.slH,q:S.slQ,deep:S.slD?+S.slD:null});S.slH='';S.slQ=0;S.slD='';DB.save('sleepLog',S.sleepLog);render()};
+    sf.appendChild(svB);
+    var sHist=null;
+    if(S.sleepLog.length){
+      sHist=el('div',{c:'card'});var shH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});shH.textContent='Istoric somn';sHist.appendChild(shH);
+      var hl=el('div',{s:'max-height:200px;overflow-y:auto'});
+      [].concat(S.sleepLog).reverse().slice(0,10).forEach(function(e){
+        var stars='';for(var i=1;i<=5;i++)stars+=i<=e.q?'\u2605':'\u2606';
+        var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:5px 11px;border-bottom:1px solid #0f172a'});
+        var rL2=el('div',null);
+        var rH=el('span',{s:'color:#a78bfa;font-family:ui-monospace,monospace;font-weight:700'});rH.textContent=e.hours+'h';
+        var rS=el('span',{s:'color:#fbbf24;font-size:11px;margin-left:5px'});rS.textContent=stars;
+        rL2.appendChild(rH);rL2.appendChild(rS);
+        if(e.deep){var rD=el('span',{s:'color:#64748b;font-size:10px;margin-left:5px'});rD.textContent='~'+e.deep+'%';rL2.appendChild(rD)}
+        var rR3=el('div',{s:'display:flex;align-items:center;gap:8px'});
+        var rDate=el('span',{s:'color:#475569;font-size:10px'});rDate.textContent=fmtD(e.date);rR3.appendChild(rDate);
+        var xb=el('button',{s:'background:none;border:none;cursor:pointer;color:#334155;font-size:13px',click:(function(eid){return function(){if(!confirm(t('remove_confirm')))return;S.sleepLog=S.sleepLog.filter(function(x){return x.id!==eid});DB.save('sleepLog',S.sleepLog);render()}})(e.id)});xb.textContent='\u00d7';xb.onmouseenter=function(){this.style.color='#f87171'};xb.onmouseleave=function(){this.style.color='#334155'};rR3.appendChild(xb);
+        r.appendChild(rL2);r.appendChild(rR3);hl.appendChild(r);
+      });sHist.appendChild(hl);
+    }
+    return mkSec(hdr,sf,sHist)
+  }
+  // Recovery
+  var tw2=watToday(S),ls=S.sleepLog.length?S.sleepLog[S.sleepLog.length-1]:null;
+  var tl2=S.food.filter(function(e){return e.date===TODAY}),tc=tl2.reduce(function(a,e){return a+e.c},0);
+  var m2=S.metrics;
+  var ws=Math.round(Math.min(tw2/wg,1)*35),ss=ls?Math.round(Math.min(ls.hours/8,1)*(ls.q/5)*40):0,ns=tc>100?Math.round(Math.min(tc/m2.kcal,1)*25):0;
+  var rec=ws+ss+ns,rCol=rec>=70?'#34d399':rec>=40?'#fbbf24':'#f87171';
+  var rc=el('div',{c:'card cp'});
+  var rcTop=el('div',{s:'text-align:center;padding:8px 0 11px'});
+  var rcN=el('div',{s:'font-size:44px;font-weight:700;font-family:ui-monospace,monospace;color:'+rCol});rcN.textContent=String(rec);
+  var rcL=el('div',{s:'font-size:12px;font-weight:500;color:'+rCol});rcL.textContent=rec>=70?'Recuperare bun\u0103':rec>=40?'Recuperare medie':'Recuperare slab\u0103';
+  rcTop.appendChild(rcN);rcTop.appendChild(rcL);rc.appendChild(rcTop);
+  [[ws,35,'\uD83D\uDCA7 Ap\u0103','Consum: '+(tw2/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L'],[ss,40,'\uD83C\uDF19 Somn',ls?ls.hours+'h, calitate '+ls.q+'/5':'Neînregistrat'],[ns,25,'\uD83C\uDF7D\uFE0F Nutri\u021bie',tc>0?tc+' kcal din '+m2.kcal+' \u021bint\u0103':'F\u0103r\u0103 alimente azi']].forEach(function(arr){
+    var d=el('div',{s:'border-top:1px solid #1e293b;padding-top:9px;margin-top:9px'});
+    var top3=el('div',{s:'display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px'});
+    var tl3=el('span',{s:'color:#94a3b8'});tl3.textContent=arr[2];
+    var tr4=el('span',{s:'font-family:ui-monospace,monospace;color:#f1f5f9;font-weight:600'});tr4.textContent=arr[0]+'/'+arr[1]+'pts';
+    top3.appendChild(tl3);top3.appendChild(tr4);d.appendChild(top3);
+    var bar3=el('div',{c:'bar',s:'height:5px;margin-bottom:3px'});var bf3=el('div',{c:'bf',s:'background:'+rCol+';width:'+Math.round(arr[0]/arr[1]*100)+'%'});bar3.appendChild(bf3);d.appendChild(bar3);
+    var note=el('div',{s:'color:#64748b;font-size:10px'});note.textContent=arr[3];d.appendChild(note);
+    rc.appendChild(d);
+  });
+  return mkSec(hdr,rc)
+}
+function vProgr(){
+  var p=S.profile,m=S.metrics,tab=S.ptab;
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Progres';
+  var tg=el('div',{c:'tg'});
+  [['g','\u2696\uFE0F Greutate'],['ms','\uD83D\uDCCF M\u0103sur\u0103tori'],['ph','\uD83D\uDCF8 Poze']].forEach(function(t){var b=el('button',{c:'tb'+(tab===t[0]?' ac':''),click:function(){S.ptab=t[0];render()}});b.textContent=t[1];tg.appendChild(b)});
+  var hdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between'});hdr.appendChild(h1);hdr.appendChild(tg);
+  if(tab==='g'){
+    var pl=S.progress,first=pl.length?pl[0].weight:p.weight,last=pl.length?pl[pl.length-1].weight:p.weight;
+    var wch=+(last-first).toFixed(1);
+    var sg=el('div',{c:'g3'});
+    [{l:'Ini\u021bial',v:pl.length?fmt(first,1)+'kg':'\u2014',c:'#94a3b8'},{l:'Curent',v:fmt(p.weight,1)+'kg',c:'#2dd4bf'},{l:'Schimbare',v:(wch>0?'+':'')+fmt(wch,1)+'kg',c:wch<=0&&p.goal!=='mb'?'#34d399':'#94a3b8'}].forEach(function(s2){sg.appendChild(mkStatCard(s2.l,s2.v,s2.c))});
+    var chartDiv=null;
+    if(pl.length>1){
+      chartDiv=el('div',{c:'card cp'});var cw=el('div',{s:'position:relative;height:130px'});var can=el('canvas',{id:'wch'});cw.appendChild(can);chartDiv.appendChild(cw);
+      setTimeout(function(){var ctx=document.getElementById('wch');if(!ctx)return;if(CR.wch){try{CR.wch.destroy()}catch(e2){}}CR.wch=new Chart(ctx,{type:'line',data:{labels:pl.slice(-20).map(function(e){return fmtD(e.date)}),datasets:[{label:'kg',data:pl.slice(-20).map(function(e){return e.weight}),borderColor:'#2dd4bf',borderWidth:2,pointBackgroundColor:'#2dd4bf',pointRadius:2.5,fill:true,backgroundColor:'rgba(45,212,191,.05)',tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e293b',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#334155',borderWidth:1}},scales:{x:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}},y:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}}}}})},50);
+    }
+    var lf=el('div',{c:'card cp'});var lfH=el('div',{s:'color:#cbd5e1;font-size:12px;font-weight:500;margin-bottom:7px'});lfH.textContent='\u00cenregistreaz\u0103 azi';lf.appendChild(lfH);
+    var g2=el('div',{c:'g2',s:'margin-bottom:6px'});
+    var w1=el('div',null);var wL2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});wL2.textContent='Greutate (kg) *';
+    var wI=el('input',{id:'wtIn',c:'inp',s:'font-size:11px',type:'number',ph:String(p.weight),step:NUM_CONSTRAINTS.wtIn.step,min:NUM_CONSTRAINTS.wtIn.min,max:NUM_CONSTRAINTS.wtIn.max,val:S.wtIn||'',inp:function(e2){S.wtIn=e2.target.value;debouncedRender(400)}});w1.appendChild(wL2);w1.appendChild(wI);
+    try{wI.onblur=function(){S.wtIn=clampToConstraints('wtIn',this.value);render()}}catch(e9){}
+    var b1=el('div',null);var bL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});bL.textContent='Gr\u0103sime %';
+    var bI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:fmt(m.bf,1),step:NUM_CONSTRAINTS.bfIn.step,min:NUM_CONSTRAINTS.bfIn.min,max:NUM_CONSTRAINTS.bfIn.max,val:S.bfIn||'',inp:function(e2){S.bfIn=e2.target.value;debouncedRender(400)}});b1.appendChild(bL);b1.appendChild(bI);
+    try{bI.onblur=function(){S.bfIn=clampToConstraints('bfIn',this.value);render()}}catch(eX){}
+    g2.appendChild(w1);g2.appendChild(b1);lf.appendChild(g2);
+    var nI=el('input',{c:'inp',s:'font-size:11px;margin-bottom:6px',ph:'Noti\u021be (op\u021bional)...',val:S.pnote||'',inp:function(e2){S.pnote=e2.target.value}});lf.appendChild(nI);
+    var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.wtIn;svB.textContent='Salveaz\u0103';svB.prepend(ic('plus',11));
+    svB.onclick=function(){if(!S.wtIn)return;var e2={id:String(Date.now()),date:TODAY,weight:+S.wtIn,bf:S.bfIn?+S.bfIn:null,notes:S.pnote};S.progress=S.progress.filter(function(x){return x.date!==TODAY});S.progress.push(e2);S.progress.sort(function(a,b){return a.date.localeCompare(b.date)});S.wtIn='';S.bfIn='';S.pnote='';DB.save('progress',S.progress);render()};
+    lf.appendChild(svB);
+    var hist=el('div',{c:'card'});var hH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});hH.textContent='Istoric';hist.appendChild(hH);
+    var hl2=el('div',{s:'max-height:180px;overflow-y:auto'});
+    if(!pl.length){var em=el('div',{s:'text-align:center;padding:20px;color:#475569;font-size:11px'});em.textContent='F\u0103r\u0103 \u00eenregistr\u0103ri';hl2.appendChild(em)}
+    [].concat(pl).reverse().slice(0,20).forEach(function(e){
+      var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:5px 11px;border-bottom:1px solid #0f172a'});
+      var rL=el('div',null);var rW=el('span',{s:'color:#e2e8f0;font-family:ui-monospace,monospace;font-size:11px'});rW.textContent=fmt(e.weight,1)+'kg';rL.appendChild(rW);
+      if(e.bf){var rB=el('span',{s:'color:#64748b;font-size:10px;margin-left:5px'});rB.textContent=fmt(e.bf,1)+'% gr.';rL.appendChild(rB)}
+      var rR4=el('div',{s:'display:flex;align-items:center;gap:7px'});
+      var rD2=el('span',{s:'color:#475569;font-size:10px'});rD2.textContent=fmtD(e.date);
+      var xb4=el('button',{s:'background:none;border:none;cursor:pointer;color:#334155;font-size:13px'});xb4.textContent='\u00d7';
+      xb4.onclick=(function(eid){return function(){if(!confirm(t('remove_confirm')))return;S.progress=S.progress.filter(function(x){return x.id!==eid});DB.save('progress',S.progress);render()}})(e.id);
+      xb4.onmouseenter=function(){this.style.color='#f87171'};xb4.onmouseleave=function(){this.style.color='#334155'};
+      rR4.appendChild(rD2);rR4.appendChild(xb4);r.appendChild(rL);r.appendChild(rR4);hl2.appendChild(r);
+    });hist.appendChild(hl2);
+    return mkSec(hdr,sg,chartDiv,lf,hist)
+  }
+  if(tab==='ms'){
+    var ml=S.measurements,lastM=ml.length?ml[ml.length-1]:null;
+    var mKeys=[{k:'piept',l:'Piept',c:'#38bdf8'},{k:'sold',l:'\u015eolduri',c:'#a78bfa'},{k:'pulpa',l:'Pulp\u0103',c:'#fbbf24'},{k:'biceps',l:'Biceps',c:'#34d399'}];
+    var mStats=el('div',{c:'g4'});mKeys.forEach(function(mk){var v=lastM?lastM[mk.k]:null;mStats.appendChild(mkStatCard(mk.l,v?fmt(v,1)+'cm':'\u2014',mk.c))});
+    var mf2=el('div',{c:'card cp'});var mfH=el('div',{s:'color:#cbd5e1;font-size:12px;font-weight:500;margin-bottom:7px'});mfH.textContent='\u00cenregistreaz\u0103 azi';mf2.appendChild(mfH);
+    var mg2=el('div',{c:'g2',s:'margin-bottom:7px'});
+    mKeys.forEach(function(mk){
+      var d=el('div',null);var l=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});l.textContent=mk.l;
+      var iw=el('div',{c:'iw'});var i=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'90',val:S.mIn[mk.k]||'',inp:(function(key){return function(e2){S.mIn[key]=e2.target.value}})(mk.k)});i.id='m-'+mk.k;
+      var iu=el('span',{c:'iu'});iu.textContent='cm';iw.appendChild(i);iw.appendChild(iu);d.appendChild(l);d.appendChild(iw);mg2.appendChild(d);
+    });mf2.appendChild(mg2);
+    var msvB=el('button',{c:'btn bp bw',s:'font-size:11px'});msvB.textContent='Salveaz\u0103 m\u0103sur\u0103torile';msvB.prepend(ic('plus',11));
+    msvB.onclick=function(){var entry={id:String(Date.now()),date:TODAY};var any=false;mKeys.forEach(function(mk){if(S.mIn[mk.k]){entry[mk.k]=+S.mIn[mk.k];any=true}});if(!any)return;S.measurements.push(entry);S.mIn={piept:'',sold:'',pulpa:'',biceps:''};DB.save('measurements',S.measurements);render()};
+    mf2.appendChild(msvB);
+    var mChart=null;
+    if(ml.length>1){
+      mChart=el('div',{c:'card cp'});var mcw=el('div',{s:'position:relative;height:130px'});var mcan=el('canvas',{id:'mch'});mcw.appendChild(mcan);mChart.appendChild(mcw);
+      setTimeout(function(){var ctx=document.getElementById('mch');if(!ctx)return;if(CR.mch){try{CR.mch.destroy()}catch(e2){}}var ds=mKeys.filter(function(mk){return ml.some(function(e){return e[mk.k]})}).map(function(mk){return{label:mk.l,data:ml.slice(-15).map(function(e){return e[mk.k]||null}),borderColor:mk.c,borderWidth:1.5,pointRadius:2,fill:false,tension:.35,spanGaps:true}});CR.mch=new Chart(ctx,{type:'line',data:{labels:ml.slice(-15).map(function(e){return fmtD(e.date)}),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:9},boxWidth:10}},tooltip:{backgroundColor:'#1e293b',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#334155',borderWidth:1}},scales:{x:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}},y:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}}}}})},50);
+    }
+    return mkSec(hdr,mStats,mf2,mChart)
+  }
+  // Photos tab
+  var pf=el('div',{c:'card cp'});var pfH=el('div',{s:'color:#cbd5e1;font-size:12px;font-weight:500;margin-bottom:4px'});pfH.textContent='Marcheaz\u0103 o poz\u0103 de progres';pf.appendChild(pfH);
+  var pfNote=el('div',{s:'color:#64748b;font-size:11px;margin-bottom:9px'});pfNote.textContent='\uD83D\uDCF8 Salvam data si nota \u2014 poza o faci din galerie.';pf.appendChild(pfNote);
+  var pnI=el('input',{c:'inp',s:'font-size:11px;margin-bottom:7px',ph:'Not\u0103 (ex: frontal, lateral, greutate 82kg)',val:S.photoNote||'',inp:function(e2){S.photoNote=e2.target.value}});pf.appendChild(pnI);
+  var pmB=el('button',{c:'btn bp bw',s:'font-size:11px'});pmB.textContent='Marcheaz\u0103 azi';pmB.prepend(ic('camera',11));
+  pmB.onclick=function(){if(!S.photoNote)return;S.photos.push({id:String(Date.now()),date:TODAY,note:S.photoNote,weight:S.progress.length?S.progress[S.progress.length-1].weight:S.profile.weight});S.photoNote='';DB.save('photos',S.photos);render()};
+  pf.appendChild(pmB);
+  var ph2=el('div',{c:'card'});var phH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});phH.textContent='Poze marcate ('+S.photos.length+')';ph2.appendChild(phH);
+  if(!S.photos.length){var phEm=el('div',{s:'text-align:center;padding:20px;color:#475569;font-size:11px'});phEm.textContent='Nicio poz\u0103 marcat\u0103';ph2.appendChild(phEm)}
+  [].concat(S.photos).reverse().slice(0,10).forEach(function(e){
+    var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:7px 11px;border-bottom:1px solid #0f172a'});
+    var rL=el('div',null);var rN=el('div',{s:'color:#e2e8f0;font-size:11px'});rN.textContent='\uD83D\uDCF8 '+e.note;rL.appendChild(rN);
+    if(e.weight){var rW2=el('div',{s:'color:#64748b;font-size:10px'});rW2.textContent=fmt(e.weight,1)+'kg';rL.appendChild(rW2)}
+    var rR3=el('div',{s:'display:flex;align-items:center;gap:8px'});
+    var rDate=el('span',{s:'color:#475569;font-size:10px'});rDate.textContent=fmtD(e.date);rR3.appendChild(rDate);
+    var xb=el('button',{s:'background:none;border:none;cursor:pointer;color:#334155;font-size:13px',click:(function(eid){return function(){if(!confirm(t('remove_confirm')))return;S.photos=S.photos.filter(function(x){return x.id!==eid});DB.save('photos',S.photos);render()}})(e.id)});xb.textContent='\u00d7';xb.onmouseenter=function(){this.style.color='#f87171'};xb.onmouseleave=function(){this.style.color='#334155'};rR3.appendChild(xb);
+    r.appendChild(rL);r.appendChild(rR3);ph2.appendChild(r);
+  });
+  return mkSec(hdr,pf,ph2)
+}
+function vSport(){
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Sport & Antrenamente';
+  var frm=el('div',{c:'card cp'});var frmH=el('div',{s:'color:#cbd5e1;font-size:12px;font-weight:500;margin-bottom:9px'});frmH.textContent='\u00cenregistreaz\u0103 antrenament';frm.appendChild(frmH);
+  var spLbl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:4px'});spLbl.textContent='Tip sport';frm.appendChild(spLbl);
+  var sg=el('div',{s:'display:flex;flex-wrap:wrap;gap:3px;margin-bottom:9px'});
+  SPORTS.forEach(function(sp){
+    var b=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(S.sportType===sp?'#14b8a6':'#334155')+';background:'+(S.sportType===sp?'rgba(20,184,166,.1)':'none')+';color:'+(S.sportType===sp?'#2dd4bf':'#64748b')+';cursor:pointer;font-size:10px;font-family:inherit',click:function(){S.sportType=sp;render()}});
+    b.textContent=sp;sg.appendChild(b);
+  });frm.appendChild(sg);
+  var sRow=el('div',{c:'g2',s:'margin-bottom:8px'});
+  var durDiv=el('div',null);var durL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});durL.textContent='Durat\u0103 (min) *';
+  var durI=el('input',{id:'sportDur',c:'inp',s:'font-size:11px',type:'number',ph:'45',val:S.sportDur||'',min:NUM_CONSTRAINTS.sportDur.min,max:NUM_CONSTRAINTS.sportDur.max,step:NUM_CONSTRAINTS.sportDur.step,inp:function(e2){S.sportDur=e2.target.value;debouncedRender(400)}});durDiv.appendChild(durL);durDiv.appendChild(durI);
+  try{durI.onblur=function(){S.sportDur=clampToConstraints('sportDur',this.value);render()}}catch(eZ){}
+  var intDiv=el('div',null);var intL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});intL.textContent='Intensitate (1-10)';
+  var intRow=el('div',{s:'display:flex;align-items:center;gap:7px'});
+  var intSlider=el('input',{type:'range',min:'1',max:'10',val:String(S.sportInt),s:'flex:1;accent-color:#14b8a6',inp:function(e2){S.sportInt=+e2.target.value}});
+  var intVal=el('span',{s:'color:#2dd4bf;font-family:ui-monospace,monospace;font-weight:700;font-size:13px;width:18px'});intVal.textContent=String(S.sportInt);
+  intRow.appendChild(intSlider);intRow.appendChild(intVal);intDiv.appendChild(intL);intDiv.appendChild(intRow);
+  sRow.appendChild(durDiv);sRow.appendChild(intDiv);frm.appendChild(sRow);
+  var noteL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:2px'});noteL.textContent='Noti\u021be (op\u021bional)';
+  var noteI=el('input',{c:'inp',s:'font-size:11px;margin-bottom:8px',ph:'ex: 5km alergare, pace 5:30/km',val:S.sportNote||'',inp:function(e2){S.sportNote=e2.target.value}});
+  frm.appendChild(noteL);frm.appendChild(noteI);
+  var kcalB=S.sportDur&&S.profile?Math.round((S.sportInt/10)*7*S.profile.weight*(S.sportDur/60)):0;
+  if(kcalB){var kDiv=el('div',{s:'color:#fbbf24;font-size:11px;margin-bottom:7px'});kDiv.textContent='\u26A1 Estimare arsurii: ~'+kcalB+' kcal';frm.appendChild(kDiv)}
+  var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.sportDur;svB.textContent='Salveaz\u0103 antrenamentul';svB.prepend(ic('barbell',11));
+  svB.onclick=function(){if(!S.sportDur)return;S.workouts.push({id:String(Date.now()),date:TODAY,type:S.sportType,dur:+S.sportDur,int:S.sportInt,note:S.sportNote,kcal:kcalB});S.sportDur='';S.sportNote='';DB.save('workouts',S.workouts);render()};
+  frm.appendChild(svB);
+  var wks7=S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]});
+  var sts=el('div',{c:'g3'});
+  sts.appendChild(mkStatCard('Total antrenamente',String(S.workouts.length),'#2dd4bf'));
+  sts.appendChild(mkStatCard('S\u0103pt\u0103m\u00e2na asta',wks7.length+'/'+S.profile.trainingFrequency,'#fbbf24'));
+  sts.appendChild(mkStatCard('Total minute',String(S.workouts.reduce(function(a,w){return a+w.dur},0)),'#a78bfa'));
+  var hist2=el('div',{c:'card'});var h2H=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});h2H.textContent='Istoric';hist2.appendChild(h2H);
+  var hl3=el('div',{s:'max-height:200px;overflow-y:auto'});
+  if(!S.workouts.length){var em2=el('div',{s:'text-align:center;padding:20px;color:#475569;font-size:11px'});em2.textContent='F\u0103r\u0103 antrenamente';hl3.appendChild(em2)}
+  [].concat(S.workouts).reverse().slice(0,15).forEach(function(w){
+    var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:6px 11px;border-bottom:1px solid #0f172a'});
+    var rL=el('div',null);var rN2=el('div',{s:'color:#e2e8f0;font-size:11px'});rN2.textContent=w.type;
+    var rM2=el('div',{s:'color:#64748b;font-size:10px;font-family:ui-monospace,monospace'});rM2.textContent=w.dur+'min \u00b7 int '+w.int+'/10'+(w.kcal?' \u00b7 ~'+w.kcal+' kcal':'');
+    rL.appendChild(rN2);rL.appendChild(rM2);if(w.note){var rNote=el('div',{s:'color:#64748b;font-size:10px'});rNote.textContent=w.note;rL.appendChild(rNote)}
+    var rR5=el('div',{s:'display:flex;align-items:center;gap:7px'});
+    var rD4=el('span',{s:'color:#475569;font-size:10px'});rD4.textContent=fmtD(w.date);
+    var xb5=el('button',{s:'background:none;border:none;cursor:pointer;color:#334155;font-size:13px'});xb5.textContent='\u00d7';
+    xb5.onclick=(function(wid){return function(){if(!confirm(t('remove_confirm')))return;S.workouts=S.workouts.filter(function(x){return x.id!==wid});DB.save('workouts',S.workouts);render()}})(w.id);
+    xb5.onmouseenter=function(){this.style.color='#f87171'};xb5.onmouseleave=function(){this.style.color='#334155'};
+    rR5.appendChild(rD4);rR5.appendChild(xb5);r.appendChild(rL);r.appendChild(rR5);hl3.appendChild(r);
+  });hist2.appendChild(hl3);
+  return mkSec(h1,frm,sts,hist2)
+}
+function vChal(){
+  var tab=S.chTab;
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Provocări';
+  var tg=el('div',{c:'tg'});
+  [['d','Zilnice'],['w','Săpt.'],['m','Lunare']].forEach(function(t){var b=el('button',{c:'tb'+(tab===t[0]?' ac':''),click:function(){S.chTab=t[0];render()}});b.textContent=t[1];tg.appendChild(b)});
+  var hdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between'});hdr.appendChild(h1);hdr.appendChild(tg);
+  var total2=cntChals(S);
+  var sumDiv=el('div',{c:'card cp',s:'display:flex;align-items:center;justify-content:space-between'});
+  var sumL=el('div',null);
+  var sumN=el('div',{s:'color:#fbbf24;font-size:13px;font-weight:700'});sumN.textContent='\uD83C\uDFC6 '+total2+' provoc\u0103ri completate';
+  var sumXP=el('div',{s:'color:#64748b;font-size:11px'});sumXP.textContent='XP din provoc\u0103ri: '+total2*75;
+  sumL.appendChild(sumN);sumL.appendChild(sumXP);
+  var lvl2=getLvl();var sumR=el('div',{s:'font-size:24px'});sumR.textContent=lvl2.e;
+  sumDiv.appendChild(sumL);sumDiv.appendChild(sumR);
+  var chalCards=CHALS.filter(function(c){return c.type===tab}).map(function(c){
+    var done=c.check(S);if(done&&(S.doneChals||[]).indexOf('chal:'+c.id)<0){(S.doneChals=S.doneChals||[]).push('chal:'+c.id);DB.save('doneChals',S.doneChals);try{notify(c.title||'Provocare',c.desc||'')}catch(e){}}
+    var card=el('div',{c:'chal'+(done?' done':'')});
+    var top=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px'});
+    var tL=el('div',{s:'display:flex;align-items:center;gap:7px'});
+    var tE=el('span',{s:'font-size:18px'});tE.textContent=c.icon;
+    var tI=el('div',null);var tN=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600'});tN.textContent=c.title;
+    var tD=el('div',{s:'color:#64748b;font-size:11px'});tD.textContent=c.desc;
+    tI.appendChild(tN);tI.appendChild(tD);tL.appendChild(tE);tL.appendChild(tI);
+    var tR=el('div',{s:'text-align:right;flex-shrink:0'});
+    var tS=el('div',{s:'color:'+(done?'#34d399':'#475569')+';font-size:11px;font-weight:600'});tS.textContent=done?'\u2713 Completat!':'\u00CEn progres';
+    var tX=el('div',{s:'color:#fbbf24;font-size:10px;margin-top:2px'});tX.textContent='+'+c.xp+' XP';
+    tR.appendChild(tS);tR.appendChild(tX);top.appendChild(tL);top.appendChild(tR);card.appendChild(top);
+    return card;
+  });
+  var args=[hdr,sumDiv];chalCards.forEach(function(c){args.push(c)});
+  return mkSec.apply(null,args)
+}
+function vFriends(){
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Prieteni';
+  var card=el('div',{c:'card cp'});
+  var list=el('div',{s:'display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto'});
+  (S.friends||[]).forEach(function(fr){
+    var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px'});
+    var l=el('div',null);var n=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600'});n.textContent=fr.name||fr.id;var s=el('div',{s:'color:#64748b;font-size:11px'});s.textContent=fr.status||'acceptat';l.appendChild(n);l.appendChild(s);
+    var rm=el('button',{c:'btn bg',s:'font-size:11px'});rm.textContent='\u0218terge';rm.onclick=function(){if(!confirm(t('remove_confirm')))return;S.friends=S.friends.filter(function(x){return x.id!==fr.id});DB.save('friends',S.friends);render()};row.appendChild(l);row.appendChild(rm);list.appendChild(row);
+  });
+  card.appendChild(list);
+  var addRow=el('div',{s:'display:flex;gap:6px;margin-top:8px'});
+  var addI=el('input',{c:'inp',ph:'Nume prieten',id:'friendName',s:'flex:1;font-size:11px'});
+  var addB=el('button',{c:'btn bp'});addB.textContent='Adaug\u0103';addB.onclick=function(){var v=document.getElementById('friendName').value.trim();if(!v)return;var id='f'+Date.now();S.friends=S.friends||[];S.friends.push({id:id,name:v,status:'acceptat',since:TODAY});DB.save('friends',S.friends);render()};addRow.appendChild(addI);addRow.appendChild(addB);card.appendChild(addRow);
+  return mkSec(h1,card)
+}
+function vNotif(){
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Notific\u0103ri';
+  var card=el('div',{c:'card cp'});
+  var list=el('div',{s:'display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto'});
+  (S.notifs||[]).slice().reverse().forEach(function(nf){
+    var row=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between;gap:8px'});
+    var l=el('div',null);var t=el('div',{s:'font-weight:700;color:#f1f5f9'});t.textContent=nf.title||'';var b=el('div',{s:'color:#94a3b8;font-size:12px'});b.textContent=nf.body||'';l.appendChild(t);l.appendChild(b);
+    var r=el('div',{s:'display:flex;flex-direction:column;gap:6px'});
+    var m=el('button',{c:'btn bg',s:'font-size:11px'});m.textContent=(nf.read?'Marcat':'Marcheaz\u0103 citit');m.onclick=function(){nf.read=true;DB.save('notifs',S.notifs);render()};
+    var d=el('button',{c:'btn',s:'font-size:11px'});d.textContent='\u0218terge';d.onclick=function(){S.notifs=S.notifs.filter(function(x){return x.id!==nf.id});DB.save('notifs',S.notifs);render()};r.appendChild(m);r.appendChild(d);
+    row.appendChild(l);row.appendChild(r);list.appendChild(row);
+  });
+  var clear=el('button',{c:'btn bg',s:'margin-top:8px'});clear.textContent='\u0218terge tot';clear.onclick=function(){if(!confirm(t('remove_confirm')))return;S.notifs=[];DB.save('notifs',S.notifs);render()};card.appendChild(list);card.appendChild(clear);return mkSec(h1,card)
+}
+function vAch(){
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Realiz\u0103ri';
+  var xp=getXP(),lvl=getLvl();
+  var lvlCard=el('div',{c:'card cp'});
+  var lvlRow=el('div',{s:'display:flex;align-items:center;gap:11px'});
+  var lvlE=el('span',{s:'font-size:38px'});lvlE.textContent=lvl.e;
+  var lvlI=el('div',null);
+  var lvlN=el('div',{s:'color:'+lvl.c+';font-size:15px;font-weight:700'});lvlN.textContent=lvl.n;
+  var count=ACH_DEF.filter(function(a){return a.cond(S)}).length;
+  var lvlX=el('div',{s:'color:#64748b;font-size:11px'});lvlX.textContent=xp+' XP total \u00b7 '+count+'/'+ACH_DEF.length+' realiz\u0103ri';
+  lvlI.appendChild(lvlN);lvlI.appendChild(lvlX);lvlRow.appendChild(lvlE);lvlRow.appendChild(lvlI);lvlCard.appendChild(lvlRow);
+  // Next level progress
+  var nextN=null,nextNeed=0;
+  if(xp<100){nextN='Începător';nextNeed=100}
+  else if(xp<400){nextN='Intermediar';nextNeed=400}
+  else if(xp<1000){nextN='Avansat';nextNeed=1000}
+  else if(xp<2000){nextN='Elite';nextNeed=2000}
+  else if(xp<5000){nextN='Legend\u0103';nextNeed=5000}
+  if(nextN){
+    var nlDiv=el('div',{s:'margin-top:9px'});
+    var nlRow=el('div',{s:'display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:3px'});
+    var nlL=el('span',null);nlL.textContent='Spre '+nextN;
+    var nlR=el('span',null);nlR.textContent=xp+'/'+nextNeed+' XP';
+    nlRow.appendChild(nlL);nlRow.appendChild(nlR);nlDiv.appendChild(nlRow);
+    var nlBar=el('div',{c:'bar',s:'height:5px'});
+    var nlBf=el('div',{c:'bf',s:'background:linear-gradient(90deg,#14b8a6,#fbbf24);width:'+Math.min(100,Math.round(xp/nextNeed*100))+'%'});
+    nlBar.appendChild(nlBf);nlDiv.appendChild(nlBar);lvlCard.appendChild(nlDiv);
+  }
+  var achGrid=el('div',{s:'display:grid;grid-template-columns:1fr 1fr;gap:7px'});
+  ACH_DEF.forEach(function(a){
+    var done=a.cond(S);
+    var card=el('div',{c:'ach '+(done?'ul':'lk')});
+    var icon=el('span',{s:'font-size:22px;flex-shrink:0'});icon.textContent=a.icon;
+    var info=el('div',{s:'min-width:0'});
+    var iN=el('div',{s:'color:'+(done?'#fbbf24':'#94a3b8')+';font-size:11px;font-weight:600'});iN.textContent=a.title;
+    var iD=el('div',{s:'color:#64748b;font-size:10px;line-height:1.4'});iD.textContent=a.desc;
+    var iX=el('div',{s:'color:#475569;font-size:10px;margin-top:2px'});iX.textContent='+'+a.xp+' XP'+(done?' \u2713':' \uD83D\uDD12');
+    info.appendChild(iN);info.appendChild(iD);info.appendChild(iX);card.appendChild(icon);card.appendChild(info);achGrid.appendChild(card);
+  });
+  return mkSec(h1,lvlCard,achGrid)
+}
+function vGang(){
+  var p=S.profile,xp=getXP(),lvl=getLvl();
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Gang \uD83E\uDD1D';
+  if(!p.gangCode){
+    var joinCard=el('div',{c:'card cp'});
+    var jH=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:500;margin-bottom:5px'});jH.textContent='Intr\u0103 sau creeaz\u0103 un gang';
+    var jNote=el('div',{s:'color:#64748b;font-size:11px;margin-bottom:10px'});jNote.textContent='Un gang este un grup care se antreneaz\u0103 \u00eempreun\u0103. XP, greutatea \u0219i antrenamentele tale sunt vizibile membrilor.';
+    var codeI=el('input',{c:'inp',s:'font-size:12px;margin-bottom:6px;text-transform:uppercase',ph:'Cod gang (ex: WOLVES)',val:S.gangCode||'',inp:function(e2){S.gangCode=e2.target.value.toUpperCase()}});
+    var nickI=el('input',{c:'inp',s:'font-size:12px;margin-bottom:9px',ph:'Porecla ta (ex: BigBoss)',val:S.gangNick||'',inp:function(e2){S.gangNick=e2.target.value}});
+    var jBtn=el('button',{c:'btn bp bw',s:'font-size:11px'});jBtn.textContent='Intr\u0103 \u00een gang';jBtn.prepend(ic('users',11));
+    jBtn.onclick=async function(){
+      if(!S.gangCode||!S.gangNick)return;
+      p.gangCode=S.gangCode;p.gangNick=S.gangNick;
+      var md={nick:S.gangNick,name:p.name,xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};
+      DB.svSh('gang:'+S.gangCode+':'+p.name,md);DB.save('profile',p);render();
+    };
+    joinCard.appendChild(jH);joinCard.appendChild(jNote);joinCard.appendChild(codeI);joinCard.appendChild(nickI);joinCard.appendChild(jBtn);
+    var tipDiv=el('div',{s:'background:rgba(30,41,59,.4);border:1px solid #334155;border-radius:8px;padding:9px 11px;font-size:11px;color:#64748b'});
+    tipDiv.textContent='\uD83D\uDD17 Trimite codul gangului prietenilor \u2014 ei l introduc i apar n leaderboard. Func\u021bioneaz\u0103 prin Claude.ai shared storage.';
+    return mkSec(h1,joinCard,tipDiv)
+  }
+  var myCard=el('div',{c:'card cp'});
+  var myH=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:9px'});
+  var myHL=el('div',null);
+  var myHN=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:700'});myHN.textContent='Gang: '+p.gangCode;
+  var myHNick=el('div',{s:'color:#64748b;font-size:11px'});myHNick.textContent='Porecla: '+p.gangNick;
+  myHL.appendChild(myHN);myHL.appendChild(myHNick);
+  var syncB=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});syncB.textContent='Sync';syncB.prepend(ic('refresh',10));
+  syncB.onclick=async function(){var md2={nick:p.gangNick,name:p.name,xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};DB.svSh('gang:'+p.gangCode+':'+p.name,md2);render()};
+  myH.appendChild(myHL);myH.appendChild(syncB);myCard.appendChild(myH);
+  var meRow=el('div',{s:'display:flex;align-items:center;gap:8px;background:#1e293b;border-radius:8px;padding:8px 11px'});
+  var meE=el('span',{s:'font-size:18px'});meE.textContent=lvl.e;
+  var meI=el('div',null);var meN=el('div',{s:'color:#f1f5f9;font-size:12px;font-weight:600'});meN.textContent=p.gangNick||p.name;
+  var meX=el('div',{s:'color:#fbbf24;font-size:11px;font-weight:600'});meX.textContent=xp+' XP \u00b7 '+lvl.n;
+  var meW=el('div',{s:'color:#64748b;font-size:10px'});meW.textContent=S.workouts.length+' antrenamente \u00b7 '+fmt(p.weight,1)+'kg';
+  meI.appendChild(meN);meI.appendChild(meX);meI.appendChild(meW);meRow.appendChild(meE);meRow.appendChild(meI);myCard.appendChild(meRow);
+  var leaveB=el('button',{c:'btn bg bw',s:'font-size:10px;margin-top:9px'});leaveB.textContent='Ieire din gang';
+  leaveB.onclick=function(){p.gangCode='';p.gangNick='';DB.save('profile',p);render()};myCard.appendChild(leaveB);
+  var membersDiv=el('div',{c:'card'});
+  var mbH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});mbH.textContent='Membri gang (se ncarc\u0103...)';membersDiv.appendChild(mbH);
+  DB.lsSh('gang:'+p.gangCode+':').then(function(keys){
+    var promises=keys.map(function(k){return DB.ldSh(k.replace('pq4:sh:',''))});
+    Promise.all(promises).then(function(members){
+      while(membersDiv.children.length>1)membersDiv.removeChild(membersDiv.lastChild);
+      var sorted=members.filter(Boolean).sort(function(a,b){return(b.xp||0)-(a.xp||0)});
+      sorted.forEach(function(m3,i){
+        var r=el('div',{s:'display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid #0f172a'});
+        var rRk=el('span',{s:'color:#64748b;font-family:ui-monospace,monospace;font-size:11px;width:18px;flex-shrink:0'});rRk.textContent='#'+(i+1);
+        var rE2=el('span',{s:'font-size:15px'});rE2.textContent=m3.emoji||'\uD83D\uDC64';
+        var rI=el('div',{s:'flex:1;min-width:0'});var rN2=el('div',{s:'color:#e2e8f0;font-size:11px;font-weight:500'});rN2.textContent=m3.nick||m3.name;
+        var rL2=el('div',{s:'color:#64748b;font-size:10px'});rL2.textContent=(m3.level||'')+(m3.workouts?' \u00b7 '+m3.workouts+' antren.':'');
+        rI.appendChild(rN2);rI.appendChild(rL2);
+        var rXP=el('div',{s:'text-align:right'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:12px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';
+        var rW3=el('div',{s:'color:#64748b;font-size:10px'});rW3.textContent=fmt(m3.weight,1)+'kg';
+        rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rE2);r.appendChild(rI);r.appendChild(rXP);membersDiv.appendChild(r);
+      });
+      if(!sorted.length){var em3=el('div',{s:'text-align:center;padding:18px;color:#475569;font-size:11px'});em3.textContent='Niciun alt membru sincronizat. Trimite codul: '+p.gangCode;membersDiv.appendChild(em3)}
+    });
+  });
+  return mkSec(h1,myCard,membersDiv)
+}
+function vAI(){
+  var p=S.profile,m=S.metrics;
+  function sysP(){
+    var tw=watToday(S),wg=Calc.wGoal(p),ls=S.sleepLog.length?S.sleepLog[S.sleepLog.length-1]:null;
+    var tl=S.food.filter(function(e){return e.date===TODAY}),tc=tl.reduce(function(a,e){return a+e.c},0);
+    return 'Eti antrenorul personal din "Dl. Muie \u021a\u00e2\u021be". R\u0103spunde MEREU \u00een rom\u00e2n\u0103. Fii direct, cald, bazat pe dovezi.\n\nPROFIL:\n'+p.name+', '+p.age+' ani, '+(p.sex==='M'?'masculin':'feminin')+', '+p.height+'cm, '+p.weight+'kg \u2192 \u021Aint\u0103: '+p.targetWeight+'kg\nGr\u0103sime: ~'+fmt(m.bf,1)+'% | Mas\u0103 slab\u0103: '+fmt(m.lbm,1)+'kg | FFMI: '+(m.ffmi?fmt(m.ffmi):'N/A')+'\n\n\u021AINTE:\nBMR: '+m.bmr+' kcal | TDEE: '+m.tdee+' kcal | \u021Aint\u0103: '+m.kcal+' kcal\nProteine: '+(m.macros?m.macros.prot:'-')+'g | Gr\u0103simi: '+(m.macros?m.macros.fat:'-')+'g | Carbo: '+(m.macros?m.macros.carbs:'-')+'g\nObiectiv: '+(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label+'\n\nSTARE AZI:\nAp\u0103: '+(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L\nSomn: '+(ls?ls.hours+'h, calitate '+ls.q+'/5':'nernregistrat')+'\nCalorii: '+tc+' kcal\nAntrenamente total: '+S.workouts.length+'\nXP: '+getXP()+' ('+getLvl().n+')\n\nREGULI: Citeaz\u0103 date concrete. Nu diagnostica. Nu recomanda sub '+(p.sex==='M'?1400:1200)+' kcal/zi. Max 280 cuvinte.'
+  }
+  var QUICK=['De ce nu scade greutatea mea?','Ce m\u0103n\u00e2nc \u00eenainte de antrenament?','C\u00e2t\u0103 ap\u0103 trebuie s\u0103 beau?','Cum m\u00eembun\u0103t\u0103\u021besc somnul profund?','Ce sport e bun pentru obiectivul meu?','Explic\u0103-mi scorul FFMI','De c\u00e2te proteine am nevoie zilnic?'];
+  var wrap=el('div',{s:'display:flex;flex-direction:column;height:840px'});
+  var wHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:9px;flex-shrink:0'});
+  var wHdrIcon=el('div',{s:'width:30px;height:30px;border-radius:8px;background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.15);display:flex;align-items:center;justify-content:center'});wHdrIcon.appendChild(ic('message-circle',13));
+  var wHdrI=el('div',null);var wHdrN=el('div',{s:'color:#f1f5f9;font-weight:600;font-size:12px'});wHdrN.textContent=t('ai_title');
+  var wHdrS=el('div',{s:'color:#64748b;font-size:10px'});wHdrS.textContent=t('ai_powered');
+  wHdrI.appendChild(wHdrN);wHdrI.appendChild(wHdrS);
+  var wKeyWrap=el('div',{s:'margin-left:auto;display:flex;gap:6px;align-items:center'});
+  var keyIn=el('input',{id:'aiKey',s:'font-size:11px;padding:6px;border-radius:6px;background:#0f172a;border:1px solid #1e293b;color:#cbd5e1',val:S.anthropicKey||'',ph:t('ai_key_placeholder')});
+  keyIn.onblur=function(){S.anthropicKey=this.value.trim();DB.save('anthropicKey',S.anthropicKey);if(!S.anthropicKey)notify(t('ai_no_key'));else notify(t('ai_save_key'));render()};
+  wKeyWrap.appendChild(keyIn);
+  wHdr.appendChild(wHdrIcon);wHdr.appendChild(wHdrI);wHdr.appendChild(wKeyWrap);wrap.appendChild(wHdr);
+  QUICK=[t('ai_q1'),t('ai_q2'),t('ai_q3'),t('ai_q4'),t('ai_q5'),t('ai_q6'),t('ai_q7')];
+  var msgs=el('div',{id:'cmsgs',s:'flex:1;overflow-y:auto;padding:11px 13px'});
+  if(!S.chat.length){
+    var intro=el('div',{s:'text-align:center;padding:10px 0 16px'});
+    var iE=el('div',{s:'font-size:34px;margin-bottom:5px'});iE.textContent='\uD83E\uDD16';
+    var iT=el('p',{s:'color:#cbd5e1;font-weight:500;font-size:12px'});iT.textContent=t('ai_tagline');
+    var iS=el('p',{s:'color:#475569;font-size:11px;margin-top:2px'});iS.textContent=t('ai_intro_blurb');
+    intro.appendChild(iE);intro.appendChild(iT);intro.appendChild(iS);msgs.appendChild(intro);
+    var qLbl2=el('div',{s:'color:#334155;font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px'});qLbl2.textContent=t('ai_suggested');msgs.appendChild(qLbl2);
+    var qg=el('div',{s:'display:grid;grid-template-columns:1fr 1fr;gap:3px'});
+    QUICK.forEach(function(q){var b=el('button',{s:'padding:6px 8px;background:#0f172a;border:1px solid #1e293b;border-radius:7px;cursor:pointer;text-align:left;color:#475569;font-size:10px;font-family:inherit'});b.textContent=q;b.onmouseenter=function(){this.style.color='#94a3b8'};b.onmouseleave=function(){this.style.color='#475569'};b.onclick=function(){var ci=document.getElementById('cI');if(ci)ci.value=q;S.chatIn=q};qg.appendChild(b)});msgs.appendChild(qg);
+  }
+  S.chat.forEach(function(msg){
+    var r=el('div',{c:'cm'+(msg.role==='user'?' u':'')});
+    var cb2=el('div',{c:'cb '+(msg.role==='user'?'u':'a')});cb2.textContent=msg.content;
+    r.appendChild(cb2);msgs.appendChild(r);
+  });
+  if(S.chatLoading){var tr2=el('div',{c:'cm'});var tb2=el('div',{c:'cb a',s:'padding:9px 11px'});for(var di=0;di<3;di++){var d2=el('span',{c:'dot'});d2.style.animationDelay=di*.15+'s';tb2.appendChild(d2)}tr2.appendChild(tb2);msgs.appendChild(tr2)}
+  wrap.appendChild(msgs);
+  setTimeout(function(){var m2=document.getElementById('cmsgs');if(m2)m2.scrollTop=m2.scrollHeight},50);
+  async function sendMsg(){
+    var msg=S.chatIn.trim();if(!msg||S.chatLoading)return;
+    S.chat.push({role:'user',content:msg});S.chatIn='';S.chatLoading=true;render();
+    try{
+      var headersObj={'Content-Type':'application/json'};
+      if(S.anthropicKey){headersObj['x-api-key']=S.anthropicKey;headersObj['Authorization']='Bearer '+S.anthropicKey}
+      var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:headersObj,body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sysP(),messages:S.chat.map(function(m3){return{role:m3.role,content:m3.content}})})});
+      var data=null;try{data=await res.json()}catch(e){}
+      if(!res.ok){var errMsg=(data&&data.error)||('HTTP '+res.status);S.chat.push({role:'assistant',content:'Eroare API: '+errMsg})}else{var txt=(data&&data.content&&data.content.map(function(c){return c.text||''}).join(''))||'Eroare API.';S.chat.push({role:'assistant',content:txt})}
+    }catch(er){S.chat.push({role:'assistant',content:'Eroare conexiune.'})}
+    S.chatLoading=false;DB.save('chat',S.chat);render();
+  }
+  var ir=el('div',{s:'padding:9px 12px;border-top:1px solid #1e293b;display:flex;gap:6px;flex-shrink:0'});
+  var ci=el('input',{id:'cI',c:'ci',s:'font-size:11px',ph:'\u00cEntreab\u0103 despre nutri\u021bie, sport, somn...',val:S.chatIn||''});ci.oninput=function(){S.chatIn=this.value};ci.onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}};
+  var sb=el('button',{c:'btn bp',s:'width:36px;height:36px;padding:0;border-radius:8px;flex-shrink:0'});sb.disabled=S.chatLoading;sb.appendChild(ic('send',12));sb.onclick=sendMsg;
+  ir.appendChild(ci);ir.appendChild(sb);wrap.appendChild(ir);return wrap
+}
+function vProf(){
+  var p=S.profile,m=S.metrics,lvl=getLvl(),xp=getXP();
+  var h1=el('h1',{s:'color:#f1f5f9;font-size:18px;font-weight:700'});h1.textContent='Profil';
+  var eBtn=el('button',{c:'btn bg',s:'font-size:11px;padding:5px 9px'});eBtn.textContent=S.editing?'Anuleaz\u0103':'Editeaz\u0103';eBtn.prepend(ic('edit',11));eBtn.onclick=function(){S.editing=!S.editing;render()};
+  var hdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between'});hdr.appendChild(h1);hdr.appendChild(eBtn);
+  var pc=el('div',{c:'card cp'});
+  var pTop=el('div',{s:'display:flex;align-items:center;gap:10px;margin-bottom:12px'});
+  var pE=el('div',{s:'width:42px;height:42px;border-radius:11px;background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.15);display:flex;align-items:center;justify-content:center;font-size:20px'});pE.textContent=lvl.e;
+  var pI=el('div',null);var pN=el('div',{s:'color:#f1f5f9;font-size:14px;font-weight:700'});pN.textContent=p.name+(p.gangNick?' ('+p.gangNick+')':'');
+  var pL=el('div',{s:'color:'+lvl.c+';font-size:11px;font-weight:600'});pL.textContent=lvl.n+' \u00b7 '+xp+' XP';
+  var pS=el('div',{s:'color:#64748b;font-size:11px'});pS.textContent=p.age+' ani \u00b7 '+(p.sex==='M'?'Masculin':'Feminin')+' \u00b7 '+p.height+'cm';
+  pI.appendChild(pN);pI.appendChild(pL);pI.appendChild(pS);pTop.appendChild(pE);pTop.appendChild(pI);pc.appendChild(pTop);
+  if(S.editing){
+    var fv={weight:p.weight,targetWeight:p.targetWeight,sleepHours:p.sleepHours,trainingFrequency:p.trainingFrequency};
+    var fvGoal=p.goal;
+    [{l:'Greutate curent\u0103',k:'weight',u:'kg'},{l:'Greutate \u021bint\u0103',k:'targetWeight',u:'kg'},{l:'Somn/noapte',k:'sleepHours',u:'h'},{l:'Antrenamente/s\u0103pt.',k:'trainingFrequency',u:'/w'}].forEach(function(f){
+      var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:7px'});
+      var rL=el('span',{s:'color:#94a3b8;font-size:11px'});rL.textContent=f.l;
+      var rR=el('div',{s:'display:flex;align-items:center;gap:5px'});
+      var rI=el('input',{c:'inp',s:'font-size:11px;width:65px;text-align:right;padding:5px 7px',type:'number',val:String(fv[f.k]||''),id:'prof-'+f.k,min:NUM_CONSTRAINTS[f.k].min,max:NUM_CONSTRAINTS[f.k].max,step:NUM_CONSTRAINTS[f.k].step});
+      rI.oninput=(function(fk){return function(){fv[fk]=this.value;debouncedRender(400)}})(f.k);
+      try{rI.onblur=(function(fk){return function(){fv[fk]=clampToConstraints(fk,this.value);render()}})(f.k)}catch(eZ){}
+      var rU=el('span',{s:'color:#64748b;font-size:11px'});rU.textContent=f.u;
+      rR.appendChild(rI);rR.appendChild(rU);r.appendChild(rL);r.appendChild(rR);pc.appendChild(r);
+    });
+    var gRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:7px'});
+    var gL=el('span',{s:'color:#94a3b8;font-size:11px'});gL.textContent='Obiectiv';
+    var gSel=el('select',{c:'inp',s:'width:auto;padding:5px 7px;font-size:11px'});
+    GOALS.forEach(function(g){var o=document.createElement('option');o.value=g.id;o.textContent=g.label;if(g.id===p.goal)o.selected=true;gSel.appendChild(o)});
+    gSel.onchange=function(){fvGoal=this.value};gRow.appendChild(gL);gRow.appendChild(gSel);pc.appendChild(gRow);
+    var svBtn=el('button',{c:'btn bp bw',s:'font-size:11px;margin-top:5px'});svBtn.textContent='Recalculeaz\u0103 planul';svBtn.prepend(ic('refresh',11));
+    svBtn.onclick=function(){var updated=Object.assign({},p,fv,{goal:fvGoal});S.profile=updated;S.metrics=Calc.getM(updated);S.editing=false;DB.save('profile',updated);render()};
+    pc.appendChild(svBtn);
+  }else{
+    var grid=el('div',{c:'g2',s:'gap:6px'});
+    [{l:'Obiectiv',v:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label},{l:'Diet\u0103',v:(DIETS.filter(function(d){return d.id===p.diet})[0]||{label:p.diet}).label},{l:'\u021Atint\u0103 greutate',v:p.targetWeight+'kg'},{l:'Antrenamente',v:p.trainingFrequency+'x/s\u0103pt.'},{l:'Somn',v:p.sleepHours+'h/noapte'},{l:'Gang',v:p.gangCode||'\u2014'}].forEach(function(r){
+      var d=el('div',{s:'background:#1e293b;border-radius:7px;padding:7px 10px'});
+      var dL=el('div',{s:'color:#475569;font-size:10px;margin-bottom:1px'});dL.textContent=r.l;
+      var dV=el('div',{s:'color:#e2e8f0;font-size:11px;font-weight:500'});dV.textContent=r.v;
+      d.appendChild(dL);d.appendChild(dV);grid.appendChild(d);
+    });pc.appendChild(grid);
+  }
+  var mc=el('div',{c:'card'});var mcH=el('div',{s:'padding:6px 11px;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:10px;font-weight:500'});mcH.textContent='Metrici calculate';mc.appendChild(mcH);
+  [{l:'BMR',v:m.bmr+' kcal',n:p.bodyFat?'Katch-McArdle':'Mifflin-St Jeor'},{l:'TDEE',v:m.tdee+' kcal',n:''},{l:'\u021Atint\u0103 calorii',v:m.kcal+' kcal',n:''},{l:'Gr\u0103sime corp.',v:m.bf?fmt(m.bf,1)+'%':'\u2014',n:'\u00b14% vs DEXA'},{l:'Mas\u0103 slab\u0103',v:m.lbm?fmt(m.lbm,1)+'kg':'\u2014',n:''},{l:'FFMI',v:m.ffmi?fmt(m.ffmi):'\u2014',n:''},{l:'IMC',v:m.bmi?fmt(m.bmi):'\u2014',n:''}].forEach(function(r){
+    var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:5px 11px;border-bottom:1px solid #0f172a'});
+    var rL=el('div',null);var rLN=el('span',{s:'color:#94a3b8;font-size:11px'});rLN.textContent=r.l;rL.appendChild(rLN);
+    if(r.n){var rLN2=el('span',{s:'color:#334155;font-size:10px;margin-left:5px'});rLN2.textContent='\u00b7 '+r.n;rL.appendChild(rLN2)}
+    var rR=el('span',{s:'font-family:ui-monospace,monospace;color:#2dd4bf;font-size:11px;font-weight:500'});rR.textContent=r.v;
+    row.appendChild(rL);row.appendChild(rR);mc.appendChild(row);
+  });
+  var dc=el('div',{c:'card cp'});var dcH=el('div',{s:'color:#94a3b8;font-size:12px;font-weight:500;margin-bottom:3px'});dcH.textContent='Resetare';dc.appendChild(dcH);
+  var dcN=el('div',{s:'color:#64748b;font-size:11px;margin-bottom:8px'});dcN.textContent='\u0218tergere toate datele. Nu poate fi anulat.';dc.appendChild(dcN);
+  var delB=el('button',{s:'background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
+  delB.appendChild(ic('trash',11));var delT=document.createTextNode('\u0218tergere tot');delB.appendChild(delT);
+  delB.onclick=function(){
+    ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.del(k)});
+    S.view='onboarding';S.nav='dash';S.profile=null;S.metrics=null;S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];S.obStep=0;S.ob={name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''};S.editing=false;S.wtIn='';S.bfIn='';S.pnote='';S.sportDur='';S.sportNote='';S.sportInt=5;S.slH='';S.slQ=0;S.slD='';S.mIn={piept:'',sold:'',pulpa:'',biceps:''};S.photoNote='';S.wIn='';S.gangCode='';S.gangNick='';S.chatIn='';S.chatLoading=false;S.wellTab='a';S.chTab='d';S.showManual=false;S.manF={name:'',c:'',p:'',f:'',h:''};S.fsel=null;S.fsearch='';S.fqty='';
+    render();
+  };
+  dc.appendChild(delB);
+  return mkSec(hdr,pc,mc,dc)
+}
+render();
+DB.load('profile').then(function(p){
+  if(p){
+    S.profile=p;S.metrics=Calc.getM(p);
+    Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs'].map(function(k){return DB.load(k)})).then(function(r){
+      S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];
+      S.view='app';render();
+    }).catch(function(){S.view='app';render()});
+  }else{S.view='onboarding';render();}
+}).catch(function(){S.view='onboarding';render()});
+</script>
+
+</head>
+<body>
+</body>
+</html>
