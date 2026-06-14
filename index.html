@@ -523,7 +523,19 @@ function vOB(){
   var logoTitle=el('div',{s:'color:var(--tx1);font-size:18px;font-weight:700;letter-spacing:-.3px'});logoTitle.textContent='Dl. Siski';
   var logoSub=el('p',{s:'color:var(--tx4);font-size:11px;margin-top:2px'});logoSub.textContent=bom('Corpul tau. Inteles.','Hai la treaba, boss.');
   logoDiv.appendChild(logoBox);logoDiv.appendChild(logoTitle);logoDiv.appendChild(logoSub);
-  oc.appendChild(logoDiv);oc.appendChild(prog);oc.appendChild(frm);wrap.appendChild(oc);return wrap
+  var obToggles=el('div',{s:'display:flex;flex-direction:column;gap:6px;margin-bottom:14px'});
+  var obModeRow=el('div',{s:'display:flex;gap:4px;background:var(--bg2);border-radius:9px;padding:3px'});
+  [{v:'normal',l:'Normal'},{v:'bom',l:'💣 Bombardier'}].forEach(function(opt){
+    var mb=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:5px 0;border-radius:6px;transition:all .15s;'+(S.mode===opt.v?'background:#16a34a;color:#fff':'background:none;color:var(--tx4)'),click:function(){S.mode=opt.v;DB.save('uiMode',opt.v);render()}});
+    mb.textContent=opt.l;obModeRow.appendChild(mb);
+  });
+  var obThemeRow=el('div',{s:'display:flex;gap:4px;background:var(--bg2);border-radius:9px;padding:3px'});
+  [{v:'dark',l:'🌙 Dark'},{v:'light',l:'☀️ Light'}].forEach(function(opt){
+    var tb2=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:5px 0;border-radius:6px;transition:all .15s;'+(S.theme===opt.v?'background:#16a34a;color:#fff':'background:none;color:var(--tx4)'),click:function(){S.theme=opt.v;DB.save('uiTheme',opt.v);render()}});
+    tb2.textContent=opt.l;obThemeRow.appendChild(tb2);
+  });
+  obToggles.appendChild(obModeRow);obToggles.appendChild(obThemeRow);
+  oc.appendChild(logoDiv);oc.appendChild(obToggles);oc.appendChild(prog);oc.appendChild(frm);wrap.appendChild(oc);return wrap
 }
 var _NAV_N=[{id:'dash',l:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutritie & Jurnal',ic:'apple'},{id:'stat',l:'Hidratare & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',ic:'barbell'},{id:'chal',l:'Provocari',ic:'trophy'},{id:'ach',l:'Realizari',ic:'award'},{id:'gang',l:'Echipă',ic:'users'},{id:'ai',l:'Antrenor AI',ic:'message-circle-2'},{id:'prof',l:'Profil',ic:'user'}];
 var _NAV_B=[{id:'dash',l:'Situatia ta',ic:'layout-dashboard'},{id:'nutr',l:'Ce bagi in tine',ic:'apple'},{id:'stat',l:'Apa & Nani',ic:'heart-rate-monitor'},{id:'progr',l:'Evolutia ta',ic:'chart-line'},{id:'sport',l:'Miscare',ic:'barbell'},{id:'chal',l:'Dare-deal',ic:'trophy'},{id:'ach',l:'Trofee',ic:'award'},{id:'gang',l:'Gang 💪',ic:'users'},{id:'ai',l:'Cocoșul tău',ic:'message-circle-2'},{id:'prof',l:'Yo',ic:'user'}];
