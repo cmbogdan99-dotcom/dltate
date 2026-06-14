@@ -222,7 +222,7 @@ var __rtd=null;
 var __siTimer=null;
 function debouncedRender(ms){ms=Math.max(ms||1000,1000);clearTimeout(__rtd);__rtd=setTimeout(function(){try{render()}catch(e){}},ms)}
 // Numeric constraints and helpers
-var NUM_CONSTRAINTS={age:{min:10,max:120,step:1},height:{min:50,max:260,step:0.1},weight:{min:20,max:500,step:0.1},neck:{min:5,max:150,step:0.1},waist:{min:20,max:300,step:0.1},hip:{min:20,max:300,step:0.1},bodyFat:{min:3,max:65,step:0.1},bfIn:{min:3,max:65,step:0.1},slD:{min:0,max:100,step:1},trainingFrequency:{min:0,max:21,step:1},sleepHours:{min:0,max:24,step:0.5},targetWeight:{min:20,max:500,step:0.1},wtIn:{min:20,max:500,step:0.1},foodQty:{min:0,max:10000,step:0.1},sportDur:{min:0,max:1440,step:1},bmi:{min:10,max:80,step:0.1},waterQty:{min:0,max:10000,step:1}};
+var NUM_CONSTRAINTS={age:{min:10,max:120,step:1},height:{min:50,max:260,step:0.1},weight:{min:20,max:500,step:0.1},neck:{min:5,max:150,step:0.1},waist:{min:20,max:300,step:0.1},hip:{min:20,max:300,step:0.1},bodyFat:{min:3,max:65,step:0.1},bfIn:{min:3,max:65,step:0.1},slD:{min:0,max:100,step:1},trainingFrequency:{min:0,max:21,step:1},sleepHours:{min:0,max:24,step:0.5},targetWeight:{min:20,max:500,step:0.1},wtIn:{min:20,max:500,step:0.1},foodQty:{min:0,max:10000,step:0.1},sportDur:{min:0,max:1440,step:1},bmi:{min:10,max:80,step:0.1},waterQty:{min:0,max:10000,step:1},sportHoursWeek:{min:0.5,max:30,step:0.5},cookTimeDay:{min:0,max:180,step:5},workHoursDay:{min:0,max:16,step:0.5}};
 function roundToStep(n,step){if(!step)return Math.round(n);var inv=1/step;return Math.round(n*inv)/inv}
 function clampToConstraints(key,val){var c=NUM_CONSTRAINTS[key];if(!c)return val; if(val===''||val==null) return '';var n=Number(val);if(isNaN(n))return'';n=Math.max(c.min,Math.min(c.max,roundToStep(n,c.step||1)));var digits=(String(c.step).indexOf('.')>-1)?String(c.step).split('.')[1].length:0;return digits? n.toFixed(digits):String(Math.round(n))}
 function fmt(n,d){if(n==null||isNaN(n))return'\u2014';return(+n).toFixed(d===undefined?1:d)}
@@ -268,13 +268,30 @@ function mkGauge(cons,tgt){
 }
 function getXP(){var x=0;(S.doneChals||[]).forEach(function(id){if(id.startsWith('ach:')){var a=ACH_DEF.find(function(x2){return'ach:'+x2.id===id});if(a)x+=a.xp}});return x}
 function getLvl(){var x=getXP();if(x>=5000)return{n:'Legend\u0103',c:'#fbbf24',e:'\uD83D\uDC51'};if(x>=2000)return{n:'Elite',c:'#a78bfa',e:'\u26A1'};if(x>=1000)return{n:'Avansat',c:'#38bdf8',e:'\uD83D\uDCAA'};if(x>=400)return{n:'Intermediar',c:'#34d399',e:'\uD83C\uDF1F'};if(x>=100)return{n:'\u00CEncep\u0103tor',c:'#94a3b8',e:'\uD83C\uDF31'};return{n:'Nou',c:'#64748b',e:'\uD83D\uDC76'}}
+function getBully(p,m){
+  var taunts=[];
+  var wks=S.workouts.slice().sort(function(a,b){return b.date.localeCompare(a.date)});
+  var lastWk=wks.length?wks[0].date:null;
+  var daysSince=lastWk?Math.floor((new Date(TODAY)-new Date(lastWk))/(86400000)):99;
+  var tw=watToday(S),wg=Calc.wGoal(p);
+  var tl=S.food.filter(function(e){return e.date===TODAY}),tc=tl.reduce(function(a,e){return a+e.c},0);
+  var slToday=S.sleepLog.filter(function(e){return e.date===TODAY}).length>0;
+  if(daysSince>=5)taunts.push({emoji:'🛋️',msg:''+daysSince+' zile fără sală, boss. Canapeaua ta te-a adoptat deja. Canapeaua NU bate grătare.'});
+  else if(daysSince>=3)taunts.push({emoji:'😴',msg:''+daysSince+' zile de când n-ai ridicat nimic mai greu decât o furculiță. Chiar ești bine?'});
+  if(tw<wg*0.3)taunts.push({emoji:'🏜️',msg:'Ai băut '+Math.round(tw/100)/10+'L din '+Math.round(wg/100)/10+'L. Ești mai uscat decât Sahara, boss.'});
+  else if(tw<wg*0.5)taunts.push({emoji:'💧',msg:'Jumătate din apă nebăută. Plante de apartament se hidratează mai bine decât tine.'});
+  if(!tc&&S.food.length>0)taunts.push({emoji:'🍕',msg:'Nici o masă înregistrată azi. Fie n-ai mâncat, fie te-ai hrănit pe ascuns — Cocoșul știe.'});
+  if(!slToday&&S.sleepLog.length>0)taunts.push({emoji:'🦇',msg:'Somnul de azi-noapte — neînregistrat. Dormi sau hoinărești ca un zombie?'});
+  if(p.goal==='p'&&tc>m.kcal*1.15&&tc>0)taunts.push({emoji:'📈',msg:'Vrei să dai jos colăceii dar ai depășit targetul caloric cu '+Math.round(tc-m.kcal)+' kcal. Cocoșul e dezamăgit.'});
+  return taunts;
+}
 function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).indexOf('ach:'+a.id)<0){(S.doneChals=S.doneChals||[]).push('ach:'+a.id);DB.save('doneChals',S.doneChals);try{notify(a.title||'Realizare',a.desc||'')}catch(e){}}})}
 var S={
   view:'loading',nav:'dash',profile:null,metrics:null,
   progress:[],food:[],workouts:[],waterLog:[],sleepLog:[],measurements:[],photos:[],doneChals:[],chat:[],
   friends:[],notifs:[],gangMembers:[],fbFriends:[],fbFriendReqs:[],fbNotifs:[],
   obStep:0,
-  ob:{name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''},
+  ob:{name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:'',sportHoursWeek:'3',cookTimeDay:'30',workHoursDay:'8',mealContext:'acasa'},
   
   fmeal:'md',fsearch:'',fsel:null,fqty:'',showManual:false,manF:{name:'',c:'',p:'',f:'',h:''},
   wIn:'',slH:'',slQ:0,slD:'',
@@ -483,6 +500,13 @@ function vOB(){
     content.push(aLbl);content.push(opts('activityLevel',ACT));
     var r2=el('div',{c:'g2'});r2.appendChild(fld('Antrenamente','trainingFrequency','3','/s\u0103pt.'));r2.appendChild(fld('Somn','sleepHours','7','h'));
     content.push(r2);
+    var schedLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);border-top:1px solid var(--bd);padding-top:9px;margin-bottom:8px;margin-top:4px'});schedLbl.textContent=bom('Program & disponibilitate','Cum \u00ee\u021bi arat\u0103 ziua?');content.push(schedLbl);
+    var r3=el('div',{c:'g2'});r3.appendChild(fld('Ore/s\u0103pt. pentru sport','sportHoursWeek','3','h'));r3.appendChild(fld('Ore lucru/zi','workHoursDay','8','h'));content.push(r3);
+    var r4=el('div',{c:'g2'});r4.appendChild(fld('Timp g\u0103tit/zi','cookTimeDay','30','min'));
+    var mcW=el('div',null);var mcLbl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:3px'});mcLbl.textContent='M\u0103n\u00e2nci cel mai des';
+    var mcSel=el('select',{c:'inp',s:'font-size:11px'});
+    [{v:'acasa',l:'Acas\u0103 (g\u0103te\u0219ti)'},{v:'restaurant',l:'Restaurant / livrare'},{v:'mixt',l:'Mixt (50/50)'},{v:'mealprep',l:'Meal prep (preg\u0103te\u0219ti \u00een avans)'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(S.ob.mealContext===o.v)op.selected=true;mcSel.appendChild(op)});
+    mcSel.onchange=function(){S.ob.mealContext=this.value};mcW.appendChild(mcLbl);mcW.appendChild(mcSel);r4.appendChild(mcW);content.push(r4);
   }else if(step===3){
     var gLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:5px'});gLbl.textContent=bom('Obiectiv','Ce vrei, boss?');
     content.push(gLbl);content.push(opts('goal',GOALS));
@@ -495,7 +519,7 @@ function vOB(){
   }
   function finish(){
     var D2=S.ob;
-    var p={name:D2.name,age:+D2.age,sex:D2.sex,height:Calc.nH(D2.height),weight:+D2.weight,neck:+D2.neck,waist:+D2.waist,hip:D2.hip?+D2.hip:null,bodyFat:D2.bodyFat?+D2.bodyFat:null,bmi:(D2.bmi?+D2.bmi:null),activityLevel:D2.activityLevel,trainingFrequency:+D2.trainingFrequency||3,sleepHours:+D2.sleepHours||7,goal:D2.goal,targetWeight:+D2.targetWeight,diet:D2.diet,bloodGlucose:D2.bloodGlucose?+D2.bloodGlucose:null,gangCode:'',gangNick:'',createdAt:new Date().toISOString()};
+    var p={name:D2.name,age:+D2.age,sex:D2.sex,height:Calc.nH(D2.height),weight:+D2.weight,neck:+D2.neck,waist:+D2.waist,hip:D2.hip?+D2.hip:null,bodyFat:D2.bodyFat?+D2.bodyFat:null,bmi:(D2.bmi?+D2.bmi:null),activityLevel:D2.activityLevel,trainingFrequency:+D2.trainingFrequency||3,sleepHours:+D2.sleepHours||7,goal:D2.goal,targetWeight:+D2.targetWeight,diet:D2.diet,bloodGlucose:D2.bloodGlucose?+D2.bloodGlucose:null,sportHoursWeek:+D2.sportHoursWeek||3,cookTimeDay:+D2.cookTimeDay||30,workHoursDay:+D2.workHoursDay||8,mealContext:D2.mealContext||'acasa',gangCode:'',gangNick:'',createdAt:new Date().toISOString()};
     S.profile=p;S.metrics=Calc.getM(p);
     S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];
     S.view='app';S.nav='dash';
@@ -694,6 +718,25 @@ function vDash(){
   var gF2=el('span',null);gF2.textContent='Acum ';var gF2v=el('span',{s:'font-family:ui-monospace,monospace;color:#4ade80'});gF2v.textContent=fmt(p.weight,1)+'kg';gF2.appendChild(gF2v);
   var gF3=el('span',null);gF3.textContent='Tint\u0103 ';var gF3v=el('span',{s:'font-family:ui-monospace,monospace;color:var(--tx3)'});gF3v.textContent=fmt(p.targetWeight,1)+'kg';gF3.appendChild(gF3v);
   gFoot.appendChild(gF1);gFoot.appendChild(gF2);gFoot.appendChild(gF3);gCard2.appendChild(gFoot);
+  // Bully card (bombardier only)
+  if(S.mode==='bom'){
+    var bullies=getBully(p,m);
+    if(bullies.length){
+      var bCard=el('div',{c:'card cp',s:'border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.04)'});
+      var bHdr=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:8px'});
+      var bTitle=el('span',{s:'color:#f87171;font-size:11px;font-weight:700'});bTitle.textContent='🐓 Cocoșul te ia la misto';
+      bHdr.appendChild(bTitle);bCard.appendChild(bHdr);
+      bullies.forEach(function(b){
+        var row=el('div',{s:'display:flex;align-items:flex-start;gap:7px;margin-bottom:7px'});
+        var em=el('span',{s:'font-size:16px;flex-shrink:0;line-height:1.4'});em.textContent=b.emoji;
+        var txt=el('div',{s:'color:var(--tx2);font-size:11px;line-height:1.5'});txt.textContent=b.msg;
+        row.appendChild(em);row.appendChild(txt);bCard.appendChild(row);
+      });
+      var bFooter=el('div',{s:'margin-top:6px;padding-top:7px;border-top:1px solid rgba(239,68,68,.15)'});
+      var bBtn=el('button',{c:'btn',s:'font-size:10px;color:#f87171;border:1px solid rgba(239,68,68,.3);background:none;padding:4px 10px',click:function(){S.nav='ai';render()}});
+      bBtn.textContent='Hai la Cocoș să rezolvăm →';bFooter.appendChild(bBtn);bCard.appendChild(bFooter);
+    }
+  }
   // AI Recs
   var aiCard=el('div',{c:'card cp'});
   var aiH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:8px'});
@@ -739,7 +782,7 @@ function vDash(){
     var txt=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});txt.textContent=r.txt;
     row.appendChild(ico);row.appendChild(txt);recCard.appendChild(row);
   });
-  return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,calRow,sg,wCard,gCard2,recCard,aiCard)
+  return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,calRow,sg,wCard,gCard2,(S.mode==='bom'&&typeof bCard!=='undefined'?bCard:null),recCard,aiCard)
 }
 function vNutr(){
   var p=S.profile,m=S.metrics,tab=S.ntab;
@@ -1400,7 +1443,7 @@ function vAI(){
   function sysP(){
     var tw=watToday(S),wg=Calc.wGoal(p),ls=S.sleepLog.length?S.sleepLog[S.sleepLog.length-1]:null;
     var tl=S.food.filter(function(e){return e.date===TODAY}),tc=tl.reduce(function(a,e){return a+e.c},0);
-    return 'Eti antrenorul personal din "Dl. Siski". R\u0103spunde MEREU \u00een rom\u00e2n\u0103. Fii direct, cald, bazat pe dovezi.\n\nPROFIL:\n'+p.name+', '+p.age+' ani, '+(p.sex==='M'?'masculin':'feminin')+', '+p.height+'cm, '+p.weight+'kg \u2192 \u021Aint\u0103: '+p.targetWeight+'kg\nGr\u0103sime: ~'+fmt(m.bf,1)+'% | Mas\u0103 slab\u0103: '+fmt(m.lbm,1)+'kg | FFMI: '+(m.ffmi?fmt(m.ffmi):'N/A')+'\n\n\u021AINTE:\nBMR: '+m.bmr+' kcal | TDEE: '+m.tdee+' kcal | \u021Aint\u0103: '+m.kcal+' kcal\nProteine: '+(m.macros?m.macros.prot:'-')+'g | Gr\u0103simi: '+(m.macros?m.macros.fat:'-')+'g | Carbo: '+(m.macros?m.macros.carbs:'-')+'g\nObiectiv: '+(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label+'\n\nSTARE AZI:\nAp\u0103: '+(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L\nSomn: '+(ls?ls.hours+'h, calitate '+ls.q+'/5':'nernregistrat')+'\nCalorii: '+tc+' kcal\nAntrenamente total: '+S.workouts.length+'\nXP: '+getXP()+' ('+getLvl().n+')\n\nREGULI: Citeaz\u0103 date concrete. Nu diagnostica. Nu recomanda sub '+(p.sex==='M'?1400:1200)+' kcal/zi. Max 280 cuvinte.'
+    return 'Eti antrenorul personal din "Dl. Siski". R\u0103spunde MEREU \u00een rom\u00e2n\u0103. Fii direct, cald, bazat pe dovezi.\n\nPROFIL:\n'+p.name+', '+p.age+' ani, '+(p.sex==='M'?'masculin':'feminin')+', '+p.height+'cm, '+p.weight+'kg \u2192 \u021Aint\u0103: '+p.targetWeight+'kg\nGr\u0103sime: ~'+fmt(m.bf,1)+'% | Mas\u0103 slab\u0103: '+fmt(m.lbm,1)+'kg | FFMI: '+(m.ffmi?fmt(m.ffmi):'N/A')+'\n\n\u021AINTE:\nBMR: '+m.bmr+' kcal | TDEE: '+m.tdee+' kcal | \u021Aint\u0103: '+m.kcal+' kcal\nProteine: '+(m.macros?m.macros.prot:'-')+'g | Gr\u0103simi: '+(m.macros?m.macros.fat:'-')+'g | Carbo: '+(m.macros?m.macros.carbs:'-')+'g\nObiectiv: '+(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label+'\n\nPROGRAM:\nOre sport/s\u0103pt: '+(p.sportHoursWeek||3)+'h | Ore lucru/zi: '+(p.workHoursDay||8)+'h | G\u0103tit/zi: '+(p.cookTimeDay||30)+'min | Context mese: '+({'acasa':'Acase','restaurant':'Restaurant','mixt':'Mixt','mealprep':'Meal prep'}[p.mealContext||'acasa']||'Acas\u0103')+'\n\nSTARE AZI:\nAp\u0103: '+(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L\nSomn: '+(ls?ls.hours+'h, calitate '+ls.q+'/5':'ne\u00eenregistrat')+'\nCalorii: '+tc+' kcal\nAntrenamente total: '+S.workouts.length+'\nXP: '+getXP()+' ('+getLvl().n+')\n\nREGULI: Citeaz\u0103 date concrete. Adapteaz\u0103 recomand\u0103rile la programul real al utilizatorului. Nu diagnostica. Nu recomanda sub '+(p.sex==='M'?1400:1200)+' kcal/zi. Max 280 cuvinte.'
   }
   var QUICK=['De ce nu scade greutatea mea?','Ce m\u0103n\u00e2nc \u00eenainte de antrenament?','C\u00e2t\u0103 ap\u0103 trebuie s\u0103 beau?','Cum m\u00eembun\u0103t\u0103\u021besc somnul profund?','Ce sport e bun pentru obiectivul meu?','Explic\u0103-mi scorul FFMI','De c\u00e2te proteine am nevoie zilnic?'];
   var wrap=el('div',{s:'display:flex;flex-direction:column;height:840px'});
@@ -1413,14 +1456,22 @@ function vAI(){
   QUICK=[t('ai_q1'),t('ai_q2'),t('ai_q3'),t('ai_q4'),t('ai_q5'),t('ai_q6'),t('ai_q7')];
   var msgs=el('div',{id:'cmsgs',s:'flex:1;overflow-y:auto;padding:11px 13px'});
   if(!S.chat.length){
+    var bulliesAI=S.mode==='bom'?getBully(p,m):[];
     var intro=el('div',{s:'text-align:center;padding:10px 0 16px'});
-    var iE=el('div',{s:'font-size:34px;margin-bottom:5px'});iE.textContent='\uD83E\uDD16';
+    var iE=el('div',{s:'font-size:34px;margin-bottom:5px'});iE.textContent=S.mode==='bom'?'\uD83D\uDC13':'\uD83E\uDD16';
     var iT=el('p',{s:'color:var(--tx2);font-weight:500;font-size:12px'});iT.textContent=t('ai_tagline');
     var iS=el('p',{s:'color:var(--tx5);font-size:11px;margin-top:2px'});iS.textContent=t('ai_intro_blurb');
     intro.appendChild(iE);intro.appendChild(iT);intro.appendChild(iS);msgs.appendChild(intro);
+    if(bulliesAI.length){
+      var bullyBubble=el('div',{c:'cm'});
+      var bullyBox=el('div',{c:'cb a',s:'border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.05)'});
+      var bullyLines=bulliesAI.map(function(b){return b.emoji+' '+b.msg}).join('\n\n');
+      bullyBox.textContent=bullyLines;
+      bullyBubble.appendChild(bullyBox);msgs.appendChild(bullyBubble);
+    }
     var qLbl2=el('div',{s:'color:var(--tx5);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px'});qLbl2.textContent=t('ai_suggested');msgs.appendChild(qLbl2);
     var qg=el('div',{s:'display:grid;grid-template-columns:1fr 1fr;gap:3px'});
-    QUICK.forEach(function(q){var b=el('button',{s:'padding:6px 8px;background:var(--bg1);border:1px solid var(--bd);border-radius:7px;cursor:pointer;text-align:left;color:var(--tx5);font-size:10px;font-family:inherit'});b.textContent=q;b.onmouseenter=function(){this.style.color='var(--tx3)'};b.onmouseleave=function(){this.style.color=''};b.onclick=function(){var ci=document.getElementById('cI');if(ci)ci.value=q;S.chatIn=q};qg.appendChild(b)});msgs.appendChild(qg);
+    QUICK.forEach(function(q){var b=el('button',{s:'padding:6px 8px;background:var(--bg2);border:1px solid var(--bd);border-radius:7px;cursor:pointer;text-align:left;color:var(--tx2);font-size:10px;font-family:inherit'});b.textContent=q;b.onmouseenter=function(){this.style.background='var(--bg3)';this.style.color='var(--tx1)'};b.onmouseleave=function(){this.style.background='';this.style.color=''};b.onclick=function(){var ci=document.getElementById('cI');if(ci)ci.value=q;S.chatIn=q};qg.appendChild(b)});msgs.appendChild(qg);
   }
   S.chat.forEach(function(msg){
     var r=el('div',{c:'cm'+(msg.role==='user'?' u':'')});
@@ -1517,9 +1568,9 @@ function vProf(){
   var pS=el('div',{s:'color:var(--tx4);font-size:11px'});pS.textContent=p.age+' ani \u00b7 '+(p.sex==='M'?'Masculin':'Feminin')+' \u00b7 '+p.height+'cm';
   pI.appendChild(pN);pI.appendChild(pL);pI.appendChild(pS);pTop.appendChild(pE);pTop.appendChild(pI);pc.appendChild(pTop);
   if(S.editing){
-    var fv={weight:p.weight,targetWeight:p.targetWeight,sleepHours:p.sleepHours,trainingFrequency:p.trainingFrequency};
-    var fvGoal=p.goal;
-    [{l:'Greutate curent\u0103',k:'weight',u:'kg'},{l:'Greutate \u021bint\u0103',k:'targetWeight',u:'kg'},{l:'Somn/noapte',k:'sleepHours',u:'h'},{l:'Antrenamente/s\u0103pt.',k:'trainingFrequency',u:'/w'}].forEach(function(f){
+    var fv={weight:p.weight,targetWeight:p.targetWeight,sleepHours:p.sleepHours,trainingFrequency:p.trainingFrequency,sportHoursWeek:p.sportHoursWeek||3,cookTimeDay:p.cookTimeDay||30,workHoursDay:p.workHoursDay||8};
+    var fvGoal=p.goal;var fvMealCtx=p.mealContext||'acasa';
+    [{l:'Greutate curent\u0103',k:'weight',u:'kg'},{l:'Greutate \u021bint\u0103',k:'targetWeight',u:'kg'},{l:'Somn/noapte',k:'sleepHours',u:'h'},{l:'Antrenamente/s\u0103pt.',k:'trainingFrequency',u:'/w'},{l:'Ore sport/s\u0103pt.',k:'sportHoursWeek',u:'h'},{l:'G\u0103tit/zi',k:'cookTimeDay',u:'min'},{l:'Ore lucru/zi',k:'workHoursDay',u:'h'}].forEach(function(f){
       var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:7px'});
       var rL=el('span',{s:'color:var(--tx3);font-size:11px'});rL.textContent=f.l;
       var rR=el('div',{s:'display:flex;align-items:center;gap:5px'});
@@ -1534,12 +1585,18 @@ function vProf(){
     var gSel=el('select',{c:'inp',s:'width:auto;padding:5px 7px;font-size:11px'});
     GOALS.forEach(function(g){var o=document.createElement('option');o.value=g.id;o.textContent=g.label;if(g.id===p.goal)o.selected=true;gSel.appendChild(o)});
     gSel.onchange=function(){fvGoal=this.value};gRow.appendChild(gL);gRow.appendChild(gSel);pc.appendChild(gRow);
+    var mcRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:7px'});
+    var mcL=el('span',{s:'color:var(--tx3);font-size:11px'});mcL.textContent='Mese (context)';
+    var mcS=el('select',{c:'inp',s:'width:auto;padding:5px 7px;font-size:11px'});
+    [{v:'acasa',l:'Acas\u0103'},{v:'restaurant',l:'Restaurant'},{v:'mixt',l:'Mixt'},{v:'mealprep',l:'Meal prep'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if((fvMealCtx||p.mealContext||'acasa')===o.v)op.selected=true;mcS.appendChild(op)});
+    mcS.onchange=function(){fvMealCtx=this.value};mcRow.appendChild(mcL);mcRow.appendChild(mcS);pc.appendChild(mcRow);
     var svBtn=el('button',{c:'btn bp bw',s:'font-size:11px;margin-top:5px'});svBtn.textContent=bom('Recalculeaz\u0103 planul','Recalculeaza, boss!');svBtn.prepend(ic('refresh',11));
-    svBtn.onclick=function(){var updated=Object.assign({},p,fv,{goal:fvGoal});S.profile=updated;S.metrics=Calc.getM(updated);S.editing=false;DB.save('profile',updated);render()};
+    svBtn.onclick=function(){var updated=Object.assign({},p,fv,{goal:fvGoal,mealContext:fvMealCtx});S.profile=updated;S.metrics=Calc.getM(updated);S.editing=false;DB.save('profile',updated);render()};
     pc.appendChild(svBtn);
   }else{
     var grid=el('div',{c:'g2',s:'gap:6px'});
-    [{l:'Obiectiv',v:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label},{l:'Diet\u0103',v:(DIETS.filter(function(d){return d.id===p.diet})[0]||{label:p.diet}).label},{l:'\u021Atint\u0103 greutate',v:p.targetWeight+'kg'},{l:'Antrenamente',v:p.trainingFrequency+'x/s\u0103pt.'},{l:'Somn',v:p.sleepHours+'h/noapte'},{l:bom('Echip\u0103','Gang'),v:p.gangCode||'\u2014'}].forEach(function(r){
+    var mealCtxLabel={'acasa':'Acas\u0103','restaurant':'Restaurant','mixt':'Mixt','mealprep':'Meal prep'};
+    [{l:'Obiectiv',v:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label},{l:'Diet\u0103',v:(DIETS.filter(function(d){return d.id===p.diet})[0]||{label:p.diet}).label},{l:'\u021Aint\u0103 greutate',v:p.targetWeight+'kg'},{l:'Antrenamente',v:p.trainingFrequency+'x/s\u0103pt.'},{l:'Somn',v:p.sleepHours+'h/noapte'},{l:'Sport/s\u0103pt.',v:(p.sportHoursWeek||3)+'h'},{l:'G\u0103tit/zi',v:(p.cookTimeDay||30)+'min'},{l:'Ore lucru/zi',v:(p.workHoursDay||8)+'h'},{l:'Mese',v:mealCtxLabel[p.mealContext||'acasa']||'Acas\u0103'},{l:bom('Echip\u0103','Gang'),v:p.gangCode||'\u2014'}].forEach(function(r){
       var d=el('div',{s:'background:var(--bg2);border-radius:7px;padding:7px 10px'});
       var dL=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:1px'});dL.textContent=r.l;
       var dV=el('div',{s:'color:var(--tx2b);font-size:11px;font-weight:500'});dV.textContent=r.v;
@@ -1547,7 +1604,7 @@ function vProf(){
     });pc.appendChild(grid);
   }
   var mc=el('div',{c:'card'});var mcH=el('div',{s:'padding:6px 11px;border-bottom:1px solid var(--bd);color:var(--tx3);font-size:10px;font-weight:500'});mcH.textContent=bom('Metrici calculate','Numerele tale, boss');mc.appendChild(mcH);
-  [{l:'BMR',v:m.bmr+' kcal',n:p.bodyFat?'Katch-McArdle':'Mifflin-St Jeor'},{l:'TDEE',v:m.tdee+' kcal',n:''},{l:'\u021Atint\u0103 calorii',v:m.kcal+' kcal',n:''},{l:'Gr\u0103sime corp.',v:m.bf?fmt(m.bf,1)+'%':'\u2014',n:'\u00b14% vs DEXA'},{l:'Mas\u0103 slab\u0103',v:m.lbm?fmt(m.lbm,1)+'kg':'\u2014',n:''},{l:'FFMI',v:m.ffmi?fmt(m.ffmi):'\u2014',n:''},{l:'IMC',v:m.bmi?fmt(m.bmi):'\u2014',n:''}].forEach(function(r){
+  [{l:'BMR',v:m.bmr+' kcal',n:p.bodyFat?'Katch-McArdle':'Mifflin-St Jeor'},{l:'TDEE',v:m.tdee+' kcal',n:''},{l:'\u021Aint\u0103 calorii',v:m.kcal+' kcal',n:''},{l:'Gr\u0103sime corp.',v:m.bf?fmt(m.bf,1)+'%':'\u2014',n:'\u00b14% vs DEXA'},{l:'Mas\u0103 slab\u0103',v:m.lbm?fmt(m.lbm,1)+'kg':'\u2014',n:''},{l:'FFMI',v:m.ffmi?fmt(m.ffmi):'\u2014',n:''},{l:'IMC',v:m.bmi?fmt(m.bmi):'\u2014',n:''}].forEach(function(r){
     var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:5px 11px;border-bottom:1px solid var(--bg1)'});
     var rL=el('div',null);var rLN=el('span',{s:'color:var(--tx3);font-size:11px'});rLN.textContent=r.l;rL.appendChild(rLN);
     if(r.n){var rLN2=el('span',{s:'color:var(--tx5);font-size:10px;margin-left:5px'});rLN2.textContent='\u00b7 '+r.n;rL.appendChild(rLN2)}
