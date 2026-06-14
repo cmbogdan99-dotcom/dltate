@@ -268,6 +268,23 @@ function mkGauge(cons,tgt){
 }
 function getXP(){var x=0;(S.doneChals||[]).forEach(function(id){if(id.startsWith('ach:')){var a=ACH_DEF.find(function(x2){return'ach:'+x2.id===id});if(a)x+=a.xp}});return x}
 function getLvl(){var x=getXP();if(x>=5000)return{n:'Legend\u0103',c:'#fbbf24',e:'\uD83D\uDC51'};if(x>=2000)return{n:'Elite',c:'#a78bfa',e:'\u26A1'};if(x>=1000)return{n:'Avansat',c:'#38bdf8',e:'\uD83D\uDCAA'};if(x>=400)return{n:'Intermediar',c:'#34d399',e:'\uD83C\uDF1F'};if(x>=100)return{n:'\u00CEncep\u0103tor',c:'#94a3b8',e:'\uD83C\uDF31'};return{n:'Nou',c:'#64748b',e:'\uD83D\uDC76'}}
+function getBully(p,m){
+  var taunts=[];
+  var wks=S.workouts.slice().sort(function(a,b){return b.date.localeCompare(a.date)});
+  var lastWk=wks.length?wks[0].date:null;
+  var daysSince=lastWk?Math.floor((new Date(TODAY)-new Date(lastWk))/(86400000)):99;
+  var tw=watToday(S),wg=Calc.wGoal(p);
+  var tl=S.food.filter(function(e){return e.date===TODAY}),tc=tl.reduce(function(a,e){return a+e.c},0);
+  var slToday=S.sleepLog.filter(function(e){return e.date===TODAY}).length>0;
+  if(daysSince>=5)taunts.push({emoji:'🛋️',msg:''+daysSince+' zile fără sală, boss. Canapea ta te-a adoptat deja. Canapea NU bate gratii.'});
+  else if(daysSince>=3)taunts.push({emoji:'😴',msg:''+daysSince+' zile de când n-ai ridicat nimic mai greu decât o furculiță. Chiar ești bine?'});
+  if(tw<wg*0.3)taunts.push({emoji:'🏜️',msg:'Ai băut '+Math.round(tw/100)/10+'L din '+Math.round(wg/100)/10+'L. Ești mai uscat decât Sahara, boss.'});
+  else if(tw<wg*0.5)taunts.push({emoji:'💧',msg:'Jumătate din apă nebăută. Plante de apartament se hidratează mai bine decât tine.'});
+  if(!tc&&S.food.length>0)taunts.push({emoji:'🍕',msg:'Nici o masă înregistrată azi. Fie n-ai mâncat, fie te-ai hrănit pe ascuns — Cocoșul știe.'});
+  if(!slToday&&S.sleepLog.length>0)taunts.push({emoji:'🦇',msg:'Somnul de azi-noapte — neînregistrat. Dormi sau hoinărești ca un zombie?'});
+  if(p.goal==='p'&&tc>m.kcal*1.15&&tc>0)taunts.push({emoji:'📈',msg:'Vrei să dai jos colăceii dar ai depășit targetul caloric cu '+Math.round(tc-m.kcal)+' kcal. Cocoșul e dezamăgit.'});
+  return taunts;
+}
 function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).indexOf('ach:'+a.id)<0){(S.doneChals=S.doneChals||[]).push('ach:'+a.id);DB.save('doneChals',S.doneChals);try{notify(a.title||'Realizare',a.desc||'')}catch(e){}}})}
 var S={
   view:'loading',nav:'dash',profile:null,metrics:null,
@@ -694,6 +711,25 @@ function vDash(){
   var gF2=el('span',null);gF2.textContent='Acum ';var gF2v=el('span',{s:'font-family:ui-monospace,monospace;color:#4ade80'});gF2v.textContent=fmt(p.weight,1)+'kg';gF2.appendChild(gF2v);
   var gF3=el('span',null);gF3.textContent='Tint\u0103 ';var gF3v=el('span',{s:'font-family:ui-monospace,monospace;color:var(--tx3)'});gF3v.textContent=fmt(p.targetWeight,1)+'kg';gF3.appendChild(gF3v);
   gFoot.appendChild(gF1);gFoot.appendChild(gF2);gFoot.appendChild(gF3);gCard2.appendChild(gFoot);
+  // Bully card (bombardier only)
+  if(S.mode==='bom'){
+    var bullies=getBully(p,m);
+    if(bullies.length){
+      var bCard=el('div',{c:'card cp',s:'border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.04)'});
+      var bHdr=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:8px'});
+      var bTitle=el('span',{s:'color:#f87171;font-size:11px;font-weight:700'});bTitle.textContent='🐓 Cocoșul te ia la misto';
+      bHdr.appendChild(bTitle);bCard.appendChild(bHdr);
+      bullies.forEach(function(b){
+        var row=el('div',{s:'display:flex;align-items:flex-start;gap:7px;margin-bottom:7px'});
+        var em=el('span',{s:'font-size:16px;flex-shrink:0;line-height:1.4'});em.textContent=b.emoji;
+        var txt=el('div',{s:'color:var(--tx2);font-size:11px;line-height:1.5'});txt.textContent=b.msg;
+        row.appendChild(em);row.appendChild(txt);bCard.appendChild(row);
+      });
+      var bFooter=el('div',{s:'margin-top:6px;padding-top:7px;border-top:1px solid rgba(239,68,68,.15)'});
+      var bBtn=el('button',{c:'btn',s:'font-size:10px;color:#f87171;border:1px solid rgba(239,68,68,.3);background:none;padding:4px 10px',click:function(){S.nav='ai';render()}});
+      bBtn.textContent='Hai la Cocoș să rezolvăm →';bFooter.appendChild(bBtn);bCard.appendChild(bFooter);
+    }
+  }
   // AI Recs
   var aiCard=el('div',{c:'card cp'});
   var aiH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:8px'});
@@ -739,7 +775,7 @@ function vDash(){
     var txt=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});txt.textContent=r.txt;
     row.appendChild(ico);row.appendChild(txt);recCard.appendChild(row);
   });
-  return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,calRow,sg,wCard,gCard2,recCard,aiCard)
+  return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,calRow,sg,wCard,gCard2,(S.mode==='bom'&&typeof bCard!=='undefined'?bCard:null),recCard,aiCard)
 }
 function vNutr(){
   var p=S.profile,m=S.metrics,tab=S.ntab;
@@ -1413,11 +1449,19 @@ function vAI(){
   QUICK=[t('ai_q1'),t('ai_q2'),t('ai_q3'),t('ai_q4'),t('ai_q5'),t('ai_q6'),t('ai_q7')];
   var msgs=el('div',{id:'cmsgs',s:'flex:1;overflow-y:auto;padding:11px 13px'});
   if(!S.chat.length){
+    var bulliesAI=S.mode==='bom'?getBully(p,m):[];
     var intro=el('div',{s:'text-align:center;padding:10px 0 16px'});
-    var iE=el('div',{s:'font-size:34px;margin-bottom:5px'});iE.textContent='\uD83E\uDD16';
+    var iE=el('div',{s:'font-size:34px;margin-bottom:5px'});iE.textContent=S.mode==='bom'?'\uD83D\uDC13':'\uD83E\uDD16';
     var iT=el('p',{s:'color:var(--tx2);font-weight:500;font-size:12px'});iT.textContent=t('ai_tagline');
     var iS=el('p',{s:'color:var(--tx5);font-size:11px;margin-top:2px'});iS.textContent=t('ai_intro_blurb');
     intro.appendChild(iE);intro.appendChild(iT);intro.appendChild(iS);msgs.appendChild(intro);
+    if(bulliesAI.length){
+      var bullyBubble=el('div',{c:'cm'});
+      var bullyBox=el('div',{c:'cb a',s:'border-color:rgba(239,68,68,.25);background:rgba(239,68,68,.05)'});
+      var bullyLines=bulliesAI.map(function(b){return b.emoji+' '+b.msg}).join('\n\n');
+      bullyBox.textContent=bullyLines;
+      bullyBubble.appendChild(bullyBox);msgs.appendChild(bullyBubble);
+    }
     var qLbl2=el('div',{s:'color:var(--tx5);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px'});qLbl2.textContent=t('ai_suggested');msgs.appendChild(qLbl2);
     var qg=el('div',{s:'display:grid;grid-template-columns:1fr 1fr;gap:3px'});
     QUICK.forEach(function(q){var b=el('button',{s:'padding:6px 8px;background:var(--bg1);border:1px solid var(--bd);border-radius:7px;cursor:pointer;text-align:left;color:var(--tx5);font-size:10px;font-family:inherit'});b.textContent=q;b.onmouseenter=function(){this.style.color='var(--tx3)'};b.onmouseleave=function(){this.style.color=''};b.onclick=function(){var ci=document.getElementById('cI');if(ci)ci.value=q;S.chatIn=q};qg.appendChild(b)});msgs.appendChild(qg);
