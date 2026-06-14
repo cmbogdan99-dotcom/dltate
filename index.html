@@ -276,7 +276,7 @@ function getBully(p,m){
   var tw=watToday(S),wg=Calc.wGoal(p);
   var tl=S.food.filter(function(e){return e.date===TODAY}),tc=tl.reduce(function(a,e){return a+e.c},0);
   var slToday=S.sleepLog.filter(function(e){return e.date===TODAY}).length>0;
-  if(daysSince>=5)taunts.push({emoji:'🛋️',msg:''+daysSince+' zile fără sală, boss. Canapea ta te-a adoptat deja. Canapea NU bate gratii.'});
+  if(daysSince>=5)taunts.push({emoji:'🛋️',msg:''+daysSince+' zile fără sală, boss. Canapeaua ta te-a adoptat deja. Canapeaua NU bate grătare.'});
   else if(daysSince>=3)taunts.push({emoji:'😴',msg:''+daysSince+' zile de când n-ai ridicat nimic mai greu decât o furculiță. Chiar ești bine?'});
   if(tw<wg*0.3)taunts.push({emoji:'🏜️',msg:'Ai băut '+Math.round(tw/100)/10+'L din '+Math.round(wg/100)/10+'L. Ești mai uscat decât Sahara, boss.'});
   else if(tw<wg*0.5)taunts.push({emoji:'💧',msg:'Jumătate din apă nebăută. Plante de apartament se hidratează mai bine decât tine.'});
