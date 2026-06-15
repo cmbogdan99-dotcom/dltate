@@ -206,7 +206,7 @@ firebase.initializeApp(_fbCfg);
 var RTDB=firebase.database();
 var UID=(function(){try{var u=localStorage.getItem('dltate:uid');if(!u){u='u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5);localStorage.setItem('dltate:uid',u)}return u}catch(e){return 'u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5)}})();
 var PCODE=UID.substr(-8).toUpperCase();
-function syncUserToFB(){if(!S.profile)return;RTDB.ref('users/'+UID).set({name:S.profile.name,code:PCODE,uid:UID,lastSeen:TODAY}).catch(function(){})}
+function syncUserToFB(){if(!S.profile)return;RTDB.ref('users/'+UID).set({name:S.profile.name,username:S.authUser||'',code:PCODE,uid:UID,xp:getXP(),level:getLvl().n,lastSeen:TODAY}).catch(function(){})}
 var _gangUnsub=null;
 function setupGangListener(code){
   if(_gangUnsub){_gangUnsub();_gangUnsub=null;}
@@ -370,8 +370,10 @@ function addXP(reason,amt){
   DB.save('xpLog',S.xpLog);
   var newLvl=getLvl().n;
   if(newLvl!==prevLvl){S.newLevel=newLvl;setTimeout(function(){S.newLevel=null;render()},4000)}
-  // publish XP to clan leaderboard
-  if(S.profile&&S.profile.gangCode){var totalXP=getXP();RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+UID+'/xp').set(totalXP).catch(function(){})}
+  // publish XP to global + clan leaderboard
+  var totalXP=getXP();
+  if(S.profile){RTDB.ref('users/'+UID+'/xp').set(totalXP).catch(function(){});RTDB.ref('users/'+UID+'/level').set(getLvl().n).catch(function(){})}
+  if(S.profile&&S.profile.gangCode){RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+UID+'/xp').set(totalXP).catch(function(){})}
 }
 function genChals(p){
   if(!p)return[];
@@ -758,8 +760,8 @@ function vOB(){
   obToggles.appendChild(obModeRow);obToggles.appendChild(obThemeRow);
   oc.appendChild(logoDiv);oc.appendChild(obToggles);oc.appendChild(prog);oc.appendChild(frm);wrap.appendChild(oc);return wrap
 }
-var _NAV_N=[{id:'dash',l:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutritie & Jurnal',ic:'apple'},{id:'stat',l:'Hidratare & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',ic:'barbell'},{id:'chal',l:'Provocari',ic:'trophy'},{id:'ach',l:'Realizari',ic:'award'},{id:'gang',l:'Clan',ic:'users'},{id:'ai',l:'Antrenor AI',ic:'message-circle-2'},{id:'prof',l:'Profil',ic:'user'}];
-var _NAV_B=[{id:'dash',l:'Situatia ta',ic:'layout-dashboard'},{id:'nutr',l:'Ce bagi in tine',ic:'apple'},{id:'stat',l:'Apa & Nani',ic:'heart-rate-monitor'},{id:'progr',l:'Evolutia ta',ic:'chart-line'},{id:'sport',l:'Miscare',ic:'barbell'},{id:'chal',l:'Dare-deal',ic:'trophy'},{id:'ach',l:'Trofee',ic:'award'},{id:'gang',l:'Clan 💪',ic:'users'},{id:'ai',l:'Cocoșul tău',ic:'message-circle-2'},{id:'prof',l:'Yo',ic:'user'}];
+var _NAV_N=[{id:'dash',l:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutritie & Jurnal',ic:'apple'},{id:'stat',l:'Hidratare & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',ic:'barbell'},{id:'chal',l:'Provocari',ic:'trophy'},{id:'ach',l:'Realizari',ic:'award'},{id:'gang',l:'Clan',ic:'users'},{id:'top',l:'Top Global',ic:'medal'},{id:'ai',l:'Antrenor AI',ic:'message-circle-2'},{id:'prof',l:'Profil',ic:'user'}];
+var _NAV_B=[{id:'dash',l:'Situatia ta',ic:'layout-dashboard'},{id:'nutr',l:'Ce bagi in tine',ic:'apple'},{id:'stat',l:'Apa & Nani',ic:'heart-rate-monitor'},{id:'progr',l:'Evolutia ta',ic:'chart-line'},{id:'sport',l:'Miscare',ic:'barbell'},{id:'chal',l:'Dare-deal',ic:'trophy'},{id:'ach',l:'Trofee',ic:'award'},{id:'gang',l:'Clan 💪',ic:'users'},{id:'top',l:'Top Global 🏆',ic:'medal'},{id:'ai',l:'Cocoșul tău',ic:'message-circle-2'},{id:'prof',l:'Yo',ic:'user'}];
 var NAV=_NAV_N;
 function vMain(){
   var p=S.profile,lvl=getLvl(),xp=getXP();
@@ -806,7 +808,7 @@ function vMain(){
   });
   sbF.appendChild(sbIcons);sbWrap.appendChild(sbF);
   var mc=el('div',{c:'mc'});
-  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,ai:vAI,prof:vProf};
+  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,top:vTop,ai:vAI,prof:vProf};
   var fn=views[S.nav]||vDash;
   var content=null;
   try{content=fn();}catch(er){content=el('div',{s:'padding:20px;color:#f87171;font-size:12px;font-family:monospace'});content.textContent='Eroare: '+er.message;}
@@ -880,6 +882,62 @@ function getProgressStats(){
   var p=S.profile,startW=first.weight,curW=last.weight,tgtW=p.targetWeight;
   var goalPct=tgtW&&startW!==tgtW?Math.min(100,Math.max(0,Math.round(Math.abs(startW-curW)/Math.abs(startW-tgtW)*100))):null;
   return{totalChange:totalChange,weeklyRate:weeklyRate,plateau:plateau,streak:streak,goalPct:goalPct,entries:prog.length};
+}
+function mkRec(tips){
+  if(!tips||!tips.length)return null;
+  var card=el('div',{c:'card cp',s:'border-left:3px solid var(--ac)'});
+  var rH=el('div',{s:'color:var(--tx3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px'});rH.textContent=bom('Sfat personalizat','Sfat de la Cocoș');card.appendChild(rH);
+  tips.forEach(function(tip,i){
+    var row=el('div',{s:'display:flex;align-items:flex-start;gap:6px'+(i>0?';margin-top:5px;padding-top:5px;border-top:1px solid var(--bg1)':'')});
+    var dot=el('span',{s:'color:var(--ac);font-size:12px;line-height:1.4;flex-shrink:0'});dot.textContent='›';
+    var txt=el('span',{s:'color:var(--tx2);font-size:11px;line-height:1.45'});txt.textContent=tip;
+    row.appendChild(dot);row.appendChild(txt);card.appendChild(row);
+  });
+  var goBtn=el('button',{s:'margin-top:8px;background:none;border:none;color:var(--ac);font-size:10px;cursor:pointer;padding:0;font-family:inherit'});
+  goBtn.textContent='Întreabă Antrenorul AI →';
+  goBtn.onclick=function(){S.nav='ai';render()};
+  card.appendChild(goBtn);
+  return card;
+}
+function getRec(view){
+  var p=S.profile,m=S.metrics;if(!p||!m)return null;
+  var tips=[];
+  var tw=watToday(S)/1000,wg=Calc.wGoal(p)/1000;
+  var tl=S.food.filter(function(f){return f.date===TODAY});
+  var tc=tl.reduce(function(a,f){return a+f.c},0);
+  var protAzi=tl.reduce(function(a,f){return a+f.p},0);
+  var protTgt=m.macros?m.macros.prot:Math.round(p.weight*2);
+  var wkToday=S.workouts.filter(function(w){return w.date===TODAY}).length;
+  if(view==='nutr'){
+    var deficit=Math.round(protTgt-protAzi);
+    if(deficit>10)tips.push('Mai ai nevoie de '+deficit+'g proteine azi. Încearcă brânză de vaci, ouă sau piept de pui.');
+    if(tc>m.kcal*1.05)tips.push('Ai depășit targetul caloric cu '+(tc-m.kcal)+' kcal. Mâine compensează cu o masă mai ușoară.');
+    if(tc<m.kcal*0.6&&tl.length<2)tips.push('Ai mâncat puțin azi ('+tc+' kcal). Nu sări peste mese — metabolismul tău are nevoie de combustibil constant.');
+  }
+  if(view==='stat'){
+    if(tw<wg*0.5)tips.push('Ai băut doar '+tw.toFixed(1)+'L din '+wg.toFixed(1)+'L. Pune o sticlă de apă pe birou și bea câte un pahar în fiecare oră.');
+    var ls=S.sleepLog.length?S.sleepLog[S.sleepLog.length-1]:null;
+    if(ls&&ls.hours<7)tips.push('Ultima noapte ai dormit '+ls.hours+'h. Sub 7h crește cortizolul și sabotează slăbitul și recuperarea musculară.');
+    if(!ls)tips.push('Nu ai înregistrat somnul. Urmărind somnul 7 zile vei vedea cum influențează energia și rezultatele.');
+  }
+  if(view==='sport'){
+    if(!wkToday)tips.push('Nu ai antrenament logat azi. Chiar și 20 min de mers rapid contează pentru obiectivul tău.');
+    var wkWeek=S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]}).length;
+    if(wkWeek<2)tips.push('Ai avut doar '+wkWeek+' antrenamente săptămâna asta. Targetul tău necesită minim '+(p.trainingFrequency||3)+' sesiuni/săptămână.');
+    if(p.preferredSports&&p.preferredSports.length)tips.push('Sporturile tale preferate ('+p.preferredSports.slice(0,2).join(', ')+') sunt incluse în recomandările AI. Întreabă antrenorul pentru un plan detaliat.');
+  }
+  if(view==='progr'){
+    var lastP=S.progress.length?S.progress[S.progress.length-1]:null;
+    if(!lastP)tips.push('Înregistrează greutatea azi pentru a porni urmărirea progresului tău.');
+    else if(lastP.date!==TODAY)tips.push('Ultima cântărire a fost pe '+lastP.date+'. Cântărește-te dimineața, pe nemâncate, pentru date precise.');
+    if(p.targetWeight&&lastP){var diff=Math.round((lastP.weight-p.targetWeight)*10)/10;if(diff>0)tips.push('Mai ai '+diff+'kg până la obiectiv ('+p.targetWeight+'kg). La ritmul curent, estimarea AI poate fi calculată din chat.')}
+  }
+  if(view==='dash'){
+    if(tw<wg*0.3)tips.push('Ai băut doar '+tw.toFixed(1)+'L azi. Hidratarea afectează energia și performanța.');
+    if(!wkToday&&new Date().getHours()>10)tips.push('Niciun antrenament azi. Chiar și o sesiune scurtă de '+( p.preferredSports&&p.preferredSports[0]||'cardio')+' contează.');
+    if(tc<100&&new Date().getHours()>12)tips.push('Abia '+tc+' kcal logați azi. Nu uita să introduci mesele pentru a urmări macronutrienții.');
+  }
+  return tips.length?mkRec(tips.slice(0,2)):null;
 }
 function vDash(){
   var p=S.profile,m=S.metrics;
@@ -1039,7 +1097,7 @@ function vDash(){
   var overtrain=highInt.length>=4;
   var overCard=overtrain?el('div',{c:'card cp',s:'border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.04)'}):null;
   if(overCard){var ocH=el('div',{s:'color:#fde68a;font-size:12px;font-weight:600;margin-bottom:5px'});ocH.textContent='⚠️ Risc supraantrenament';var ocT=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});ocT.textContent=highInt.length+' antrenamente la intensitate ≥8 în ultimele 5 zile. Recomandare: zi de odihnă activă sau antrenament ușor (intensitate ≤5).';overCard.appendChild(ocH);overCard.appendChild(ocT);}
-  return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,calRow,sg,wCard,gCard2,(S.mode==='bom'&&typeof bCard!=='undefined'?bCard:null),overCard,progCard,recCard,aiCard)
+  return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,calRow,sg,wCard,gCard2,(S.mode==='bom'&&typeof bCard!=='undefined'?bCard:null),overCard,getRec('dash'),progCard,recCard,aiCard)
 }
 function vNutr(){
   var p=S.profile,m=S.metrics,tab=S.ntab;
@@ -1084,7 +1142,7 @@ function vNutr(){
       arr[2].forEach(function(f){var tag=el('span',{s:'padding:2px 7px;background:var(--bg2);border:1px solid var(--bg3);border-radius:99px;font-size:10px;color:var(--tx3)'});tag.textContent=f.n+' ('+f[arr[3]]+'g P)';tags.appendChild(tag)});
       fsCard.appendChild(tags);
     });
-    return mkSec(hdr,calCard,fsCard)
+    return mkSec(hdr,getRec('nutr'),calCard,fsCard)
   }
   // Journal tab
   var sumRow=el('div',{c:'g4'});
@@ -1303,7 +1361,7 @@ function vStat(){
     var note=el('div',{s:'color:var(--tx4);font-size:10px'});note.textContent=arr[3];d.appendChild(note);
     rc.appendChild(d);
   });
-  return mkSec(hdr,rc)
+  return mkSec(hdr,getRec('stat'),rc)
 }
 function vProgr(){
   var p=S.profile,m=S.metrics,tab=S.ptab;
@@ -1389,7 +1447,7 @@ function vProgr(){
     var xb=el('button',{s:'background:none;border:none;cursor:pointer;color:var(--tx5);font-size:13px',click:(function(eid){return function(){if(!confirm(t('remove_confirm')))return;S.photos=S.photos.filter(function(x){return x.id!==eid});DB.save('photos',S.photos);render()}})(e.id)});xb.textContent='\u00d7';xb.onmouseenter=function(){this.style.color='#f87171'};xb.onmouseleave=function(){this.style.color=''};rR3.appendChild(xb);
     r.appendChild(rL);r.appendChild(rR3);ph2.appendChild(r);
   });
-  return mkSec(hdr,pf,ph2)
+  return mkSec(hdr,getRec('progr'),pf,ph2)
 }
 function vSport(){
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Sport & Antrenamente','Miscare si sudoare');
@@ -1438,7 +1496,7 @@ function vSport(){
     xb5.onmouseenter=function(){this.style.color='#f87171'};xb5.onmouseleave=function(){this.style.color=''};
     rR5.appendChild(rD4);rR5.appendChild(xb5);r.appendChild(rL);r.appendChild(rR5);hl3.appendChild(r);
   });hist2.appendChild(hl3);
-  return mkSec(h1,frm,sts,hist2)
+  return mkSec(h1,getRec('sport'),frm,sts,hist2)
 }
 function vChal(){
   var tab=S.chTab;
@@ -1499,7 +1557,7 @@ function vFriends(){
   var mcH=el('div',{s:'color:var(--tx3);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});mcH.textContent=bom('Codul tau de jucator','Codul tau de boss');
   var mcV=el('div',{s:'display:flex;align-items:center;gap:8px'});
   var mcCode=el('div',{s:'font-size:20px;font-weight:700;font-family:ui-monospace,monospace;color:#4ade80;letter-spacing:2px'});mcCode.textContent=PCODE;
-  var mcCopy=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcCopy.textContent=bom('Copiaza','Ia codul!');mcCopy.onclick=function(){navigator.clipboard.writeText(PCODE);mcCopy.textContent=bom('Copiat!','Luat!');setTimeout(function(){mcCopy.textContent=bom('Copiaza','Ia codul!')},1500)};
+  var mcCopy=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcCopy.textContent=bom('Copiaza','Ia codul!');mcCopy.onclick=function(){var btn=mcCopy;function done(){btn.textContent=bom('Copiat!','Luat!');setTimeout(function(){btn.textContent=bom('Copiaza','Ia codul!')},1500)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(PCODE).then(done).catch(function(){try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}})}else{try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}}};
   mcV.appendChild(mcCode);mcV.appendChild(mcCopy);
   var mcTip=el('div',{s:'color:var(--tx5);font-size:11px;margin-top:4px'});mcTip.textContent=bom('Trimite acest cod prietenilor ca sa te adauge.','Trimite codul asta prietenilor ca sa te gaseasca — daca ai prieteni, bineinteles.');
   myCodeCard.appendChild(mcH);myCodeCard.appendChild(mcV);myCodeCard.appendChild(mcTip);
@@ -1658,6 +1716,48 @@ function vAch(){
   });
   return mkSec(h1,lvlCard,achGrid)
 }
+function vTop(){
+  var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Top Global','Top Global 🏆');
+  var myXP=getXP(),myLvl=getLvl();
+  var meCard=el('div',{c:'card cp',s:'display:flex;align-items:center;gap:10px'});
+  var meE=el('div',{s:'font-size:20px'});meE.textContent=myLvl.e;
+  var meI=el('div',{s:'flex:1'});
+  var meN=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});meN.textContent=(S.authUser?'@'+S.authUser+' · ':'')+( S.profile?S.profile.name:'Tu');
+  var meX=el('div',{s:'color:#fbbf24;font-size:11px'});meX.textContent=myXP+' XP · '+myLvl.n;
+  meI.appendChild(meN);meI.appendChild(meX);meCard.appendChild(meE);meCard.appendChild(meI);
+  var listCard=el('div',{c:'card',s:'padding:0;overflow:hidden'});
+  var lH=el('div',{s:'padding:8px 13px;border-bottom:1px solid var(--bd);color:var(--tx3);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em'});lH.textContent='Top 10 utilizatori · se încarcă...';listCard.appendChild(lH);
+  var lBody=el('div',{id:'topGlobalBody',s:'padding:8px 0'});
+  var loadingRow=el('div',{s:'text-align:center;padding:20px;color:var(--tx5);font-size:11px'});loadingRow.textContent='Se încarcă clasamentul...';lBody.appendChild(loadingRow);
+  listCard.appendChild(lBody);
+  // fetch top users from Firebase
+  RTDB.ref('users').orderByChild('xp').limitToLast(10).get().then(function(snap){
+    var users=[];snap.forEach(function(c){var v=c.val();if(v&&typeof v.xp==='number')users.push(v)});
+    users.sort(function(a,b){return(b.xp||0)-(a.xp||0)});
+    lH.textContent='Top '+users.length+' utilizatori globali';
+    while(lBody.firstChild)lBody.removeChild(lBody.firstChild);
+    if(!users.length){var em2=el('div',{s:'text-align:center;padding:20px;color:var(--tx5);font-size:11px'});em2.textContent='Nimeni nu a sincronizat încă XP.';lBody.appendChild(em2);return}
+    users.forEach(function(u,i){
+      var isMe=u.uid===UID;
+      var row=el('div',{s:'display:flex;align-items:center;gap:8px;padding:8px 13px;border-bottom:1px solid var(--bg1)'+(isMe?';background:rgba(22,163,74,.05)':'')});
+      var rkTxt=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+      var rk=el('span',{s:'width:22px;font-size:'+(i<3?'14':'11')+'px;flex-shrink:0;text-align:center'});rk.textContent=rkTxt;
+      var ri=el('div',{s:'flex:1;min-width:0'});
+      var rn=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:'+(isMe?'700':'500')});rn.textContent=(u.username?'@'+u.username+' · ':'')+( u.name||'Utilizator');
+      var rl=el('div',{s:'color:var(--tx4);font-size:10px'});rl.textContent=u.level||'';
+      ri.appendChild(rn);ri.appendChild(rl);
+      var rx=el('div',{s:'color:#fbbf24;font-weight:700;font-size:12px;font-family:ui-monospace,monospace'});rx.textContent=(u.xp||0)+' XP';
+      row.appendChild(rk);row.appendChild(ri);row.appendChild(rx);lBody.appendChild(row);
+    });
+  }).catch(function(){lH.textContent='Eroare la încărcarea clasamentului.';});
+  var tipCard=el('div',{c:'card cp'});
+  var tipT=el('div',{s:'color:var(--tx3);font-size:11px;font-weight:500;margin-bottom:4px'});tipT.textContent='Cum acumulezi XP?';
+  var tips=['+15 XP — antrenament logat','+10 XP — somn logat','+10 XP — progres greutate','+5 XP — masă logată','+XP — misiuni și realizări completate'];
+  var tipList=el('ul',{s:'color:var(--tx4);font-size:11px;margin:0;padding-left:16px;line-height:1.7'});
+  tips.forEach(function(t2){var li=el('li',null);li.textContent=t2;tipList.appendChild(li)});
+  tipCard.appendChild(tipT);tipCard.appendChild(tipList);
+  return mkSec(h1,meCard,listCard,tipCard)
+}
 function vGang(){
   var p=S.profile,xp=getXP(),lvl=getLvl();
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Echip\u0103 \uD83E\uDD1D','Gang \uD83D\uDCAA');
@@ -1671,7 +1771,7 @@ function vGang(){
     jBtn.onclick=function(){
       if(!S.gangCode||!S.gangNick)return;
       p.gangCode=S.gangCode;p.gangNick=S.gangNick;
-      var md={nick:S.gangNick,name:p.name,xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};
+      var md={nick:S.gangNick,name:p.name,username:S.authUser||'',xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};
       RTDB.ref('sh/gang/'+S.gangCode+'/'+UID).set(md).catch(function(){});
       DB.save('profile',p);
       setupGangListener(S.gangCode);
@@ -1689,7 +1789,7 @@ function vGang(){
   var myHNick=el('div',{s:'color:var(--tx4);font-size:11px'});myHNick.textContent=bom('Poreclă: ','Zis si: ')+p.gangNick;
   myHL.appendChild(myHN);myHL.appendChild(myHNick);
   var syncB=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});syncB.textContent='Sync';syncB.prepend(ic('refresh',10));
-  syncB.onclick=function(){var md2={nick:p.gangNick,name:p.name,xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};RTDB.ref('sh/gang/'+p.gangCode+'/'+UID).set(md2).catch(function(){});render()};
+  syncB.onclick=function(){var md2={nick:p.gangNick,name:p.name,username:S.authUser||'',xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY};RTDB.ref('sh/gang/'+p.gangCode+'/'+UID).set(md2).catch(function(){});render()};
   myH.appendChild(myHL);myH.appendChild(syncB);myCard.appendChild(myH);
   var meRow=el('div',{s:'display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:8px;padding:8px 11px'});
   var meE=el('span',{s:'font-size:18px'});meE.textContent=lvl.e;
@@ -1708,7 +1808,7 @@ function vGang(){
       var rRk=el('span',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:11px;width:18px;flex-shrink:0'});rRk.textContent=S.mode==='bom'&&i===0?'🥇':S.mode==='bom'&&i===1?'🥈':S.mode==='bom'&&i===2?'🥉':'#'+(i+1);
       var rE2=el('span',{s:'font-size:15px'});rE2.textContent=m3.emoji||'\uD83D\uDC64';
       var rI=el('div',{s:'flex:1;min-width:0'});var rN2=el('div',{s:'color:var(--tx2b);font-size:11px;font-weight:500'});rN2.textContent=m3.nick||m3.name;
-      var rL2=el('div',{s:'color:var(--tx4);font-size:10px'});rL2.textContent=(m3.level||'')+(m3.workouts?' \u00b7 '+m3.workouts+' antren.':'');
+      var rL2=el('div',{s:'color:var(--tx4);font-size:10px'});rL2.textContent=(m3.username?'@'+m3.username+' \u00b7 ':'')+( m3.level||'')+(m3.workouts?' \u00b7 '+m3.workouts+' antren.':'');
       rI.appendChild(rN2);rI.appendChild(rL2);
       var rXP=el('div',{s:'text-align:right'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:12px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';
       var rW3=el('div',{s:'color:var(--tx4);font-size:10px'});rW3.textContent=fmt(m3.weight,1)+'kg';
@@ -1752,7 +1852,7 @@ function vAI(){
     }
     var qLbl2=el('div',{s:'color:var(--tx5);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px'});qLbl2.textContent=t('ai_suggested');msgs.appendChild(qLbl2);
     var qg=el('div',{s:'display:grid;grid-template-columns:1fr 1fr;gap:3px'});
-    QUICK.forEach(function(q){var b=el('button',{c:'qbtn'});b.textContent=q;b.onclick=function(){var ci=document.getElementById('cI');if(ci)ci.value=q;S.chatIn=q};qg.appendChild(b)});msgs.appendChild(qg);
+    QUICK.forEach(function(q){var b=el('button',{c:'qbtn'});b.textContent=q;b.onclick=function(){S.chatIn=q;sendMsg()};qg.appendChild(b)});msgs.appendChild(qg);
   }
   S.chat.forEach(function(msg){
     var r=el('div',{c:'cm'+(msg.role==='user'?' u':'')});
@@ -1865,6 +1965,12 @@ function vAI(){
         S.chatLoading=false;DB.save('chat',S.chat);render();
       },600);
     }
+  }
+  // Persistent quick chips (always visible, horizontal scroll)
+  if(S.chat.length){
+    var pqg=el('div',{s:'padding:5px 12px;border-top:1px solid var(--bd);display:flex;gap:4px;overflow-x:auto;flex-shrink:0;scrollbar-width:none'});
+    QUICK.forEach(function(q){var b=el('button',{c:'qbtn',s:'white-space:nowrap;flex-shrink:0'});b.textContent=q;b.onclick=function(){S.chatIn=q;sendMsg()};pqg.appendChild(b)});
+    wrap.appendChild(pqg);
   }
   var ir=el('div',{s:'padding:9px 12px;border-top:1px solid var(--bd);display:flex;gap:6px;flex-shrink:0'});
   var ci=el('input',{id:'cI',c:'ci',s:'font-size:11px',ph:'\u00cEntreab\u0103 despre nutri\u021bie, sport, somn...',val:S.chatIn||''});ci.oninput=function(){S.chatIn=this.value};ci.onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}};
