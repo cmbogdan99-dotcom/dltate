@@ -217,6 +217,74 @@ function setupGangListener(code){
 RTDB.ref('friendReqs/'+UID).on('value',function(snap){S.fbFriendReqs=[];snap.forEach(function(c){S.fbFriendReqs.push(Object.assign({_id:c.key},c.val()))});try{render()}catch(e){}});
 RTDB.ref('friends/'+UID).on('value',function(snap){S.fbFriends=[];snap.forEach(function(c){S.fbFriends.push(Object.assign({_id:c.key},c.val()))});try{render()}catch(e){}});
 RTDB.ref('notifs/'+UID).on('value',function(snap){S.fbNotifs=[];snap.forEach(function(c){S.fbNotifs.push(Object.assign({_id:c.key},c.val()))});try{render()}catch(e){}});
+function _hashPw(u,p){try{return btoa(unescape(encodeURIComponent(u+':'+p)))}catch(e){return btoa(u+':'+p)}}
+function _safeKey(u){return u.replace(/[.#$\[\]]/g,'_')}
+function authRegister(user,pw,cb){
+  var key=_safeKey(user);
+  RTDB.ref('accounts/'+key).get().then(function(snap){
+    if(snap.exists()){cb('Utilizatorul există deja.');return;}
+    var rec={pwHash:_hashPw(user,pw),uid:UID,createdAt:TODAY,username:user};
+    RTDB.ref('accounts/'+key).set(rec).then(function(){
+      S.loggedIn=true;S.authUser=user;
+      if(S.loginRemember)localStorage.setItem('dltate:session',JSON.stringify({username:user,pwHash:_hashPw(user,pw)}));
+      cb(null);
+    }).catch(function(e){cb('Eroare la înregistrare: '+e.message)});
+  }).catch(function(e){cb('Eroare de rețea: '+e.message)});
+}
+function authLogin(user,pw,cb){
+  var key=_safeKey(user);
+  RTDB.ref('accounts/'+key).get().then(function(snap){
+    if(!snap.exists()){cb('Utilizator inexistent.');return;}
+    var rec=snap.val();
+    if(rec.pwHash!==_hashPw(user,pw)){cb('Parolă incorectă.');return;}
+    S.loggedIn=true;S.authUser=user;
+    if(S.loginRemember)localStorage.setItem('dltate:session',JSON.stringify({username:user,pwHash:rec.pwHash}));
+    else localStorage.removeItem('dltate:session');
+    cb(null);
+  }).catch(function(e){cb('Eroare de rețea: '+e.message)});
+}
+function authForgot(user,cb){
+  var key=_safeKey(user);
+  RTDB.ref('accounts/'+key).get().then(function(snap){
+    if(!snap.exists()){cb('Utilizator inexistent.');return;}
+    RTDB.ref('accounts/'+key+'/pwHash').set(_hashPw(user,'parola')).then(function(){cb(null)}).catch(function(e){cb(e.message)});
+  }).catch(function(e){cb(e.message)});
+}
+function authChangeCredentials(newUser,newPw,cb){
+  var oldKey=_safeKey(S.authUser);
+  RTDB.ref('accounts/'+oldKey).get().then(function(snap){
+    if(!snap.exists()){cb('Cont negăsit.');return;}
+    var rec=snap.val();
+    var newKey=_safeKey(newUser);
+    var updates={};
+    if(newUser!==S.authUser){
+      updates['accounts/'+newKey]=Object.assign({},rec,{username:newUser,pwHash:_hashPw(newUser,newPw)});
+      updates['accounts/'+oldKey]=null;
+    }else{
+      updates['accounts/'+oldKey+'/pwHash']=_hashPw(newUser,newPw);
+    }
+    RTDB.ref().update(updates).then(function(){
+      S.authUser=newUser;
+      if(S.loginRemember)localStorage.setItem('dltate:session',JSON.stringify({username:newUser,pwHash:_hashPw(newUser,newPw)}));
+      cb(null);
+    }).catch(function(e){cb(e.message)});
+  }).catch(function(e){cb(e.message)});
+}
+function authLogout(){
+  localStorage.removeItem('dltate:session');
+  S.loggedIn=false;S.authUser=null;S.view='login';S.loginUser='';S.loginPass='';S.loginErr='';
+  render();
+}
+function authDelete(cb){
+  var key=_safeKey(S.authUser);
+  RTDB.ref('accounts/'+key).remove().then(function(){
+    localStorage.removeItem('dltate:session');
+    ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].forEach(function(k){DB.del(k)});
+    S.loggedIn=false;S.authUser=null;S.profile=null;S.view='login';
+    render();
+    if(cb)cb(null);
+  }).catch(function(e){if(cb)cb(e.message)});
+}
 // load UI settings
 DB.load('appLogo').then(function(lg){if(lg){S.logoData=lg;try{render()}catch(e){}}});
 DB.load('uiLang').then(function(v){if(v){S.lang=v;try{render()}catch(e){}}});
@@ -313,7 +381,10 @@ var S={
   lang:'ro',
   mode:'normal',
   theme:'dark',
-  logoData:null
+  logoData:null,
+  loggedIn:false,authUser:null,
+  loginTab:'login',loginUser:'',loginPass:'',loginPass2:'',loginRemember:false,loginErr:'',loginLoading:false,
+  xpLog:[]
 };
 var CR={};
 var I18N={
@@ -365,6 +436,78 @@ var I18N={
   }
 };
 function t(key){var v=(I18N[S.lang]&&I18N[S.lang][key])||I18N['ro'][key]||key;if(S.mode==='bom'){var bk=key+'_bom';var vb=(I18N[S.lang]&&I18N[S.lang][bk])||I18N['ro'][bk];if(vb)return vb}return v}
+function vLogin(){
+  var wrap=el('div',{s:'min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg1)'});
+  var card=el('div',{s:'width:100%;max-width:340px;background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px 24px'});
+  var logoRow=el('div',{s:'text-align:center;margin-bottom:20px'});
+  var logoTxt=el('div',{s:'font-size:22px;font-weight:700;color:var(--tx1);letter-spacing:-.5px'});logoTxt.textContent='Fitness AI';
+  var logoSub=el('div',{s:'font-size:11px;color:var(--tx4);margin-top:2px'});logoSub.textContent='Antrenorul tău personal';
+  logoRow.appendChild(logoTxt);logoRow.appendChild(logoSub);card.appendChild(logoRow);
+  var tabs=el('div',{s:'display:flex;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:20px'});
+  ['login','register'].forEach(function(tab){
+    var tb=el('button',{s:'flex:1;padding:7px;border:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit;transition:all .15s'});
+    tb.textContent=tab==='login'?'Conectează-te':'Cont nou';
+    if(S.loginTab===tab){tb.style.background='var(--bg2)';tb.style.color='var(--tx1)';tb.style.boxShadow='0 1px 3px rgba(0,0,0,.15)'}
+    else{tb.style.background='transparent';tb.style.color='var(--tx4)'}
+    tb.onclick=function(){S.loginTab=tab;S.loginErr='';render()};
+    tabs.appendChild(tb);
+  });
+  card.appendChild(tabs);
+  if(S.loginErr){var errBox=el('div',{s:'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;font-size:11px;padding:8px 10px;border-radius:8px;margin-bottom:12px'});errBox.textContent=S.loginErr;card.appendChild(errBox)}
+  function inp2(ph,val,type,onch){var i=el('input',{s:'width:100%;padding:9px 11px;background:var(--bg3);border:1px solid var(--bd);border-radius:9px;color:var(--tx1);font-size:13px;font-family:inherit;box-sizing:border-box;margin-bottom:10px',placeholder:ph});i.type=type||'text';i.value=val||'';i.oninput=function(){onch(this.value)};return i}
+  var uInp=inp2('Nume utilizator',S.loginUser,'text',function(v){S.loginUser=v.trim().toLowerCase().replace(/[^a-z0-9_]/g,'')});card.appendChild(uInp);
+  var pwInp=inp2('Parolă',S.loginPass,'password',function(v){S.loginPass=v});card.appendChild(pwInp);
+  if(S.loginTab==='register'){
+    var pw2Inp=inp2('Confirmă parola',S.loginPass2,'password',function(v){S.loginPass2=v});card.appendChild(pw2Inp);
+  }
+  if(S.loginTab==='login'){
+    var remRow=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:14px'});
+    var remCb=el('input');remCb.type='checkbox';remCb.checked=S.loginRemember;remCb.onchange=function(){S.loginRemember=this.checked};
+    var remLbl=el('label',{s:'color:var(--tx3);font-size:11px;cursor:pointer'});remLbl.textContent='Ține-mă minte';
+    remLbl.onclick=function(){S.loginRemember=!S.loginRemember;remCb.checked=S.loginRemember};
+    remRow.appendChild(remCb);remRow.appendChild(remLbl);card.appendChild(remRow);
+  }
+  var mainBtn=el('button',{s:'width:100%;padding:10px;background:var(--ac);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px'});
+  mainBtn.textContent=S.loginLoading?'...':(S.loginTab==='login'?'Intră în cont':'Creează cont');
+  mainBtn.disabled=S.loginLoading;
+  mainBtn.onclick=function(){
+    var u=S.loginUser.trim(),pw=S.loginPass;
+    if(!u||u.length<3){S.loginErr='Numele de utilizator trebuie să aibă minim 3 caractere.';render();return}
+    if(!pw||pw.length<4){S.loginErr='Parola trebuie să aibă minim 4 caractere.';render();return}
+    if(S.loginTab==='register'&&pw!==S.loginPass2){S.loginErr='Parolele nu coincid.';render();return}
+    S.loginLoading=true;S.loginErr='';render();
+    var fn=S.loginTab==='login'?authLogin:authRegister;
+    fn(u,pw,function(err){
+      S.loginLoading=false;
+      if(err){S.loginErr=err;render();return}
+      DB.load('profile').then(function(p){
+        if(p){
+          S.profile=p;S.metrics=Calc.getM(p);
+          Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].map(function(k){return DB.load(k)})).then(function(r2){
+            S.progress=r2[0]||[];S.food=r2[1]||[];S.workouts=r2[2]||[];S.waterLog=r2[3]||[];S.sleepLog=r2[4]||[];S.measurements=r2[5]||[];S.photos=r2[6]||[];S.doneChals=r2[7]||[];S.chat=r2[8]||[];S.xpLog=r2[9]||[];
+            S.view='app';syncUserToFB();if(p.gangCode)setupGangListener(p.gangCode);render();
+          }).catch(function(){S.view='app';render()});
+        }else{S.view='onboarding';render()}
+      }).catch(function(){S.view='onboarding';render()});
+    });
+  };
+  card.appendChild(mainBtn);
+  if(S.loginTab==='login'){
+    var forgotBtn=el('button',{s:'width:100%;padding:7px;background:none;border:none;color:var(--tx4);font-size:11px;cursor:pointer;font-family:inherit'});
+    forgotBtn.textContent='Am uitat parola';
+    forgotBtn.onclick=function(){
+      var u=S.loginUser.trim();
+      if(!u){S.loginErr='Introdu mai întâi numele de utilizator.';render();return}
+      if(!confirm('Parola pentru "'+u+'" va fi resetată la «parola». Continui?'))return;
+      authForgot(u,function(err){
+        if(err){S.loginErr=err}else{S.loginErr='';alert('Parola a fost resetată la «parola». Schimb-o din Profil după autentificare.')}
+        render();
+      });
+    };
+    card.appendChild(forgotBtn);
+  }
+  wrap.appendChild(card);return wrap;
+}
 function render(){
   var r=document.getElementById('app');if(!r)return;
   document.documentElement.setAttribute('data-theme',S.theme||'dark');
@@ -382,6 +525,7 @@ function render(){
   }
   try{
     if(S.view==='loading')r.appendChild(vLoad());
+    else if(S.view==='login')r.appendChild(vLogin());
     else if(S.view==='onboarding')r.appendChild(vOB());
     else{chkAch();r.appendChild(vMain());}
   }catch(er){
@@ -1765,21 +1909,74 @@ function vProf(){
     render();
   };
   dc.appendChild(delB);
-  return mkSec(hdr,pc,mc,logoCard,dc)
+  // Account section
+  var ac=el('div',{c:'card cp'});
+  var acH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});acH.textContent='Cont';ac.appendChild(acH);
+  if(S.loggedIn&&S.authUser){
+    var acInfo=el('div',{s:'color:var(--tx2);font-size:11px;margin-bottom:10px'});acInfo.textContent='Conectat ca: '+S.authUser;ac.appendChild(acInfo);
+    // Change credentials
+    var ccState={open:false,newUser:S.authUser,newPw:'',err:'',ok:''};
+    var ccBtn=el('button',{c:'btn bg',s:'font-size:11px;margin-bottom:8px'});ccBtn.textContent='Schimbă username / parolă';
+    ccBtn.onclick=function(){ccState.open=!ccState.open;render()};
+    ac.appendChild(ccBtn);
+    // Logout
+    var logoutBtn=el('button',{s:'background:none;border:1px solid var(--bd);color:var(--tx3);font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;margin-right:8px'});
+    logoutBtn.textContent='Deconectare';logoutBtn.onclick=function(){authLogout()};
+    ac.appendChild(logoutBtn);
+    // Delete account
+    var delAccBtn=el('button',{s:'background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit'});
+    delAccBtn.textContent='Șterge cont';
+    delAccBtn.onclick=function(){
+      if(!confirm('Ștergi contul și toate datele? Acțiunea este ireversibilă.'))return;
+      authDelete();
+    };
+    ac.appendChild(delAccBtn);
+    // Inline credential change form
+    var _acForm=el('div',{id:'acCredForm',s:'margin-top:12px;display:none'});
+    var _acU=el('input',{s:'width:100%;padding:7px 9px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx1);font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:7px',placeholder:'Nume utilizator nou'});_acU.value=S.authUser;
+    var _acP=el('input',{s:'width:100%;padding:7px 9px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx1);font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:7px',placeholder:'Parolă nouă (minim 4 caractere)'});_acP.type='password';
+    var _acSave=el('button',{c:'btn ac',s:'font-size:11px'});_acSave.textContent='Salvează';
+    _acSave.onclick=function(){
+      var nu=_acU.value.trim().toLowerCase();var np=_acP.value;
+      if(!nu||nu.length<3){alert('Username minim 3 caractere.');return}
+      if(!np||np.length<4){alert('Parola minim 4 caractere.');return}
+      authChangeCredentials(nu,np,function(err){if(err)alert('Eroare: '+err);else{alert('Date actualizate!');render()}});
+    };
+    _acForm.appendChild(_acU);_acForm.appendChild(_acP);_acForm.appendChild(_acSave);
+    ac.appendChild(_acForm);
+    // toggle form visibility via DOM (no re-render needed)
+    ccBtn.onclick=function(){var f=document.getElementById('acCredForm');if(f)f.style.display=f.style.display==='none'?'block':'none'};
+  }else{
+    var loginHint=el('div',{s:'color:var(--tx4);font-size:11px'});loginHint.textContent='Nu ești autentificat.';ac.appendChild(loginHint);
+  }
+  return mkSec(hdr,pc,mc,logoCard,ac,dc)
 }
 render();
-DB.load('profile').then(function(p){
-  if(p){
-    S.profile=p;S.metrics=Calc.getM(p);
-    Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs'].map(function(k){return DB.load(k)})).then(function(r){
-      S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];
-      S.view='app';
-      syncUserToFB();
-      if(p.gangCode)setupGangListener(p.gangCode);
-      render();
-    }).catch(function(){S.view='app';render()});
-  }else{S.view='onboarding';render();}
-}).catch(function(){S.view='onboarding';render()});
+(function(){
+  var sess=null;try{var raw=localStorage.getItem('dltate:session');if(raw)sess=JSON.parse(raw)}catch(e){}
+  function loadApp(){
+    DB.load('profile').then(function(p){
+      if(p){
+        S.profile=p;S.metrics=Calc.getM(p);
+        Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
+          S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
+          S.view='app';syncUserToFB();if(p.gangCode)setupGangListener(p.gangCode);render();
+        }).catch(function(){S.view='app';render()});
+      }else{S.view='onboarding';render();}
+    }).catch(function(){S.view='onboarding';render()});
+  }
+  if(sess&&sess.username&&sess.pwHash){
+    var key=_safeKey(sess.username);
+    RTDB.ref('accounts/'+key).get().then(function(snap){
+      if(snap.exists()&&snap.val().pwHash===sess.pwHash){
+        S.loggedIn=true;S.authUser=sess.username;S.loginRemember=true;
+        loadApp();
+      }else{localStorage.removeItem('dltate:session');S.view='login';render();}
+    }).catch(function(){S.view='login';render()});
+  }else{
+    S.view='login';render();
+  }
+})();
 </script>
 
 </head>
