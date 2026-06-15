@@ -1,3 +1,30 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Node
+node_modules/
+
+# Android build artifacts (keep source, ignore builds)
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/.idea/
+
+# iOS build artifacts
+ios/App/Pods/
+ios/.idea/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/build/
+
+# Capacitor generated (re-synced each build)
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+
+# Env / secrets
+.env
+*.keystore
+*.jks
+google-services.json

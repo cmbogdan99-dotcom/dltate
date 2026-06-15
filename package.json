@@ -1,0 +1,29 @@
+{
+  "name": "fitness-ai",
+  "version": "1.0.0",
+  "description": "Fitness AI — antrenor personal cu AI",
+  "private": true,
+  "scripts": {
+    "sync": "npx cap sync",
+    "android": "npx cap open android",
+    "ios": "npx cap open ios",
+    "build:android": "npx cap sync android && npx cap build android",
+    "build:ios": "npx cap sync ios && npx cap build ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/local-notifications": "^8.2.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0",
+    "@capacitor/background-runner": "^3.0.0",
+    "@capawesome/capacitor-app-update": "^8.0.3",
+    "@perfood/capacitor-healthkit": "^2.0.0-alpha.2",
+    "capacitor-health-connect": "^0.7.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.0"
+  }
+}
