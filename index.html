@@ -14,8 +14,8 @@
   --bg:#09090e;--bg1:#111118;--bg2:#18181f;--bg3:#24242f;--bd:#1e1e28;
   /* Text */
   --tx1:#eceaff;--tx2:#b8b4d8;--tx2b:#d0cdf0;--tx3:#7c7a9e;--tx4:#524f70;--tx5:#3c3a54;
-  /* Accent: violet primary */
-  --ac:#7c3aed;--ac-h:#8b5cf6;--ac-l:#a78bfa;--ac-glow:rgba(124,58,237,.14);
+  /* Accent: forest green primary */
+  --ac:#2d6a4f;--ac-h:#40916c;--ac-l:#74c69d;--ac-glow:rgba(45,106,79,.16);
   /* Semantic */
   --or:#f97316;--or-l:#fb923c;   /* orange — XP, energy */
   --su:#34d399;                   /* teal — success */
@@ -25,8 +25,8 @@
   --fu:#e879f9;                   /* fuchsia — special */
 }
 [data-theme="light"]{
-  --bg:#f4f2ff;--bg1:#ffffff;--bg2:#ede9fe;--bg3:#ddd6fe;--bd:#c4b5fd55;
-  --tx1:#1e1b4b;--tx2:#3730a3;--tx2b:#4338ca;--tx3:#6d28d9;--tx4:#7c3aed;--tx5:#8b5cf6;
+  --bg:#f0faf5;--bg1:#ffffff;--bg2:#d8f3dc;--bg3:#b7e4c7;--bd:#74c69d55;
+  --tx1:#1b4332;--tx2:#2d6a4f;--tx2b:#40916c;--tx3:#52b788;--tx4:#2d6a4f;--tx5:#40916c;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Roboto,ui-sans-serif,system-ui,sans-serif;font-size:14px}
@@ -46,7 +46,7 @@ body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Robo
 .mc{flex:1;overflow-y:auto;min-width:0}
 .sec{padding:14px;display:flex;flex-direction:column;gap:10px;animation:pageIn .18s ease both}
 .card{background:var(--bg1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease}
-.card:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(124,58,237,.07)}
+.card:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(45,106,79,.10)}
 .cp{padding:13px}
 .inp{width:100%;background:var(--bg2);border:1px solid var(--bg3);border-radius:8px;padding:7px 11px;color:var(--tx1);font-size:12px;outline:none;font-family:inherit;box-sizing:border-box;transition:border-color .13s}
 .inp:focus{border-color:var(--ac)}
@@ -389,7 +389,7 @@ var __rtd=null;
 var __siTimer=null;
 function debouncedRender(ms){ms=ms||400;clearTimeout(__rtd);__rtd=setTimeout(function(){try{render()}catch(e){}},ms)}
 // Numeric constraints and helpers
-var NUM_CONSTRAINTS={age:{min:10,max:120,step:1},height:{min:50,max:260,step:0.1},weight:{min:20,max:500,step:0.1},neck:{min:5,max:150,step:0.1},waist:{min:20,max:300,step:0.1},hip:{min:20,max:300,step:0.1},bodyFat:{min:3,max:65,step:0.1},bfIn:{min:3,max:65,step:0.1},slD:{min:0,max:100,step:1},trainingFrequency:{min:0,max:21,step:1},sleepHours:{min:0,max:24,step:0.5},targetWeight:{min:20,max:500,step:0.1},wtIn:{min:20,max:500,step:0.1},foodQty:{min:0,max:10000,step:0.1},sportDur:{min:0,max:1440,step:1},bmi:{min:10,max:80,step:0.1},waterQty:{min:0,max:10000,step:1},sportHoursWeek:{min:0.5,max:30,step:0.5},cookTimeDay:{min:0,max:180,step:5},workHoursDay:{min:0,max:16,step:0.5}};
+var NUM_CONSTRAINTS={age:{min:10,max:120,step:1},height:{min:50,max:260,step:1},weight:{min:20,max:500,step:1},neck:{min:5,max:150,step:0.1},waist:{min:20,max:300,step:0.1},hip:{min:20,max:300,step:0.1},bodyFat:{min:3,max:65,step:1},bfIn:{min:3,max:65,step:1},slD:{min:0,max:100,step:1},trainingFrequency:{min:0,max:21,step:1},sleepHours:{min:0,max:24,step:0.5},targetWeight:{min:20,max:500,step:1},wtIn:{min:20,max:500,step:1},foodQty:{min:0,max:10000,step:1},sportDur:{min:0,max:1440,step:1},bmi:{min:10,max:80,step:0.1},waterQty:{min:0,max:10000,step:1},sportHoursWeek:{min:0,max:30,step:1},cookTimeDay:{min:0,max:180,step:5},workHoursDay:{min:0,max:16,step:1}};
 function roundToStep(n,step){if(!step)return Math.round(n);var inv=1/step;return Math.round(n*inv)/inv}
 function clampToConstraints(key,val){var c=NUM_CONSTRAINTS[key];if(!c)return val; if(val===''||val==null) return '';var n=Number(val);if(isNaN(n))return'';n=Math.max(c.min,Math.min(c.max,roundToStep(n,c.step||1)));var digits=(String(c.step).indexOf('.')>-1)?String(c.step).split('.')[1].length:0;return digits? n.toFixed(digits):String(Math.round(n))}
 function fmt(n,d){if(n==null||isNaN(n))return'\u2014';return(+n).toFixed(d===undefined?1:d)}
@@ -560,7 +560,7 @@ function vLogin(){
   var wrap=el('div',{s:'min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg1)'});
   var card=el('div',{s:'width:100%;max-width:340px;background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px 24px'});
   var logoRow=el('div',{s:'text-align:center;margin-bottom:20px'});
-  var logoTxt=el('div',{s:'font-size:22px;font-weight:700;color:var(--tx1);letter-spacing:-.5px'});logoTxt.textContent='Fitness AI';
+  var logoTxt=el('div',{s:'font-size:22px;font-weight:700;color:var(--tx1);letter-spacing:-.5px'});logoTxt.textContent='Dl. Siski';
   var logoSub=el('div',{s:'font-size:11px;color:var(--tx4);margin-top:2px'});logoSub.textContent='Antrenorul tău personal';
   logoRow.appendChild(logoTxt);logoRow.appendChild(logoSub);card.appendChild(logoRow);
   var tabs=el('div',{s:'display:flex;background:var(--bg3);border-radius:9px;padding:3px;margin-bottom:20px'});
@@ -706,7 +706,7 @@ function vOB(){
     var cons=NUM_CONSTRAINTS[k];
     if(cons){if(cons.min!=null)props.min=cons.min;if(cons.max!=null)props.max=cons.max;if(cons.step!=null)props.step=cons.step}
     var inp=el('input',props);
-    try{inp.onblur=function(){this.classList.remove('inp-err');S.ob[k]=clampToConstraints(k,this.value);render()}}catch(e3){}
+    try{inp.onblur=function(){this.classList.remove('inp-err');if(this.value!=='')S.ob[k]=this.value}}catch(e3){}
     iw.appendChild(inp);
     if(u){var iu=el('span',{c:'iu'});iu.textContent=u;iw.appendChild(iu);}
     d.appendChild(iw);
@@ -729,11 +729,11 @@ function vOB(){
     var sexDiv=el('div',{s:'margin-bottom:9px'});
     var sexLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:3px'});sexLbl.textContent='Sex';
     sexDiv.appendChild(sexLbl);
-    var sexBtns=el('div',{c:'g2'});
-    var bM=el('button',{c:'ob2'+(D.sex==='M'?' sel':''),s:D.sex===''?'border-color:#f59e0b':''});bM.textContent=(bom('Masculin','Bărbat'));bM.onclick=function(){S.ob.sex='M';render()};
-    var bF=el('button',{c:'ob2'+(D.sex==='F'?' sel':''),s:D.sex===''?'border-color:#f59e0b':''});bF.textContent=(bom('Feminin','Femeie'));bF.onclick=function(){S.ob.sex='F';render()};
-    if(!D.sex){var sexHint=el('div',{s:'color:#f59e0b;font-size:10px;margin-top:3px'});sexHint.textContent='Selectează o opțiune (necesar pentru calcule)';sexBtns.appendChild(sexHint)}
-    sexBtns.appendChild(bM);sexBtns.appendChild(bF);sexDiv.appendChild(sexBtns);
+    var sexSeg=el('div',{s:'display:flex;background:var(--bg2);border-radius:9px;padding:3px;gap:2px'});
+    function mkSexBtn(val,label){var b=el('button',{s:'flex:1;padding:7px 10px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease;'+(D.sex===val?'background:var(--ac);color:#fff;box-shadow:0 2px 8px var(--ac-glow)':'background:none;color:var(--tx3)')});b.textContent=label;b.onclick=function(){S.ob.sex=val;render()};return b}
+    sexSeg.appendChild(mkSexBtn('M',bom('Masculin','♂ Bărbat')));sexSeg.appendChild(mkSexBtn('F',bom('Feminin','♀ Femeie')));
+    if(!D.sex){var sexHint=el('div',{s:'color:#f59e0b;font-size:10px;margin-top:3px'});sexHint.textContent='Selectează o opțiune (necesar pentru calcule)';sexDiv.appendChild(sexHint)}
+    sexDiv.appendChild(sexSeg);
     ageRow.appendChild(sexDiv);content.push(ageRow);
     var hwRow=el('div',{c:'g2'});hwRow.appendChild(fld('Inaltime','height','175','cm'));hwRow.appendChild(fld('Greutate','weight','82','kg'));content.push(hwRow);
     if(D.height&&D.weight&&+D.height>0&&+D.weight>0){
@@ -871,7 +871,7 @@ function vMain(){
   var lb=el('div',{c:'lb'});
   if(S.logoData){var limg=el('img',{s:'width:25px;height:25px;border-radius:7px;object-fit:cover',src:S.logoData});lb.appendChild(limg);}else{lb.appendChild(ic('activity',12))}
   sbHLeft.appendChild(lb);
-  if(!coll){var ltxt=el('span',{c:'sb-lbl',s:'color:var(--tx1);font-weight:700;font-size:11px;letter-spacing:-.2px'});ltxt.textContent='Fitness AI';sbHLeft.appendChild(ltxt)}
+  if(!coll){var ltxt=el('span',{c:'sb-lbl',s:'color:var(--tx1);font-weight:700;font-size:11px;letter-spacing:-.2px'});ltxt.textContent='Dl. Siski';sbHLeft.appendChild(ltxt)}
   var togBtn=el('button',{c:'sb-tog'});togBtn.innerHTML=coll?'&#x203A;&#x203A;':'&#x2039;&#x2039;';togBtn.onclick=function(){S.sbCollapsed=!S.sbCollapsed;render()};
   sbH.appendChild(sbHLeft);sbH.appendChild(togBtn);sbWrap.appendChild(sbH);
   var sbN=el('div',{c:'sb-n'});
@@ -1074,7 +1074,7 @@ function vDash(){
   // Header
   var hdrDiv=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between'});
   var hdrL=el('div',null);
-  var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700;margin-bottom:2px'});
+  var h1=el('h1',{s:'color:var(--tx1);font-size:20px;font-weight:700;margin-bottom:3px;line-height:1.2'});
   h1.textContent=t('greet')+p.name+' '+lvl.e;
   var hdate=el('p',{s:'color:var(--tx4);font-size:11px'});
   var _loc=(S.lang==='en'?'en-US':'ro-RO');
@@ -1684,7 +1684,7 @@ function vFriends(){
   var mcCopy=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcCopy.textContent='Copiază';
   mcCopy.onclick=function(){var btn=mcCopy;function done(){btn.textContent='Copiat!';setTimeout(function(){btn.textContent='Copiază'},1500)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(PCODE).then(done).catch(function(){try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}})}else{try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}}};
   var mcShare=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcShare.textContent='Distribuie';
-  mcShare.onclick=function(){var txt='Adaugă-mă pe Fitness AI! Codul meu: '+PCODE;if(navigator.share){navigator.share({title:'Fitness AI',text:txt}).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){mcShare.textContent='Copiat!';setTimeout(function(){mcShare.textContent='Distribuie'},1500)}).catch(function(){})}};
+  mcShare.onclick=function(){var txt='Adaugă-mă pe Dl. Siski! Codul meu: '+PCODE;if(navigator.share){navigator.share({title:'Dl. Siski',text:txt}).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){mcShare.textContent='Copiat!';setTimeout(function(){mcShare.textContent='Distribuie'},1500)}).catch(function(){})}};
   mcV.appendChild(mcCode);mcV.appendChild(mcCopy);mcV.appendChild(mcShare);
   var mcMe=el('div',{s:'display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:8px;padding:7px 10px;margin-top:6px'});
   var mcAvEl=el('div',{s:'font-size:16px'});mcAvEl.textContent=myLvl.e;
@@ -1904,7 +1904,7 @@ function vTop(){
   var loadingRow=el('div',{s:'text-align:center;padding:20px;color:var(--tx5);font-size:11px'});loadingRow.textContent='Se încarcă clasamentul...';lBody.appendChild(loadingRow);
   listCard.appendChild(lBody);
   // fetch top users from Firebase
-  RTDB.ref('users').orderByChild('xp').limitToLast(10).get().then(function(snap){
+  RTDB.ref('users').get().then(function(snap){
     var users=[];snap.forEach(function(c){var v=c.val();if(v&&typeof v.xp==='number')users.push(v)});
     users.sort(function(a,b){return(b.xp||0)-(a.xp||0)});
     lH.textContent='Top '+users.length+' utilizatori globali';
@@ -2305,12 +2305,24 @@ render();
   var sess=null;try{var raw=_ls.get('dltate:session');if(raw)sess=JSON.parse(raw)}catch(e){}
   function loadApp(){
     DB.load('profile').then(function(p){
-      if(p){
-        S.profile=p;S.metrics=Calc.getM(p);
+      function startApp(prof){
+        S.profile=prof;S.metrics=Calc.getM(prof);
         Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
           S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
-          S.view='app';syncUserToFB();if(p.gangCode)setupGangListener(p.gangCode);render();
+          S.view='app';syncUserToFB();if(prof.gangCode)setupGangListener(prof.gangCode);render();
         }).catch(function(){S.view='app';render()});
+      }
+      if(p){
+        startApp(p);
+      }else if(S.loggedIn&&UID){
+        // localStorage empty — try Firebase fallback
+        RTDB.ref('users/'+UID+'/profile').get().then(function(snap){
+          if(snap.exists()&&snap.val()&&snap.val().name){
+            var fbProf=snap.val();
+            DB.save('profile',fbProf);
+            startApp(fbProf);
+          }else{S.view='onboarding';render();}
+        }).catch(function(){S.view='onboarding';render()});
       }else{S.view='onboarding';render();}
     }).catch(function(){S.view='onboarding';render()});
   }
