@@ -85,6 +85,7 @@ input[type="number"].inp{-moz-appearance:textfield}
 .qbtn:hover{background:var(--bg3);color:var(--tx1);border-color:var(--tx5)}
 @keyframes sp{to{transform:rotate(360deg)}}
 @keyframes bn{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1.2);opacity:1}}
+@keyframes lvlPop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
 </style>
 <div id="app"><div style="display:flex;align-items:center;justify-content:center;min-height:840px;background:var(--bg);color:var(--tx4);font-size:12px">Dl. Siski se incarca...</div></div>
 <script>
@@ -361,6 +362,31 @@ function getBully(p,m){
   if(!slToday&&S.sleepLog.length>0)taunts.push({emoji:'🦇',msg:'Somnul de azi-noapte — neînregistrat. Dormi sau hoinărești ca un zombie?'});
   if(p.goal==='p'&&tc>m.kcal*1.15&&tc>0)taunts.push({emoji:'📈',msg:'Vrei să dai jos colăceii dar ai depășit targetul caloric cu '+Math.round(tc-m.kcal)+' kcal. Cocoșul e dezamăgit.'});
   return taunts;
+}
+function addXP(reason,amt){
+  var prevLvl=getLvl().n;
+  S.xpLog=S.xpLog||[];
+  S.xpLog.push({date:TODAY,reason:reason,amt:amt});
+  DB.save('xpLog',S.xpLog);
+  var newLvl=getLvl().n;
+  if(newLvl!==prevLvl){S.newLevel=newLvl;setTimeout(function(){S.newLevel=null;render()},4000)}
+  // publish XP to clan leaderboard
+  if(S.profile&&S.profile.gangCode){var totalXP=getXP();RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+UID+'/xp').set(totalXP).catch(function(){})}
+}
+function genChals(p){
+  if(!p)return[];
+  var sp=p.preferredSports||[];var goal=p.goal||'p';
+  var all=[
+    {id:'dc-wk',type:'d',title:'Antrenament azi',desc:'Loghează o sesiune de sport',xp:50,cond:function(){return S.workouts.some(function(w){return w.date===TODAY})}},
+    {id:'dc-fd',type:'d',title:'Nutriție completă',desc:'Loghează cel puțin 3 mese azi',xp:30,cond:function(){return S.food.filter(function(f){return f.date===TODAY}).length>=3}},
+    {id:'dc-wt',type:'d',title:'Hidratare',desc:'Atinge 80% din ținta de apă',xp:20,cond:function(){var tw=watToday(S)/1000,wg=p?Calc.wGoal(p)/1000:2;return tw>=wg*0.8}},
+    {id:'dc-sl',type:'d',title:'Somn odihnitor',desc:'Loghează minim 7h somn',xp:25,cond:function(){var last=S.sleepLog.filter(function(s){return s.date===TODAY})[0];return last&&last.hours>=7}},
+    {id:'dc-pr',type:'d',title:'Cântărire',desc:'Loghează greutatea azi',xp:15,cond:function(){return S.progress.some(function(x){return x.date===TODAY})}},
+  ];
+  if(sp.includes('Alergare'))all.push({id:'dc-run',type:'d',title:'Zi de alergare',desc:'Loghează o sesiune de alergare',xp:60,cond:function(){return S.workouts.some(function(w){return w.date===TODAY&&w.type==='Alergare'})}});
+  if(sp.includes('Sala (forță)')||sp.includes('Powerlifting'))all.push({id:'dc-gym',type:'d',title:'Zi de sală',desc:'Loghează o sesiune la sală',xp:60,cond:function(){return S.workouts.some(function(w){return w.date===TODAY&&(w.type==='Sala (forță)'||w.type==='Powerlifting')})}});
+  if(goal==='p'||goal==='pA')all.push({id:'dc-prot',type:'d',title:'Target proteine',desc:'Atinge targetul de proteine azi',xp:35,cond:function(){var m2=S.metrics;if(!m2||!m2.macros)return false;var got=S.food.filter(function(f){return f.date===TODAY}).reduce(function(a,f){return a+f.p},0);return got>=m2.macros.prot}});
+  return all;
 }
 function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).indexOf('ach:'+a.id)<0){(S.doneChals=S.doneChals||[]).push('ach:'+a.id);DB.save('doneChals',S.doneChals);try{notify(a.title||'Realizare',a.desc||'')}catch(e){}}})}
 var S={
@@ -786,6 +812,18 @@ function vMain(){
   try{content=fn();}catch(er){content=el('div',{s:'padding:20px;color:#f87171;font-size:12px;font-family:monospace'});content.textContent='Eroare: '+er.message;}
   mc.appendChild(content);
   var wrap=el('div',{c:'wrap',s:'position:relative'});wrap.appendChild(sbWrap);wrap.appendChild(mc);
+  if(S.newLevel){
+    var lvlOverlay=el('div',{s:'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:200'});
+    var lvlCard=el('div',{s:'background:var(--bg2);border:2px solid '+getLvl().c+';border-radius:20px;padding:32px 28px;text-align:center;max-width:280px;animation:lvlPop .4s ease'});
+    var lvlIco=el('div',{s:'font-size:48px;margin-bottom:8px'});lvlIco.textContent=S.mode==='bom'?'🎉':'★';
+    var lvlT=el('div',{s:'color:var(--tx1);font-size:20px;font-weight:700;margin-bottom:4px'});lvlT.textContent='Nivel nou!';
+    var lvlN=el('div',{s:'color:'+getLvl().c+';font-size:26px;font-weight:800;margin-bottom:8px'});lvlN.textContent=S.newLevel;
+    var lvlSub=el('div',{s:'color:var(--tx4);font-size:12px'});lvlSub.textContent='Ai avansat la un nivel nou. Continua!';
+    var lvlClose=el('button',{s:'margin-top:16px;padding:8px 20px;background:var(--ac);color:#fff;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit'});lvlClose.textContent='Multumesc!';
+    lvlClose.onclick=function(){S.newLevel=null;render()};
+    lvlCard.appendChild(lvlIco);lvlCard.appendChild(lvlT);lvlCard.appendChild(lvlN);lvlCard.appendChild(lvlSub);lvlCard.appendChild(lvlClose);
+    lvlOverlay.appendChild(lvlCard);wrap.appendChild(lvlOverlay);
+  }
   if(S.dropdown){
     var ddView=S.dropdown==='notif'?vNotif:vFriends;
     var ddContent=null;try{ddContent=ddView();}catch(e2){ddContent=el('div',null);ddContent.textContent='Eroare';}
@@ -1087,7 +1125,7 @@ function vNutr(){
       var iw2=el('div',{c:'iw'});var i3=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'0',val:mf[a[1]]||'',inp:(function(fk2){return function(e2){S.manF[fk2]=e2.target.value}})(a[1])});
       var iu2=el('span',{c:'iu'});iu2.textContent=a[2];iw2.appendChild(i3);iw2.appendChild(iu2);d3.appendChild(l3);d3.appendChild(iw2);numRow2.appendChild(d3);
     });mForm.appendChild(numRow2);
-    var addBtn=el('button',{c:'btn bp bw',s:'font-size:11px',disabled:!mf.name||!mf.c,click:function(){if(!S.manF.name||!S.manF.c)return;S.food.push({id:String(Date.now()),date:TODAY,meal:S.fmeal,n:S.manF.name,qty:null,c:+S.manF.c,p:+(S.manF.p||0),f:+(S.manF.f||0),h:+(S.manF.h||0),custom:true});S.manF={name:'',c:'',p:'',f:'',h:''};DB.save('food',S.food);render()}});
+    var addBtn=el('button',{c:'btn bp bw',s:'font-size:11px',disabled:!mf.name||!mf.c,click:function(){if(!S.manF.name||!S.manF.c)return;S.food.push({id:String(Date.now()),date:TODAY,meal:S.fmeal,n:S.manF.name,qty:null,c:+S.manF.c,p:+(S.manF.p||0),f:+(S.manF.f||0),h:+(S.manF.h||0),custom:true});S.manF={name:'',c:'',p:'',f:'',h:''};DB.save('food',S.food);addXP('Masă logată',5);render()}});
     addBtn.textContent='Adaug\u0103';addBtn.prepend(ic('plus',11));mForm.appendChild(addBtn);addCard.appendChild(mForm);
   }else{
     var si=el('input',{c:'inp',s:'margin-bottom:6px;font-size:11px',ph:'Caut\u0103 \u00een 100 alimente...',val:S.fsearch||''});
@@ -1144,7 +1182,7 @@ function rbFL(){
     var pvDiv=el('div',{id:'fl-pv',s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:#4ade80;flex-shrink:0'});
     pvDiv.textContent=Math.round(sf.c*((+(S.fqty||sf.s))/sf.s))+' kcal';
     qRow.appendChild(qD);qRow.appendChild(pvDiv);sc.appendChild(qRow);
-    var ab=el('button',{c:'btn bp bw',s:'font-size:11px',click:function(){var qty=+(S.fqty||sf.s);if(!qty)return;var rv=qty/sf.s;S.food.push({id:String(Date.now()),date:TODAY,meal:S.fmeal,n:sf.n,qty:qty,c:Math.round(sf.c*rv),p:+(sf.p*rv).toFixed(1),f:+(sf.f*rv).toFixed(1),h:+(sf.h*rv).toFixed(1)});S.fsel=null;S.fsearch='';S.fqty='';DB.save('food',S.food);render()}});
+    var ab=el('button',{c:'btn bp bw',s:'font-size:11px',click:function(){var qty=+(S.fqty||sf.s);if(!qty)return;var rv=qty/sf.s;S.food.push({id:String(Date.now()),date:TODAY,meal:S.fmeal,n:sf.n,qty:qty,c:Math.round(sf.c*rv),p:+(sf.p*rv).toFixed(1),f:+(sf.f*rv).toFixed(1),h:+(sf.h*rv).toFixed(1)});S.fsel=null;S.fsearch='';S.fqty='';DB.save('food',S.food);addXP('Masă logată',5);render()}});
     ab.textContent='Adaug\u0103';ab.prepend(ic('plus',11));sc.appendChild(ab);r.appendChild(sc);
   }else{
     var q2=(S.fsearch||'').toLowerCase();
@@ -1222,7 +1260,7 @@ function vStat(){
     }
     qualDiv.appendChild(stRow);sf.appendChild(qualDiv);
     var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.slH||!S.slQ;svB.textContent=bom('Salveaza','Baga somnul!');svB.prepend(ic('moon',11));
-    svB.onclick=function(){if(!S.slH||!S.slQ)return;S.sleepLog.push({id:String(Date.now()),date:TODAY,hours:+S.slH,q:S.slQ,deep:S.slD?+S.slD:null});S.slH='';S.slQ=0;S.slD='';DB.save('sleepLog',S.sleepLog);render()};
+    svB.onclick=function(){if(!S.slH||!S.slQ)return;S.sleepLog.push({id:String(Date.now()),date:TODAY,hours:+S.slH,q:S.slQ,deep:S.slD?+S.slD:null});S.slH='';S.slQ=0;S.slD='';DB.save('sleepLog',S.sleepLog);addXP('Somn logat',10);render()};
     sf.appendChild(svB);
     var sHist=null;
     if(S.sleepLog.length){
@@ -1294,7 +1332,7 @@ function vProgr(){
     g2.appendChild(w1);g2.appendChild(b1);lf.appendChild(g2);
     var nI=el('input',{c:'inp',s:'font-size:11px;margin-bottom:6px',ph:'Noti\u021be (op\u021bional)...',val:S.pnote||'',inp:function(e2){S.pnote=e2.target.value}});lf.appendChild(nI);
     var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.wtIn;svB.textContent=bom('Salveaz\u0103','Baga progresul!');svB.prepend(ic('plus',11));
-    svB.onclick=function(){if(!S.wtIn)return;var e2={id:String(Date.now()),date:TODAY,weight:+S.wtIn,bf:S.bfIn?+S.bfIn:null,notes:S.pnote};S.progress=S.progress.filter(function(x){return x.date!==TODAY});S.progress.push(e2);S.progress.sort(function(a,b){return a.date.localeCompare(b.date)});S.wtIn='';S.bfIn='';S.pnote='';DB.save('progress',S.progress);render()};
+    svB.onclick=function(){if(!S.wtIn)return;var e2={id:String(Date.now()),date:TODAY,weight:+S.wtIn,bf:S.bfIn?+S.bfIn:null,notes:S.pnote};S.progress=S.progress.filter(function(x){return x.date!==TODAY});S.progress.push(e2);S.progress.sort(function(a,b){return a.date.localeCompare(b.date)});S.wtIn='';S.bfIn='';S.pnote='';DB.save('progress',S.progress);addXP('Progres logat',10);render()};
     lf.appendChild(svB);
     var hist=el('div',{c:'card'});var hH=el('div',{s:'padding:6px 11px;border-bottom:1px solid var(--bd);color:var(--tx3);font-size:10px;font-weight:500'});hH.textContent='Istoric';hist.appendChild(hH);
     var hl2=el('div',{s:'max-height:180px;overflow-y:auto'});
@@ -1378,7 +1416,7 @@ function vSport(){
   var kcalB=S.sportDur&&S.profile?Math.round((S.sportInt/10)*7*S.profile.weight*(S.sportDur/60)):0;
   if(kcalB){var kDiv=el('div',{s:'color:#fbbf24;font-size:11px;margin-bottom:7px'});kDiv.textContent='\u26A1 Estimare arsurii: ~'+kcalB+' kcal';frm.appendChild(kDiv)}
   var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.sportDur;svB.textContent=bom('Salveaza antrenamentul','Baga antrenamentul!');svB.prepend(ic('barbell',11));
-  svB.onclick=function(){if(!S.sportDur)return;S.workouts.push({id:String(Date.now()),date:TODAY,type:S.sportType,dur:+S.sportDur,int:S.sportInt,rpe:S.sportInt,note:S.sportNote,kcal:kcalB});S.sportDur='';S.sportNote='';DB.save('workouts',S.workouts);render()};
+  svB.onclick=function(){if(!S.sportDur)return;S.workouts.push({id:String(Date.now()),date:TODAY,type:S.sportType,dur:+S.sportDur,int:S.sportInt,rpe:S.sportInt,note:S.sportNote,kcal:kcalB});S.sportDur='';S.sportNote='';DB.save('workouts',S.workouts);addXP('Antrenament logat',15);render()};
   frm.appendChild(svB);
   var wks7=S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]});
   var sts=el('div',{c:'g3'});
@@ -1431,7 +1469,27 @@ function vChal(){
     tR.appendChild(tS);tR.appendChild(tX);top.appendChild(tL);top.appendChild(tR);card.appendChild(top);
     return card;
   });
-  var args=[hdr,sumDiv];chalCards.forEach(function(c){args.push(c)});
+  // Personalized missions from genChals
+  var personalChals=tab==='d'?genChals(S.profile):[];
+  var pcCards=personalChals.map(function(c){
+    var done=c.cond();
+    if(done&&(S.doneChals||[]).indexOf('chal:'+c.id)<0){(S.doneChals=S.doneChals||[]).push('chal:'+c.id);DB.save('doneChals',S.doneChals);addXP('Misiune: '+c.title,c.xp)}
+    var card=el('div',{c:'chal'+(done?' done':'')});
+    var top=el('div',{s:'display:flex;align-items:flex-start;justify-content:space-between'});
+    var tI=el('div',null);var tN=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});tN.textContent=c.title;
+    var tD=el('div',{s:'color:var(--tx4);font-size:11px'});tD.textContent=c.desc;
+    tI.appendChild(tN);tI.appendChild(tD);
+    var tR=el('div',{s:'text-align:right;flex-shrink:0'});
+    var tS=el('div',{s:'color:'+(done?'#34d399':'var(--tx5)')+';font-size:11px;font-weight:600'});tS.textContent=done?'✓ Completat!':'În progres';
+    var tX=el('div',{s:'color:#fbbf24;font-size:10px;margin-top:2px'});tX.textContent='+'+c.xp+' XP';
+    tR.appendChild(tS);tR.appendChild(tX);top.appendChild(tI);top.appendChild(tR);card.appendChild(top);
+    return card;
+  });
+  var args=[hdr,sumDiv];
+  if(pcCards.length){var pcHdr=el('div',{s:'color:var(--tx3);font-size:10px;text-transform:uppercase;letter-spacing:.07em;padding:0 2px'});pcHdr.textContent='Misiuni personalizate';args.push(pcHdr)}
+  pcCards.forEach(function(c){args.push(c)});
+  if(chalCards.length){var scHdr=el('div',{s:'color:var(--tx3);font-size:10px;text-transform:uppercase;letter-spacing:.07em;padding:0 2px'});scHdr.textContent='Provocări standard';args.push(scHdr)}
+  chalCards.forEach(function(c){args.push(c)});
   return mkSec.apply(null,args)
 }
 function vFriends(){
@@ -1647,7 +1705,7 @@ function vGang(){
   if(sorted.length){
     sorted.forEach(function(m3,i){
       var r=el('div',{s:'display:flex;align-items:center;gap:7px;padding:7px 11px;border-bottom:1px solid var(--bg1)'});
-      var rRk=el('span',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:11px;width:18px;flex-shrink:0'});rRk.textContent='#'+(i+1);
+      var rRk=el('span',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:11px;width:18px;flex-shrink:0'});rRk.textContent=S.mode==='bom'&&i===0?'🥇':S.mode==='bom'&&i===1?'🥈':S.mode==='bom'&&i===2?'🥉':'#'+(i+1);
       var rE2=el('span',{s:'font-size:15px'});rE2.textContent=m3.emoji||'\uD83D\uDC64';
       var rI=el('div',{s:'flex:1;min-width:0'});var rN2=el('div',{s:'color:var(--tx2b);font-size:11px;font-weight:500'});rN2.textContent=m3.nick||m3.name;
       var rL2=el('div',{s:'color:var(--tx4);font-size:10px'});rL2.textContent=(m3.level||'')+(m3.workouts?' \u00b7 '+m3.workouts+' antren.':'');
