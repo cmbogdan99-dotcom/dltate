@@ -297,7 +297,7 @@ firebase.initializeApp(_fbCfg);
 var RTDB=firebase.database();
 var UID=(function(){try{var u=_ls.get('dltate:uid');if(!u){u='u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5);_ls.set('dltate:uid',u)}return u}catch(e){return 'u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5)}})();
 var PCODE=UID.substr(-8).toUpperCase();
-function syncUserToFB(){if(!S.profile)return;RTDB.ref('users/'+UID).set({name:S.profile.name,username:S.authUser||'',code:PCODE,uid:UID,xp:getXP(),level:getLvl().n,lastSeen:TODAY}).catch(function(){})}
+function syncUserToFB(){if(!S.profile||S.guest)return;RTDB.ref('users/'+UID).set({name:S.profile.name,username:S.authUser||'',code:PCODE,uid:UID,xp:getXP(),level:getLvl().n,lastSeen:TODAY}).catch(function(){})}
 var _gangUnsub=null;
 function setupGangListener(code){
   if(_gangUnsub){_gangUnsub();_gangUnsub=null;}
@@ -364,7 +364,7 @@ function authChangeCredentials(newUser,newPw,cb){
 }
 function authLogout(){
   _ls.rm('dltate:session');
-  S.loggedIn=false;S.authUser=null;S.view='login';S.loginUser='';S.loginPass='';S.loginErr='';
+  S.loggedIn=false;S.authUser=null;S.guest=false;S.view='login';S.loginUser='';S.loginPass='';S.loginErr='';
   render();
 }
 function authDelete(cb){
@@ -502,7 +502,7 @@ var S={
   mode:'normal',
   theme:'dark',
   logoData:null,
-  loggedIn:false,authUser:null,
+  loggedIn:false,authUser:null,guest:false,
   loginTab:'login',loginUser:'',loginPass:'',loginPass2:'',loginRemember:false,loginErr:'',loginLoading:false,
   xpLog:[]
 };
@@ -626,6 +626,29 @@ function vLogin(){
     };
     card.appendChild(forgotBtn);
   }
+  // Divider
+  var div=el('div',{s:'display:flex;align-items:center;gap:8px;margin:14px 0 10px'});
+  var dl=el('div',{s:'flex:1;height:1px;background:var(--bd)'});
+  var dm=el('span',{s:'color:var(--tx5);font-size:10px;white-space:nowrap'});dm.textContent='sau';
+  var dr=el('div',{s:'flex:1;height:1px;background:var(--bd)'});
+  div.appendChild(dl);div.appendChild(dm);div.appendChild(dr);card.appendChild(div);
+  var guestBtn=el('button',{s:'width:100%;padding:9px;background:transparent;border:1px solid var(--bd);border-radius:10px;color:var(--tx3);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s ease'});
+  guestBtn.textContent='Continuă fără cont';
+  guestBtn.onmouseenter=function(){this.style.borderColor='var(--ac)';this.style.color='var(--tx1)'};
+  guestBtn.onmouseleave=function(){this.style.borderColor='var(--bd)';this.style.color='var(--tx3)'};
+  guestBtn.onclick=function(){
+    S.guest=true;S.loggedIn=false;S.authUser=null;
+    DB.load('profile').then(function(p){
+      if(p){
+        S.profile=p;S.metrics=Calc.getM(p);
+        Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
+          S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.xpLog=r[9]||[];
+          S.view='app';render();
+        }).catch(function(){S.view='app';render()});
+      }else{S.view='onboarding';render()}
+    }).catch(function(){S.view='onboarding';render()});
+  };
+  card.appendChild(guestBtn);
   wrap.appendChild(card);return wrap;
 }
 function render(){
@@ -896,11 +919,18 @@ function vMain(){
   uc.appendChild(avEl);
   if(!coll){
     var ucInfo=el('div',{c:'uc-info'});
-    var ucName=el('div',{s:'color:var(--tx2);font-size:11px;font-weight:500'});ucName.textContent=p.name+(S.authUser?' (@'+S.authUser+')':'');
+    var ucName=el('div',{s:'color:var(--tx2);font-size:11px;font-weight:500'});ucName.textContent=p.name+(S.authUser?' (@'+S.authUser+')':S.guest?' (vizitator)':'');
     var ucXP=el('div',{s:'color:'+lvl.c+';font-size:10px;font-weight:600'});ucXP.textContent=xp+' XP · '+lvl.n;
     ucInfo.appendChild(ucName);ucInfo.appendChild(ucXP);uc.appendChild(ucInfo);
   }
   sbF.appendChild(uc);
+  if(S.guest&&!coll){
+    var gBanner=el('div',{s:'margin:6px 6px 0;padding:7px 9px;background:rgba(45,106,79,.12);border:1px solid rgba(45,106,79,.25);border-radius:8px;cursor:pointer'});
+    gBanner.onclick=function(){S.guest=false;S.view='login';S.loginTab='register';render()};
+    var gT=el('div',{s:'color:var(--ac-l);font-size:10px;font-weight:600;margin-bottom:2px'});gT.textContent='Mod vizitator';
+    var gS=el('div',{s:'color:var(--tx4);font-size:10px;line-height:1.4'});gS.textContent='Creează cont pentru sync & social →';
+    gBanner.appendChild(gT);gBanner.appendChild(gS);sbF.appendChild(gBanner);
+  }
   if(!coll){
     var sbExtras=el('div',{c:'sb-extras'});
     var modeRow=el('div',{s:'display:flex;gap:2px;margin-bottom:5px;background:var(--bg1);border-radius:7px;padding:2px'});
@@ -1364,7 +1394,7 @@ function rbFL(){
     sfTop.appendChild(sfL);sfTop.appendChild(xb2);sc.appendChild(sfTop);
     var qRow=el('div',{s:'display:flex;gap:7px;align-items:flex-end;margin-bottom:7px'});
     var qD=el('div',null);var qL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});qL.textContent='Cantitate ('+sf.u+')';qD.appendChild(qL);
-    var qi=el('input',{id:'foodQty',c:'inp',s:'font-size:11px;width:90px',type:'number',ph:String(sf.s),val:S.fqty||String(sf.s),min:NUM_CONSTRAINTS.foodQty.min,max:NUM_CONSTRAINTS.foodQty.max,step:NUM_CONSTRAINTS.foodQty.step,inp:function(e2){S.fqty=e2.target.value;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal'}}});
+    var qi=el('input',{id:'foodQty',c:'inp',s:'font-size:11px;width:90px',type:'number',ph:String(sf.s),val:S.fqty||String(sf.s),min:NUM_CONSTRAINTS.foodQty.min,max:NUM_CONSTRAINTS.foodQty.max,step:NUM_CONSTRAINTS.foodQty.step,inp:function(e2){S.fqty=e2.target.value;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal'}});
     try{qi.onblur=function(){S.fqty=clampToConstraints('foodQty',this.value);var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal';render()}}catch(e5){}
     qD.appendChild(qi);
     var pvDiv=el('div',{id:'fl-pv',s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:var(--ac-l);flex-shrink:0'});
@@ -1680,7 +1710,19 @@ function vChal(){
   chalCards.forEach(function(c){args.push(c)});
   return mkSec.apply(null,args)
 }
+function guestWall(title){
+  var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=title;
+  var card=el('div',{c:'card cp',s:'text-align:center;padding:32px 20px'});
+  var ico=el('div',{s:'margin-bottom:12px;color:var(--tx4)'});ico.appendChild(ic('user-off',32));
+  var t1=el('div',{s:'color:var(--tx1);font-size:14px;font-weight:600;margin-bottom:6px'});t1.textContent='Funcție disponibilă doar cu cont';
+  var t2=el('div',{s:'color:var(--tx4);font-size:12px;line-height:1.5;margin-bottom:16px'});t2.textContent='Creează un cont gratuit pentru a accesa această funcție și a-ți sincroniza datele.';
+  var btn=el('button',{c:'btn bp',s:'margin:0 auto;display:block'});btn.textContent='Creează cont gratuit';
+  btn.onclick=function(){S.guest=false;S.view='login';S.loginTab='register';render()};
+  card.appendChild(ico);card.appendChild(t1);card.appendChild(t2);card.appendChild(btn);
+  return mkSec(h1,card);
+}
 function vFriends(){
+  if(S.guest)return guestWall(bom('Prieteni','Fraieri... adică Prieteni 🤝'));
   var p=S.profile,myXP=getXP(),myLvl=getLvl();
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Prieteni','Fraieri... adică Prieteni 🤝');
   var myCodeCard=el('div',{c:'card cp'});
@@ -1811,6 +1853,7 @@ function vFriends(){
   return mkSec.apply(null,args)
 }
 function vNotif(){
+  if(S.guest)return guestWall(bom('Notific\u0103ri','Ping-uri & Hapciuri'));
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Notific\u0103ri','Ping-uri & Hapciuri');
   // Merge Firebase + local notifs, newest first
   var allNotifs=[].concat(
@@ -1896,6 +1939,7 @@ function vAch(){
   return mkSec(h1,lvlCard,achGrid)
 }
 function vTop(){
+  if(S.guest)return guestWall(bom('Top Global','Topul Regilor 🏆'));
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Top Global','Topul Regilor 🏆');
   var myXP=getXP(),myLvl=getLvl();
   var meCard=el('div',{c:'card cp',s:'display:flex;align-items:center;gap:10px'});
@@ -1938,6 +1982,7 @@ function vTop(){
   return mkSec(h1,meCard,listCard,tipCard)
 }
 function vGang(){
+  if(S.guest)return guestWall(bom('Clan','Clanul tău 💪'));
   var p=S.profile,xp=getXP(),lvl=getLvl();
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Echip\u0103 \uD83E\uDD1D','Clanul t\u0103u \uD83D\uDCAA');
   if(!p.gangCode){
