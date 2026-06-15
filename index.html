@@ -1612,81 +1612,130 @@ function vChal(){
   return mkSec.apply(null,args)
 }
 function vFriends(){
-  var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Prieteni','Fraieri... adica Prieteni');
-  // My code card
+  var p=S.profile,myXP=getXP(),myLvl=getLvl();
+  var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Prieteni','Fraieri... adică Prieteni');
   var myCodeCard=el('div',{c:'card cp'});
-  var mcH=el('div',{s:'color:var(--tx3);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});mcH.textContent=bom('Codul tau de jucator','Codul tau de boss');
-  var mcV=el('div',{s:'display:flex;align-items:center;gap:8px'});
+  var mcH=el('div',{s:'color:var(--tx3);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});mcH.textContent='Codul tău de jucător';
+  var mcV=el('div',{s:'display:flex;align-items:center;gap:8px;margin-bottom:4px'});
   var mcCode=el('div',{s:'font-size:20px;font-weight:700;font-family:ui-monospace,monospace;color:#4ade80;letter-spacing:2px'});mcCode.textContent=PCODE;
-  var mcCopy=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcCopy.textContent=bom('Copiaza','Ia codul!');mcCopy.onclick=function(){var btn=mcCopy;function done(){btn.textContent=bom('Copiat!','Luat!');setTimeout(function(){btn.textContent=bom('Copiaza','Ia codul!')},1500)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(PCODE).then(done).catch(function(){try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}})}else{try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}}};
-  mcV.appendChild(mcCode);mcV.appendChild(mcCopy);
-  var mcTip=el('div',{s:'color:var(--tx5);font-size:11px;margin-top:4px'});mcTip.textContent=bom('Trimite acest cod prietenilor ca sa te adauge.','Trimite codul asta prietenilor ca sa te gaseasca — daca ai prieteni, bineinteles.');
-  myCodeCard.appendChild(mcH);myCodeCard.appendChild(mcV);myCodeCard.appendChild(mcTip);
-  // Friend requests
+  var mcCopy=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcCopy.textContent='Copiază';
+  mcCopy.onclick=function(){var btn=mcCopy;function done(){btn.textContent='Copiat!';setTimeout(function(){btn.textContent='Copiază'},1500)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(PCODE).then(done).catch(function(){try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}})}else{try{var ta=document.createElement('textarea');ta.value=PCODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done()}catch(e){}}};
+  var mcShare=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});mcShare.textContent='Distribuie';
+  mcShare.onclick=function(){var txt='Adaugă-mă pe Fitness AI! Codul meu: '+PCODE;if(navigator.share){navigator.share({title:'Fitness AI',text:txt}).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){mcShare.textContent='Copiat!';setTimeout(function(){mcShare.textContent='Distribuie'},1500)}).catch(function(){})}};
+  mcV.appendChild(mcCode);mcV.appendChild(mcCopy);mcV.appendChild(mcShare);
+  var mcMe=el('div',{s:'display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:8px;padding:7px 10px;margin-top:6px'});
+  var mcAvEl=el('div',{s:'font-size:16px'});mcAvEl.textContent=myLvl.e;
+  var mcMeI=el('div',null);
+  var mcMeN=el('div',{s:'color:var(--tx1);font-size:11px;font-weight:600'});mcMeN.textContent=p.name+(S.authUser?' (@'+S.authUser+')':'');
+  var mcMeX=el('div',{s:'color:'+myLvl.c+';font-size:10px'});mcMeX.textContent=myXP+' XP · '+myLvl.n+(p.gangCode?' · Clan: '+p.gangCode:'');
+  mcMeI.appendChild(mcMeN);mcMeI.appendChild(mcMeX);mcMe.appendChild(mcAvEl);mcMe.appendChild(mcMeI);
+  myCodeCard.appendChild(mcH);myCodeCard.appendChild(mcV);myCodeCard.appendChild(mcMe);
   var reqCards=[];
   if(S.fbFriendReqs&&S.fbFriendReqs.length){
-    var reqCard=el('div',{c:'card cp'});
-    var rqH=el('div',{s:'color:#fbbf24;font-size:12px;font-weight:600;margin-bottom:8px'});rqH.textContent='Cereri primite ('+S.fbFriendReqs.length+')';reqCard.appendChild(rqH);
+    var reqCard=el('div',{c:'card cp',s:'border-color:rgba(251,191,36,.3)'});
+    var rqH=el('div',{s:'color:#fbbf24;font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px'});
+    var rqBadge=el('span',{s:'background:#fbbf24;color:#000;border-radius:99px;font-size:10px;padding:1px 6px;font-weight:700'});rqBadge.textContent=S.fbFriendReqs.length;
+    rqH.textContent='Cereri primite ';rqH.appendChild(rqBadge);reqCard.appendChild(rqH);
     S.fbFriendReqs.forEach(function(req){
-      var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)'});
-      var rL=el('div',null);
+      var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)'});
+      var rL=el('div',{s:'flex:1;min-width:0'});
       var rN=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});rN.textContent=req.name||'Utilizator';
-      var rC=el('div',{s:'color:var(--tx4);font-size:10px'});rC.textContent='Cod: '+(req.code||req._id);
+      var rC=el('div',{s:'color:var(--tx4);font-size:10px'});rC.textContent=(req.username?'@'+req.username+' · ':'')+'Cod: '+(req.code||req._id);
       rL.appendChild(rN);rL.appendChild(rC);
-      var rR=el('div',{s:'display:flex;gap:5px'});
-      var acc=el('button',{c:'btn bp',s:'font-size:11px;padding:5px 9px'});acc.textContent=bom('Accepta','Baga-l!');
-      acc.onclick=function(){
-        var fromUid=req._id;
-        RTDB.ref('friends/'+UID+'/'+fromUid).set({name:req.name,code:req.code||'',uid:fromUid,since:TODAY});
-        RTDB.ref('friends/'+fromUid+'/'+UID).set({name:S.profile.name,code:PCODE,uid:UID,since:TODAY});
-        RTDB.ref('notifs/'+fromUid).push({title:'Cerere acceptata!',body:S.profile.name+' ('+PCODE+') ti-a acceptat cererea de prietenie.',read:false,time:TODAY,type:'info'});
+      var rR=el('div',{s:'display:flex;gap:5px;flex-shrink:0'});
+      var acc=el('button',{c:'btn bp',s:'font-size:11px;padding:5px 9px'});acc.textContent='Acceptă';
+      acc.onclick=(function(r){return function(){
+        var fromUid=r._id;
+        RTDB.ref('friends/'+UID+'/'+fromUid).set({name:r.name,username:r.username||'',code:r.code||'',uid:fromUid,since:TODAY,xp:r.xp||0,level:r.level||''});
+        RTDB.ref('friends/'+fromUid+'/'+UID).set({name:p.name,username:S.authUser||'',code:PCODE,uid:UID,since:TODAY,xp:myXP,level:myLvl.n});
+        RTDB.ref('notifs/'+fromUid).push({title:'Cerere acceptată!',body:p.name+' ('+PCODE+') ți-a acceptat cererea. Acum ești în lista lui!',read:false,time:TODAY,type:'info'});
         RTDB.ref('friendReqs/'+UID+'/'+fromUid).remove();
-      };
-      var dec=el('button',{c:'btn bg',s:'font-size:11px;padding:5px 9px'});dec.textContent=bom('Refuza','Nu-l vreau');
-      dec.onclick=function(){RTDB.ref('friendReqs/'+UID+'/'+req._id).remove()};
+        addXP('Prieten nou acceptat',20);
+      }})(req);
+      var dec=el('button',{c:'btn bg',s:'font-size:11px;padding:5px 9px'});dec.textContent='Refuză';
+      dec.onclick=(function(r){return function(){RTDB.ref('friendReqs/'+UID+'/'+r._id).remove()}})(req);
       rR.appendChild(acc);rR.appendChild(dec);row.appendChild(rL);row.appendChild(rR);reqCard.appendChild(row);
     });
     reqCards.push(reqCard);
   }
-  // Friends list
   var listCard=el('div',{c:'card cp'});
-  var lH=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;margin-bottom:8px'});lH.textContent=bom('Prietenii mei','Fraieriii tai')+' ('+(S.fbFriends||[]).length+')';listCard.appendChild(lH);
-  if(!(S.fbFriends&&S.fbFriends.length)){var emp=el('div',{s:'color:var(--tx5);font-size:11px;text-align:center;padding:12px 0'});emp.textContent=bom('Niciun prieten inca. Trimite codul tau unui prieten!','Niciun prieten inca, boss. Trimite codul tau si aduna gasca!');listCard.appendChild(emp);}
-  (S.fbFriends||[]).forEach(function(fr){
-    var row=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)'});
-    var rL=el('div',null);
-    var rN=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});rN.textContent=fr.name||fr._id;
-    var rD=el('div',{s:'color:var(--tx4);font-size:10px'});rD.textContent='Cod: '+(fr.code||fr._id)+' \u00b7 Prieteni din: '+fr.since;
-    rL.appendChild(rN);rL.appendChild(rD);
-    var rm=el('button',{c:'btn bg',s:'font-size:11px;padding:5px 9px'});rm.textContent=bom('Sterge','Scoate-l');
-    rm.onclick=function(){
-      if(!confirm('Stergi prietenia cu '+fr.name+'?'))return;
-      RTDB.ref('friends/'+UID+'/'+fr._id).remove();
-      RTDB.ref('friends/'+fr._id+'/'+UID).remove();
-    };
-    row.appendChild(rL);row.appendChild(rm);listCard.appendChild(row);
+  var lH=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;margin-bottom:10px'});lH.textContent='Prietenii mei ('+(S.fbFriends||[]).length+')';listCard.appendChild(lH);
+  if(!(S.fbFriends&&S.fbFriends.length)){
+    var emp=el('div',{s:'text-align:center;padding:18px 0'});
+    var empI=el('div',{s:'font-size:32px;margin-bottom:8px'});empI.textContent='👥';
+    var empT=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:4px'});empT.textContent='Niciun prieten încă';
+    var empS=el('div',{s:'color:var(--tx5);font-size:11px'});empS.textContent='Trimite codul tău ('+PCODE+') sau adaugă pe cineva de mai jos.';
+    emp.appendChild(empI);emp.appendChild(empT);emp.appendChild(empS);listCard.appendChild(emp);
+  }
+  (S.fbFriends||[]).slice().sort(function(a,b){return(b.xp||0)-(a.xp||0)}).forEach(function(fr,idx){
+    var frCard=el('div',{s:'background:var(--bg2);border-radius:9px;padding:10px;margin-bottom:7px'});
+    var frTop=el('div',{s:'display:flex;align-items:center;gap:9px'});
+    var frRk=el('div',{s:'color:var(--tx4);font-size:11px;font-family:ui-monospace,monospace;width:16px;flex-shrink:0;text-align:center'});frRk.textContent='#'+(idx+1);
+    var frAvObj=getAvatar(fr.profile_snapshot||{},myLvl);
+    var frAv=el('div',{s:'width:28px;height:28px;border-radius:50%;background:'+frAvObj.bg+';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0'});frAv.textContent=frAvObj.e;
+    var frI=el('div',{s:'flex:1;min-width:0'});
+    var frN=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});frN.textContent=fr.name+(fr.username?' (@'+fr.username+')':'');
+    var frD=el('div',{s:'color:var(--tx4);font-size:10px'});frD.textContent=(fr.level||'Nou')+' · Prieteni din: '+fr.since;
+    frI.appendChild(frN);frI.appendChild(frD);
+    var xpDiff=myXP-(fr.xp||0);
+    var frRight=el('div',{s:'text-align:right;flex-shrink:0'});
+    var frXP=el('div',{s:'color:#fbbf24;font-weight:700;font-size:11px;font-family:ui-monospace,monospace'});frXP.textContent=(fr.xp||0)+' XP';
+    var frXPDiff=el('div',{s:'font-size:9px;color:'+(xpDiff>0?'#4ade80':xpDiff<0?'#f87171':'var(--tx5)')});frXPDiff.textContent=xpDiff>0?'Tu +'+xpDiff:xpDiff<0?'El/Ea +'+Math.abs(xpDiff):'Egal';
+    frRight.appendChild(frXP);frRight.appendChild(frXPDiff);
+    frTop.appendChild(frRk);frTop.appendChild(frAv);frTop.appendChild(frI);frTop.appendChild(frRight);
+    frCard.appendChild(frTop);
+    var frBtns=el('div',{s:'display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--bg1)'});
+    if(p.gangCode){
+      var invBtn=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 9px'});invBtn.textContent='Invită în Clan';
+      invBtn.onclick=(function(btn,frId){return function(){
+        RTDB.ref('notifs/'+frId).push({title:'Invitație Clan: '+p.gangCode,body:p.name+' ('+PCODE+') te invită în Clanul "'+p.gangCode+'". Intră în meniul Clan și introduce codul.',read:false,time:TODAY,type:'clanInvite',clanCode:p.gangCode,fromUid:UID});
+        btn.textContent='Trimis!';setTimeout(function(){btn.textContent='Invită în Clan'},2000);
+      }})(invBtn,fr._id);
+      frBtns.appendChild(invBtn);
+    }
+    var chalBtn=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 9px'});chalBtn.textContent='Provocare XP';
+    chalBtn.onclick=(function(btn,frId){return function(){
+      RTDB.ref('notifs/'+frId).push({title:'Provocare de la '+p.name+'!',body:p.name+' ('+myXP+' XP) te provoacă! Acumulează mai mult XP săptămâna asta.',read:false,time:TODAY,type:'challenge',fromUid:UID,fromXP:myXP});
+      btn.textContent='Trimis!';setTimeout(function(){btn.textContent='Provocare XP'},2000);
+      addXP('Provocare trimisă',5);
+    }})(chalBtn,fr._id);
+    frBtns.appendChild(chalBtn);
+    var rm=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 9px;color:#f87171;border-color:rgba(248,113,113,.3)'});rm.textContent='Șterge';
+    rm.onclick=(function(btn,frId,frName){return function(){
+      if(!confirm('Ștergi prietenia cu '+frName+'?'))return;
+      RTDB.ref('friends/'+UID+'/'+frId).remove();
+      RTDB.ref('friends/'+frId+'/'+UID).remove();
+    }})(rm,fr._id,fr.name);
+    frBtns.appendChild(rm);
+    frCard.appendChild(frBtns);listCard.appendChild(frCard);
   });
-  // Add friend
   var addCard=el('div',{c:'card cp'});
-  var aH=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;margin-bottom:8px'});aH.textContent=bom('Adauga prieten dupa cod','Adauga un fraier dupa cod');addCard.appendChild(aH);
+  var aH=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;margin-bottom:4px'});aH.textContent='Adaugă prieten';addCard.appendChild(aH);
+  var aHint=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:9px'});aHint.textContent='Introdu codul de 8 caractere (ex: A1B2C3D4) sau @username';addCard.appendChild(aHint);
   var aRow=el('div',{s:'display:flex;gap:6px'});
-  var aI=el('input',{c:'inp',s:'flex:1;font-size:12px;text-transform:uppercase',ph:'Cod de 8 caractere (ex: A1B2C3D4)'});
-  var aBtn=el('button',{c:'btn bp'});aBtn.textContent=bom('Trimite cerere','Adauga-l, boss!');
+  var aI=el('input',{c:'inp',s:'flex:1;font-size:12px',ph:'Cod (A1B2C3D4) sau @username'});
+  var aBtn=el('button',{c:'btn bp',s:'flex-shrink:0'});aBtn.textContent='Trimite cerere';
   aBtn.onclick=function(){
-    var code=aI.value.trim().toUpperCase();
-    if(code.length<6){notify('Cod invalid','Introdu un cod valid de 8 caractere.');return;}
-    if(code===PCODE){notify('Eroare','Nu te poti adauga pe tine insuti.');return;}
-    RTDB.ref('users').orderByChild('code').equalTo(code).get().then(function(snap){
-      if(!snap.exists()){notify('Cod negasit','Niciun utilizator cu codul '+code+'. Verifica codul si incearca din nou.');return;}
+    var raw=aI.value.trim();
+    if(!raw){notify('Câmp gol','Introdu un cod sau @username.');return;}
+    var isUser=raw.startsWith('@');
+    var searchVal=isUser?raw.slice(1).toLowerCase():raw.toUpperCase();
+    if(!isUser&&searchVal===PCODE){notify('Eroare','Nu te poți adăuga pe tine.');return;}
+    if(searchVal.length<(isUser?2:6)){notify('Prea scurt','Valoarea introdusă este prea scurtă.');return;}
+    aBtn.textContent='Se caută...';aBtn.disabled=true;
+    RTDB.ref('users').orderByChild(isUser?'username':'code').equalTo(searchVal).get().then(function(snap){
+      aBtn.textContent='Trimite cerere';aBtn.disabled=false;
+      if(!snap.exists()){notify('Negăsit','Niciun utilizator cu '+(isUser?'@'+searchVal:'codul '+searchVal)+'.');return;}
       snap.forEach(function(child){
         var tUid=child.key,tData=child.val();
-        if(S.fbFriends&&S.fbFriends.find(function(f){return f._id===tUid})){notify('Deja prieteni','Esti deja prieten cu '+tData.name+'.');return;}
-        RTDB.ref('friendReqs/'+tUid+'/'+UID).set({name:S.profile.name,code:PCODE,uid:UID,time:TODAY});
-        RTDB.ref('notifs/'+tUid).push({title:'Cerere de prietenie',body:S.profile.name+' ('+PCODE+') vrea sa fie prietenul tau!',read:false,time:TODAY,type:'friendReq',fromUid:UID});
-        notify('Cerere trimisa!','Cererea a fost trimisa catre '+tData.name+'.');
+        if(tUid===UID){notify('Eroare','Nu te poți adăuga pe tine.');return;}
+        if(S.fbFriends&&S.fbFriends.find(function(f){return f._id===tUid})){notify('Deja prieteni','Ești deja prieten cu '+tData.name+'.');return;}
+        RTDB.ref('friendReqs/'+tUid+'/'+UID).set({name:p.name,username:S.authUser||'',code:PCODE,uid:UID,time:TODAY,xp:myXP,level:myLvl.n});
+        RTDB.ref('notifs/'+tUid).push({title:'Cerere de prietenie',body:p.name+' ('+(S.authUser?'@'+S.authUser+', ':'')+'cod: '+PCODE+') vrea să fie prietenul tău!',read:false,time:TODAY,type:'friendReq',fromUid:UID});
+        notify('Cerere trimisă!','Cererea a ajuns la '+tData.name+'.');
         aI.value='';
       });
-    }).catch(function(){notify('Eroare','Nu s-a putut conecta la server. Verifica conexiunea.');});
+    }).catch(function(){aBtn.textContent='Trimite cerere';aBtn.disabled=false;notify('Eroare rețea','Nu s-a putut conecta la server.');});
   };
   aRow.appendChild(aI);aRow.appendChild(aBtn);addCard.appendChild(aRow);
   var args=[h1,myCodeCard].concat(reqCards).concat([listCard,addCard]);
