@@ -136,6 +136,8 @@ input[type="number"].inp{-moz-appearance:textfield}
 @keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes barFill{from{width:0!important}to{}}
 @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes flashReq{0%,25%{border-color:#f87171!important;box-shadow:0 0 0 2px rgba(248,113,113,.22)!important;background:rgba(248,113,113,.08)!important}100%{border-color:inherit;box-shadow:none;background:inherit}}
+.flash-req{animation:flashReq .8s ease-out forwards!important;border-radius:8px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style>
 <div id="app"><div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;background:var(--bg);color:var(--tx4);font-size:12px">Se încarcă...</div></div>
@@ -733,6 +735,7 @@ function vOB(){
     iw.appendChild(inp);
     if(u){var iu=el('span',{c:'iu'});iu.textContent=u;iw.appendChild(iu);}
     d.appendChild(iw);
+    d.id='ob-'+k;
     return d
   }
   function opts(k,items){
@@ -749,7 +752,7 @@ function vOB(){
     content.push(fld('Numele tau','name','Alex','','text'));
     var ageRow=el('div',{c:'g2'});
     ageRow.appendChild(fld('Varsta','age','28','ani'));
-    var sexDiv=el('div',{s:'margin-bottom:9px'});
+    var sexDiv=el('div',{id:'ob-sex',s:'margin-bottom:9px'});
     var sexLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:3px'});sexLbl.textContent='Sex';
     sexDiv.appendChild(sexLbl);
     var sexSeg=el('div',{s:'display:flex;background:var(--bg2);border-radius:10px;padding:4px;gap:3px'});
@@ -799,7 +802,7 @@ function vOB(){
     content.push(fld('% Grasime corp (optional)','bodyFat','22.5','%'));
   }else if(step===2){
     var aLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:5px'});aLbl.textContent=bom('Nivel de activitate','C\u00e2t te mi\u015fti, bre?');
-    content.push(aLbl);content.push(opts('activityLevel',ACT));
+    content.push(aLbl);var aOpts=opts('activityLevel',ACT);aOpts.id='ob-activity';content.push(aOpts);
     var r2=el('div',{c:'g2'});r2.appendChild(fld('Antrenamente','trainingFrequency','3','/s\u0103pt.'));r2.appendChild(fld('Somn','sleepHours','7','h'));
     content.push(r2);
     var schedLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);border-top:1px solid var(--bd);padding-top:9px;margin-bottom:8px;margin-top:4px'});schedLbl.textContent=bom('Program & disponibilitate','Cum \u00ee\u021bi ar\u0103\u021bi ziua, tata?');content.push(schedLbl);
@@ -819,11 +822,11 @@ function vOB(){
     var spHint=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});spHint.textContent='Opțional — AI-ul va sugera planuri bazate pe preferințele tale.';content.push(spHint);
   }else if(step===3){
     var gLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:5px'});gLbl.textContent=bom('Obiectiv','Ce vrei, nene?');
-    content.push(gLbl);content.push(opts('goal',GOALS));
+    content.push(gLbl);var gOpts=opts('goal',GOALS);gOpts.id='ob-goal';content.push(gOpts);
     content.push(fld('Greutate \u021bint\u0103','targetWeight','75','kg'));
   }else{
     var dLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:5px'});dLbl.textContent=bom('Diet\u0103','Cu ce te \u021bii, tata?');
-    content.push(dLbl);content.push(opts('diet',DIETS));
+    content.push(dLbl);var dOpts=opts('diet',DIETS);dOpts.id='ob-diet';content.push(dOpts);
     var optLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);border-top:1px solid var(--bd);padding-top:9px;margin-bottom:8px'});optLbl.textContent=bom('Op\u021bional: s\u0103n\u0103tate','Detalii: ce mai ai prin corp? (op\u021bional)');
     content.push(optLbl);content.push(fld('Glicemie \u00e0 jeun','bloodGlucose','4.8','mmol/L'));
     var algLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);border-top:1px solid var(--bd);padding-top:9px;margin-bottom:7px;margin-top:4px'});algLbl.textContent='Alergii / intoleran\u021be';content.push(algLbl);
@@ -837,6 +840,31 @@ function vOB(){
     var avLbl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:3px'});avLbl.textContent='Alimente evitate (op\u021bional)';
     var avInp=el('input',{c:'inp',s:'font-size:11px',ph:'Ex: broccoli, ficat, pe\u0219te gras...',val:S.ob.avoidedFoods||''});
     avInp.oninput=function(){S.ob.avoidedFoods=this.value};content.push(avLbl);content.push(avInp);
+  }
+  function flashMissing(s){
+    var maps=[
+      ['ob-name','ob-age','ob-sex'],
+      ['ob-neck','ob-waist','ob-hip'],
+      ['ob-activity'],
+      ['ob-goal','ob-targetWeight'],
+      ['ob-diet']
+    ];
+    (maps[s]||[]).forEach(function(id){
+      var el2=document.getElementById(id);
+      if(!el2)return;
+      var missing=false;
+      if(id==='ob-sex'&&!S.ob.sex)missing=true;
+      else if(id==='ob-name'&&!S.ob.name)missing=true;
+      else if(id==='ob-age'&&!S.ob.age)missing=true;
+      else if(id==='ob-neck'&&!S.ob.neck)missing=true;
+      else if(id==='ob-waist'&&!S.ob.waist)missing=true;
+      else if(id==='ob-hip'&&S.ob.sex==='F'&&!S.ob.hip)missing=true;
+      else if(id==='ob-activity'&&!S.ob.activityLevel)missing=true;
+      else if(id==='ob-goal'&&!S.ob.goal)missing=true;
+      else if(id==='ob-targetWeight'&&!S.ob.targetWeight)missing=true;
+      else if(id==='ob-diet'&&!S.ob.diet)missing=true;
+      if(missing){el2.classList.remove('flash-req');void el2.offsetWidth;el2.classList.add('flash-req');el2.addEventListener('animationend',function(){el2.classList.remove('flash-req')},{once:true});}
+    });
   }
   function finish(){
     var D2=S.ob;
@@ -856,9 +884,8 @@ function vOB(){
   var nav=el('div',{s:'display:flex;gap:6px;margin-top:14px'});
   if(step>0){var bb=el('button',{c:'btn bg',s:'font-size:11px',click:function(){S.obStep--;render()}});bb.textContent='\u00cenapo\u012b';nav.appendChild(bb);}
   var bn=el('button',{c:'btn bp',s:'flex:1;font-size:11px'});
-  if(!ok[step])bn.disabled=true;
   bn.textContent=step<OBS.length-1?bom('Continua \u2192','Continua \u2192'):bom('Creeaza planul meu \u2192','Fa-mi planul, boss! \u2192');
-  bn.onclick=function(){if(!ok[step])return;if(step<OBS.length-1){S.obStep++;render();}else finish();};
+  bn.onclick=function(){if(!ok[step]){flashMissing(step);return;}if(step<OBS.length-1){S.obStep++;render();}else finish();};
   nav.appendChild(bn);frm.appendChild(nav);
   var wrap=el('div',{c:'ob'});
   var oc=el('div',{c:'oc'});
