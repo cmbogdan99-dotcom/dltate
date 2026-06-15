@@ -750,7 +750,7 @@ function vOB(){
         var bmiDiv=el('div',{s:'background:var(--bg2);border-radius:7px;padding:7px 11px;display:flex;align-items:center;justify-content:space-between;margin-bottom:9px'});
         var bmiL=el('span',{s:'color:var(--tx4);font-size:11px'});bmiL.textContent='IMC';
         var bmiV=el('div',null);
-        var bmiInput=el('input',{id:'bmi',c:'inp',type:'number',s:'width:80px;text-align:right;font-family:ui-monospace,monospace',val:currentBV?String(currentBV):'',step:NUM_CONSTRAINTS.bmi.step,min:NUM_CONSTRAINTS.bmi.min,max:NUM_CONSTRAINTS.bmi.max,inp:function(e2){S.ob.bmi=e2.target.value;debouncedRender(440)}});
+        var bmiInput=el('input',{id:'bmi',c:'inp',type:'number',s:'width:80px;text-align:right;font-family:ui-monospace,monospace',val:currentBV?String(currentBV):'',step:NUM_CONSTRAINTS.bmi.step,min:NUM_CONSTRAINTS.bmi.min,max:NUM_CONSTRAINTS.bmi.max,inp:function(e2){S.ob.bmi=e2.target.value}});
         try{bmiInput.onblur=function(){if(this.value!=='')S.ob.bmi=this.value}}catch(e4){}
         var bmiC=el('span',{s:'color:'+bcat.c+';font-size:11px;margin-left:8px'});bmiC.textContent=bcat.l;
         bmiV.appendChild(bmiInput);bmiV.appendChild(bmiC);bmiDiv.appendChild(bmiL);bmiDiv.appendChild(bmiV);content.push(bmiDiv);
@@ -1364,7 +1364,7 @@ function rbFL(){
     sfTop.appendChild(sfL);sfTop.appendChild(xb2);sc.appendChild(sfTop);
     var qRow=el('div',{s:'display:flex;gap:7px;align-items:flex-end;margin-bottom:7px'});
     var qD=el('div',null);var qL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});qL.textContent='Cantitate ('+sf.u+')';qD.appendChild(qL);
-    var qi=el('input',{id:'foodQty',c:'inp',s:'font-size:11px;width:90px',type:'number',ph:String(sf.s),val:S.fqty||String(sf.s),min:NUM_CONSTRAINTS.foodQty.min,max:NUM_CONSTRAINTS.foodQty.max,step:NUM_CONSTRAINTS.foodQty.step,inp:function(e2){S.fqty=e2.target.value;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal';debouncedRender(400)}});
+    var qi=el('input',{id:'foodQty',c:'inp',s:'font-size:11px;width:90px',type:'number',ph:String(sf.s),val:S.fqty||String(sf.s),min:NUM_CONSTRAINTS.foodQty.min,max:NUM_CONSTRAINTS.foodQty.max,step:NUM_CONSTRAINTS.foodQty.step,inp:function(e2){S.fqty=e2.target.value;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal'}}});
     try{qi.onblur=function(){S.fqty=clampToConstraints('foodQty',this.value);var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal';render()}}catch(e5){}
     qD.appendChild(qi);
     var pvDiv=el('div',{id:'fl-pv',s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:var(--ac-l);flex-shrink:0'});
@@ -1408,7 +1408,7 @@ function vStat(){
     var qRow=el('div',{s:'display:flex;gap:4px;flex-wrap:wrap;margin-bottom:9px'});
     [150,250,350,500,750].forEach(function(ml){var b=el('button',{c:'wqb',click:function(){S.waterLog.push({id:String(Date.now()),date:TODAY,amt:ml});DB.save('waterLog',S.waterLog);render()}});b.textContent=ml+'ml';qRow.appendChild(b)});wc.appendChild(qRow);
     var cRow=el('div',{s:'display:flex;gap:6px'});
-    var ci=el('input',{id:'waterQty',c:'inp',s:'flex:1;font-size:11px',type:'number',ph:'Cantitate (ml)',val:S.wIn||'',min:NUM_CONSTRAINTS.waterQty.min,max:NUM_CONSTRAINTS.waterQty.max,step:NUM_CONSTRAINTS.waterQty.step,inp:function(e2){S.wIn=e2.target.value;debouncedRender(400)}});
+    var ci=el('input',{id:'waterQty',c:'inp',s:'flex:1;font-size:11px',type:'number',ph:'Cantitate (ml)',val:S.wIn||'',min:NUM_CONSTRAINTS.waterQty.min,max:NUM_CONSTRAINTS.waterQty.max,step:NUM_CONSTRAINTS.waterQty.step,inp:function(e2){S.wIn=e2.target.value}});
     try{ci.onblur=function(){S.wIn=clampToConstraints('waterQty',this.value);render()}}catch(e6){}
     var cb=el('button',{c:'btn bp',s:'font-size:11px'});cb.disabled=!S.wIn;cb.textContent='Add';cb.prepend(ic('plus',11));
     cb.onclick=function(){if(!S.wIn)return;S.waterLog.push({id:String(Date.now()),date:TODAY,amt:+S.wIn});S.wIn='';DB.save('waterLog',S.waterLog);render()};
@@ -1431,10 +1431,10 @@ function vStat(){
     var sf=el('div',{c:'card cp'});var sfH=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:500;margin-bottom:9px'});sfH.textContent=bom('\u00cenregistreaz\u0103 somnul de azi-noapte','Cum ai dormit, tata, noaptea trecut\u0103?');sf.appendChild(sfH);
     var sRow=el('div',{c:'g2',s:'margin-bottom:9px'});
     var hD=el('div',null);var hL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});hL.textContent='Ore de somn *';
-    var hIw=el('div',{c:'iw'});var hI=el('input',{id:'sleepHours',c:'inp',s:'font-size:11px',type:'number',ph:'7.5',step:NUM_CONSTRAINTS.sleepHours.step,val:S.slH||'',min:NUM_CONSTRAINTS.sleepHours.min,max:NUM_CONSTRAINTS.sleepHours.max,inp:function(e2){S.slH=e2.target.value;debouncedRender(400)}});var hIu=el('span',{c:'iu'});hIu.textContent='h';hIw.appendChild(hI);hIw.appendChild(hIu);hD.appendChild(hL);hD.appendChild(hIw);
+    var hIw=el('div',{c:'iw'});var hI=el('input',{id:'sleepHours',c:'inp',s:'font-size:11px',type:'number',ph:'7.5',step:NUM_CONSTRAINTS.sleepHours.step,val:S.slH||'',min:NUM_CONSTRAINTS.sleepHours.min,max:NUM_CONSTRAINTS.sleepHours.max,inp:function(e2){S.slH=e2.target.value}});var hIu=el('span',{c:'iu'});hIu.textContent='h';hIw.appendChild(hI);hIw.appendChild(hIu);hD.appendChild(hL);hD.appendChild(hIw);
     try{hI.onblur=function(){S.slH=clampToConstraints('sleepHours',this.value);render()}}catch(e7){}
     var dD=el('div',null);var dL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});dL.textContent='Somn profund (opt.)';
-    var dIw=el('div',{c:'iw'});var dI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'20',val:S.slD||'',min:NUM_CONSTRAINTS.slD.min,max:NUM_CONSTRAINTS.slD.max,step:NUM_CONSTRAINTS.slD.step,inp:function(e2){S.slD=e2.target.value;debouncedRender(400)}});var dIu=el('span',{c:'iu'});dIu.textContent='%';dIw.appendChild(dI);dIw.appendChild(dIu);dD.appendChild(dL);dD.appendChild(dIw);
+    var dIw=el('div',{c:'iw'});var dI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'20',val:S.slD||'',min:NUM_CONSTRAINTS.slD.min,max:NUM_CONSTRAINTS.slD.max,step:NUM_CONSTRAINTS.slD.step,inp:function(e2){S.slD=e2.target.value}});var dIu=el('span',{c:'iu'});dIu.textContent='%';dIw.appendChild(dI);dIw.appendChild(dIu);dD.appendChild(dL);dD.appendChild(dIw);
     try{dI.onblur=function(){S.slD=clampToConstraints('slD',this.value);render()}}catch(e8){}
     sRow.appendChild(hD);sRow.appendChild(dD);sf.appendChild(sRow);
     var qualDiv=el('div',{s:'margin-bottom:9px'});
@@ -1512,10 +1512,10 @@ function vProgr(){
     var lf=el('div',{c:'card cp'});var lfH=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:500;margin-bottom:7px'});lfH.textContent='\u00cenregistreaz\u0103 azi';lf.appendChild(lfH);
     var g2=el('div',{c:'g2',s:'margin-bottom:6px'});
     var w1=el('div',null);var wL2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});wL2.textContent='Greutate (kg) *';
-    var wI=el('input',{id:'wtIn',c:'inp',s:'font-size:11px',type:'number',ph:String(p.weight),step:NUM_CONSTRAINTS.wtIn.step,min:NUM_CONSTRAINTS.wtIn.min,max:NUM_CONSTRAINTS.wtIn.max,val:S.wtIn||'',inp:function(e2){S.wtIn=e2.target.value;debouncedRender(400)}});w1.appendChild(wL2);w1.appendChild(wI);
+    var wI=el('input',{id:'wtIn',c:'inp',s:'font-size:11px',type:'number',ph:String(p.weight),step:NUM_CONSTRAINTS.wtIn.step,min:NUM_CONSTRAINTS.wtIn.min,max:NUM_CONSTRAINTS.wtIn.max,val:S.wtIn||'',inp:function(e2){S.wtIn=e2.target.value}});w1.appendChild(wL2);w1.appendChild(wI);
     try{wI.onblur=function(){S.wtIn=clampToConstraints('wtIn',this.value);render()}}catch(e9){}
     var b1=el('div',null);var bL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});bL.textContent='Gr\u0103sime %';
-    var bI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:fmt(m.bf,1),step:NUM_CONSTRAINTS.bfIn.step,min:NUM_CONSTRAINTS.bfIn.min,max:NUM_CONSTRAINTS.bfIn.max,val:S.bfIn||'',inp:function(e2){S.bfIn=e2.target.value;debouncedRender(400)}});b1.appendChild(bL);b1.appendChild(bI);
+    var bI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:fmt(m.bf,1),step:NUM_CONSTRAINTS.bfIn.step,min:NUM_CONSTRAINTS.bfIn.min,max:NUM_CONSTRAINTS.bfIn.max,val:S.bfIn||'',inp:function(e2){S.bfIn=e2.target.value}});b1.appendChild(bL);b1.appendChild(bI);
     try{bI.onblur=function(){S.bfIn=clampToConstraints('bfIn',this.value);render()}}catch(eX){}
     g2.appendChild(w1);g2.appendChild(b1);lf.appendChild(g2);
     var nI=el('input',{c:'inp',s:'font-size:11px;margin-bottom:6px',ph:'Noti\u021be (op\u021bional)...',val:S.pnote||'',inp:function(e2){S.pnote=e2.target.value}});lf.appendChild(nI);
@@ -1590,7 +1590,7 @@ function vSport(){
   });frm.appendChild(sg);
   var sRow=el('div',{c:'g2',s:'margin-bottom:8px'});
   var durDiv=el('div',null);var durL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});durL.textContent='Durat\u0103 (min) *';
-  var durI=el('input',{id:'sportDur',c:'inp',s:'font-size:11px',type:'number',ph:'45',val:S.sportDur||'',min:NUM_CONSTRAINTS.sportDur.min,max:NUM_CONSTRAINTS.sportDur.max,step:NUM_CONSTRAINTS.sportDur.step,inp:function(e2){S.sportDur=e2.target.value;debouncedRender(400)}});durDiv.appendChild(durL);durDiv.appendChild(durI);
+  var durI=el('input',{id:'sportDur',c:'inp',s:'font-size:11px',type:'number',ph:'45',val:S.sportDur||'',min:NUM_CONSTRAINTS.sportDur.min,max:NUM_CONSTRAINTS.sportDur.max,step:NUM_CONSTRAINTS.sportDur.step,inp:function(e2){S.sportDur=e2.target.value}});durDiv.appendChild(durL);durDiv.appendChild(durI);
   try{durI.onblur=function(){S.sportDur=clampToConstraints('sportDur',this.value);render()}}catch(eZ){}
   var intDiv=el('div',null);var intL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});intL.textContent='Intensitate (1-10)';
   var intRow=el('div',{s:'display:flex;align-items:center;gap:7px'});
@@ -2188,7 +2188,7 @@ function vProf(){
       var rL=el('span',{s:'color:var(--tx3);font-size:11px'});rL.textContent=f.l;
       var rR=el('div',{s:'display:flex;align-items:center;gap:5px'});
       var rI=el('input',{c:'inp',s:'font-size:11px;width:65px;text-align:right;padding:5px 7px',type:'number',val:String(fv[f.k]||''),id:'prof-'+f.k,min:NUM_CONSTRAINTS[f.k].min,max:NUM_CONSTRAINTS[f.k].max,step:NUM_CONSTRAINTS[f.k].step});
-      rI.oninput=(function(fk){return function(){fv[fk]=this.value;debouncedRender(400)}})(f.k);
+      rI.oninput=(function(fk){return function(){fv[fk]=this.value}})(f.k);
       try{rI.onblur=(function(fk){return function(){fv[fk]=clampToConstraints(fk,this.value);render()}})(f.k)}catch(eZ){}
       var rU=el('span',{s:'color:var(--tx4);font-size:11px'});rU.textContent=f.u;
       rR.appendChild(rI);rR.appendChild(rU);r.appendChild(rL);r.appendChild(rR);pc.appendChild(r);
