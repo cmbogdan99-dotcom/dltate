@@ -43,6 +43,8 @@
   "ios": {
     "contentInset": "always",
     "scrollEnabled": true,
-    "limitsNavigationsToAppBoundDomains": false
+    "limitsNavigationsToAppBoundDomains": false,
+    "scheme": "FitnessAI",
+    "backgroundColor": "#111827"
   }
 }

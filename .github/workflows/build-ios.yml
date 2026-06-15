@@ -1,0 +1,80 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [main, feature/capacitor-app]
+  workflow_dispatch:  # permite trigger manual din GitHub UI
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Add iOS platform
+        run: npx cap add ios
+
+      - name: Patch Info.plist and entitlements
+        run: node scripts/patch-ios.js
+
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install --repo-update
+
+      - name: Sync web assets to iOS
+        run: npx cap sync ios
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build iOS (unsigned — for sideloading)
+        run: |
+          cd ios/App
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath $RUNNER_TEMP/FitnessAI.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            archive
+
+      - name: Export IPA (unsigned)
+        run: |
+          mkdir -p $RUNNER_TEMP/ipa-unsigned
+          cp -r $RUNNER_TEMP/FitnessAI.xcarchive/Products/Applications/App.app \
+            $RUNNER_TEMP/ipa-unsigned/Payload/App.app 2>/dev/null || \
+          find $RUNNER_TEMP/FitnessAI.xcarchive -name "*.app" -exec cp -r {} $RUNNER_TEMP/ipa-unsigned/Payload/ \;
+          cd $RUNNER_TEMP/ipa-unsigned
+          zip -r FitnessAI-unsigned.ipa Payload/
+          echo "IPA created at: $RUNNER_TEMP/ipa-unsigned/FitnessAI-unsigned.ipa"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FitnessAI-iOS-unsigned
+          path: ${{ runner.temp }}/ipa-unsigned/FitnessAI-unsigned.ipa
+          retention-days: 30
+
+      - name: Upload archive (backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: FitnessAI-xcarchive
+          path: ${{ runner.temp }}/FitnessAI.xcarchive
+          retention-days: 7

@@ -8,7 +8,8 @@
     "android": "npx cap open android",
     "ios": "npx cap open ios",
     "build:android": "npx cap sync android && npx cap build android",
-    "build:ios": "npx cap sync ios && npx cap build ios"
+    "build:ios": "npx cap sync ios && npx cap build ios",
+    "patch:ios": "node scripts/patch-ios.js"
   },
   "dependencies": {
     "@capacitor/core": "^8.4.0",
