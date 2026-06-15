@@ -244,10 +244,23 @@ var Calc={
     return{bf:bf,bfDeur:bfDeur,bmi:bmi,lbm:lbm,ffmi:ffmi,bmr:bmr,tdee:tdee,kcal:kcal,macros:macros,warn:raw<floor}
   }
 };
+// Safe localStorage wrapper — falls back to in-memory store when localStorage
+// is unavailable (data: URLs, private browsing with strict settings, etc.)
+var _lsMem={};
+var _lsOk=(function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return true}catch(e){return false}})();
+var _ls={
+  get:function(k){if(_lsOk){try{return localStorage.getItem(k)}catch(e){}}return _lsMem[k]!==undefined?_lsMem[k]:null},
+  set:function(k,v){if(_lsOk){try{localStorage.setItem(k,v);return}catch(e){}}; _lsMem[k]=v},
+  rm:function(k){if(_lsOk){try{localStorage.removeItem(k)}catch(e){}}; delete _lsMem[k]}
+};
+if(!_lsOk){
+  // Show one-time warning after app loads
+  setTimeout(function(){if(typeof notify==='function')notify('Atenție','Datele nu se pot salva local (URL data:). Deschide fișierul direct din browser (File → Open) sau găzduiește-l pe un server.',8000)},2000);
+}
 var DB={
-  load:function(k){return new Promise(function(res){try{var v=localStorage.getItem('dltate:'+k);res(v!=null?JSON.parse(v):null)}catch(e){res(null)}})},
-  save:function(k,v){try{localStorage.setItem('dltate:'+k,JSON.stringify(v))}catch(e){}},
-  del:function(k){try{localStorage.removeItem('dltate:'+k)}catch(e){}},
+  load:function(k){return new Promise(function(res){try{var v=_ls.get('dltate:'+k);res(v!=null?JSON.parse(v):null)}catch(e){res(null)}})},
+  save:function(k,v){try{_ls.set('dltate:'+k,JSON.stringify(v))}catch(e){}},
+  del:function(k){try{_ls.rm('dltate:'+k)}catch(e){}},
   ldSh:function(k){return new Promise(function(res){RTDB.ref('sh/'+k.replace(/:/g,'/')).get().then(function(s){res(s.exists()?s.val():null)}).catch(function(){res(null)})})},
   svSh:function(k,v){RTDB.ref('sh/'+k.replace(/:/g,'/')).set(v).catch(function(){})},
   lsSh:function(pfx){return new Promise(function(res){var path='sh/'+pfx.replace(/:/g,'/').replace(/\/$/,'');RTDB.ref(path).get().then(function(s){if(!s.exists())return res([]);var ks=[];s.forEach(function(c){ks.push(pfx+c.key)});res(ks)}).catch(function(){res([])})})}
@@ -255,7 +268,7 @@ var DB={
 var _fbCfg={apiKey:'AIzaSyBX2huR3_9oyq_EF8uRMDDk8ROzg7PM5-s',authDomain:'dltate-162f6.firebaseapp.com',databaseURL:'https://dltate-162f6-default-rtdb.europe-west1.firebasedatabase.app',projectId:'dltate-162f6',storageBucket:'dltate-162f6.firebasestorage.app',messagingSenderId:'332774279694',appId:'1:332774279694:web:190e3f0cb7c6319b550a5f'};
 firebase.initializeApp(_fbCfg);
 var RTDB=firebase.database();
-var UID=(function(){try{var u=localStorage.getItem('dltate:uid');if(!u){u='u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5);localStorage.setItem('dltate:uid',u)}return u}catch(e){return 'u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5)}})();
+var UID=(function(){try{var u=_ls.get('dltate:uid');if(!u){u='u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5);_ls.set('dltate:uid',u)}return u}catch(e){return 'u'+Date.now().toString(36)+Math.random().toString(36).substr(2,5)}})();
 var PCODE=UID.substr(-8).toUpperCase();
 function syncUserToFB(){if(!S.profile)return;RTDB.ref('users/'+UID).set({name:S.profile.name,username:S.authUser||'',code:PCODE,uid:UID,xp:getXP(),level:getLvl().n,lastSeen:TODAY}).catch(function(){})}
 var _gangUnsub=null;
@@ -278,7 +291,7 @@ function authRegister(user,pw,cb){
     var rec={pwHash:_hashPw(user,pw),uid:UID,createdAt:TODAY,username:user};
     RTDB.ref('accounts/'+key).set(rec).then(function(){
       S.loggedIn=true;S.authUser=user;
-      if(S.loginRemember)localStorage.setItem('dltate:session',JSON.stringify({username:user,pwHash:_hashPw(user,pw)}));
+      if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:user,pwHash:_hashPw(user,pw)}));
       cb(null);
     }).catch(function(e){cb('Eroare la înregistrare: '+e.message)});
   }).catch(function(e){cb('Eroare de rețea: '+e.message)});
@@ -290,8 +303,8 @@ function authLogin(user,pw,cb){
     var rec=snap.val();
     if(rec.pwHash!==_hashPw(user,pw)){cb('Parolă incorectă.');return;}
     S.loggedIn=true;S.authUser=user;
-    if(S.loginRemember)localStorage.setItem('dltate:session',JSON.stringify({username:user,pwHash:rec.pwHash}));
-    else localStorage.removeItem('dltate:session');
+    if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:user,pwHash:rec.pwHash}));
+    else _ls.rm('dltate:session');
     cb(null);
   }).catch(function(e){cb('Eroare de rețea: '+e.message)});
 }
@@ -317,20 +330,20 @@ function authChangeCredentials(newUser,newPw,cb){
     }
     RTDB.ref().update(updates).then(function(){
       S.authUser=newUser;
-      if(S.loginRemember)localStorage.setItem('dltate:session',JSON.stringify({username:newUser,pwHash:_hashPw(newUser,newPw)}));
+      if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:newUser,pwHash:_hashPw(newUser,newPw)}));
       cb(null);
     }).catch(function(e){cb(e.message)});
   }).catch(function(e){cb(e.message)});
 }
 function authLogout(){
-  localStorage.removeItem('dltate:session');
+  _ls.rm('dltate:session');
   S.loggedIn=false;S.authUser=null;S.view='login';S.loginUser='';S.loginPass='';S.loginErr='';
   render();
 }
 function authDelete(cb){
   var key=_safeKey(S.authUser);
   RTDB.ref('accounts/'+key).remove().then(function(){
-    localStorage.removeItem('dltate:session');
+    _ls.rm('dltate:session');
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].forEach(function(k){DB.del(k)});
     S.loggedIn=false;S.authUser=null;S.profile=null;S.view='login';
     render();
@@ -2262,7 +2275,7 @@ function vProf(){
 }
 render();
 (function(){
-  var sess=null;try{var raw=localStorage.getItem('dltate:session');if(raw)sess=JSON.parse(raw)}catch(e){}
+  var sess=null;try{var raw=_ls.get('dltate:session');if(raw)sess=JSON.parse(raw)}catch(e){}
   function loadApp(){
     DB.load('profile').then(function(p){
       if(p){
@@ -2280,7 +2293,7 @@ render();
       if(snap.exists()&&snap.val().pwHash===sess.pwHash){
         S.loggedIn=true;S.authUser=sess.username;S.loginRemember=true;
         loadApp();
-      }else{localStorage.removeItem('dltate:session');S.view='login';render();}
+      }else{_ls.rm('dltate:session');S.view='login';render();}
     }).catch(function(){S.view='login';render()});
   }else{
     S.view='login';render();
