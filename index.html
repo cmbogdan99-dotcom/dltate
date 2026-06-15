@@ -140,7 +140,34 @@ input[type="number"].inp{-moz-appearance:textfield}
 </style>
 <div id="app"><div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;background:var(--bg);color:var(--tx4);font-size:12px">Se încarcă...</div></div>
 <script>
+// Detect data: URL — Firebase and localStorage don't work in this context
+if(location.protocol==='data:'||location.href.indexOf('data:text/html')===0){
+  document.getElementById('app').innerHTML=[
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;background:#09090e;padding:24px">',
+    '<div style="max-width:360px;width:100%;background:#111118;border:1px solid #1e1e28;border-radius:16px;padding:28px;font-family:system-ui,sans-serif;text-align:center">',
+    '<div style="font-size:36px;margin-bottom:12px">⚠️</div>',
+    '<div style="color:#eceaff;font-size:16px;font-weight:700;margin-bottom:8px">Fișier deschis incorect</div>',
+    '<div style="color:#7c7a9e;font-size:13px;line-height:1.6;margin-bottom:20px">',
+    'Browserul a deschis fișierul ca <code style="color:#f97316;background:#18181f;padding:2px 5px;border-radius:4px">data: URL</code>, ',
+    'ceea ce blochează salvarea datelor și Firebase.<br><br>',
+    '<b style="color:#b8b4d8">Cum să deschizi corect:</b>',
+    '</div>',
+    '<div style="background:#18181f;border-radius:10px;padding:14px;text-align:left;margin-bottom:16px">',
+    '<div style="color:#a78bfa;font-size:12px;font-weight:600;margin-bottom:8px">Opțiunea 1 — Direct în browser</div>',
+    '<div style="color:#7c7a9e;font-size:11px">Apasă <b style="color:#eceaff">Ctrl+O</b> în browser → selectează <code style="color:#f97316">index.html</code></div>',
+    '</div>',
+    '<div style="background:#18181f;border-radius:10px;padding:14px;text-align:left;margin-bottom:16px">',
+    '<div style="color:#a78bfa;font-size:12px;font-weight:600;margin-bottom:8px">Opțiunea 2 — Server local (recomandat)</div>',
+    '<div style="color:#7c7a9e;font-size:11px">În terminal, în folderul fișierului:<br>',
+    '<code style="color:#34d399;display:block;margin-top:4px;background:#09090e;padding:6px 8px;border-radius:6px">npx serve .</code></div>',
+    '</div>',
+    '<div style="color:#524f70;font-size:10px">Adresa va fi http://localhost:3000</div>',
+    '</div></div>'
+  ].join('');
+  throw new Error('data: URL context — app cannot run here');
+}
 window.addEventListener('error',function(ev){
+  if(String(ev.message).indexOf('localStorage')!==-1||String(ev.message).indexOf('data:')!==-1)return;
   var r=document.getElementById('app');
   if(r){r.innerHTML='<div style="padding:22px;color:#f87171;font-family:monospace;font-size:12px;background:var(--bg);min-height:200px"><b>Eroare JS</b><br><br>'+String(ev.message)+'<br>Linia: '+String(ev.lineno)+'</div>';}
 });
