@@ -729,11 +729,17 @@ function vOB(){
     var sexDiv=el('div',{s:'margin-bottom:9px'});
     var sexLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:3px'});sexLbl.textContent='Sex';
     sexDiv.appendChild(sexLbl);
-    var sexSeg=el('div',{s:'display:flex;background:var(--bg2);border-radius:9px;padding:3px;gap:2px'});
-    function mkSexBtn(val,label){var b=el('button',{s:'flex:1;padding:7px 10px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease;'+(D.sex===val?'background:var(--ac);color:#fff;box-shadow:0 2px 8px var(--ac-glow)':'background:none;color:var(--tx3)')});b.textContent=label;b.onclick=function(){S.ob.sex=val;render()};return b}
-    sexSeg.appendChild(mkSexBtn('M',bom('Masculin','♂ Bărbat')));sexSeg.appendChild(mkSexBtn('F',bom('Feminin','♀ Femeie')));
-    if(!D.sex){var sexHint=el('div',{s:'color:#f59e0b;font-size:10px;margin-top:3px'});sexHint.textContent='Selectează o opțiune (necesar pentru calcule)';sexDiv.appendChild(sexHint)}
+    var sexSeg=el('div',{s:'display:flex;background:var(--bg2);border-radius:10px;padding:4px;gap:3px'});
+    function mkSexBtn(val,icon,label){
+      var isSel=D.sex===val;
+      var b=el('button',{s:'flex:1;padding:8px 12px;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;gap:6px;'+(isSel?'background:var(--ac);color:#fff;box-shadow:0 2px 12px var(--ac-glow)':'background:transparent;color:var(--tx4)')});
+      var ic2=el('span',{s:'font-size:15px;line-height:1'});ic2.textContent=icon;
+      var lt=el('span');lt.textContent=label;
+      b.appendChild(ic2);b.appendChild(lt);
+      b.onclick=function(){S.ob.sex=val;render()};return b}
+    sexSeg.appendChild(mkSexBtn('M','♂','Masculin'));sexSeg.appendChild(mkSexBtn('F','♀','Feminin'));
     sexDiv.appendChild(sexSeg);
+    if(!D.sex){var sexHint=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:4px'});sexHint.textContent='Selectează o opțiune pentru calcule precise.';sexDiv.appendChild(sexHint)}
     ageRow.appendChild(sexDiv);content.push(ageRow);
     var hwRow=el('div',{c:'g2'});hwRow.appendChild(fld('Inaltime','height','175','cm'));hwRow.appendChild(fld('Greutate','weight','82','kg'));content.push(hwRow);
     if(D.height&&D.weight&&+D.height>0&&+D.weight>0){
