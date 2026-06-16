@@ -670,6 +670,7 @@ function vLogin(){
 }
 function render(){
   var r=document.getElementById('app');if(!r)return;
+  S.isMobile=window.innerWidth<=680||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   document.documentElement.setAttribute('data-theme',S.theme||'dark');
   ACT=S.mode==='bom'?_ACT_B:_ACT_N;
   GOALS=S.mode==='bom'?_GOALS_B:_GOALS_N;
@@ -1000,7 +1001,7 @@ function vMain(){
   }
   sbWrap.appendChild(sbF);
   var mc=el('div',{c:'mc'});
-  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,top:vTop,ai:vAI,prof:vProf};
+  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,top:vTop,ai:vAI,prof:vProf,friends:vFriends,notif:vNotif};
   var fn=views[S.nav]||vDash;
   var content=null;
   try{content=fn();}catch(er){content=el('div',{s:'padding:20px;color:#f87171;font-size:12px;font-family:monospace'});content.textContent='Eroare: '+er.message;}
@@ -2344,10 +2345,11 @@ function vProf(){
   logoBtns.appendChild(logoFile);logoBtns.appendChild(logoUpBtn);
   if(S.logoData){var logoRmBtn=el('button',{c:'btn bg',s:'font-size:11px',click:function(){S.logoData=null;DB.save('appLogo',null);render()}});logoRmBtn.textContent=bom('Sterge','Scoate-o');logoBtns.appendChild(logoRmBtn);}
   logoRow.appendChild(logoPreview);logoRow.appendChild(logoBtns);logoCard.appendChild(logoRow);
-  var dc=el('div',{c:'card cp'});var dcH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:3px'});dcH.textContent=bom('Resetare','Sterge totul');dc.appendChild(dcH);
-  var dcN=el('div',{s:'color:var(--tx4);font-size:11px;margin-bottom:8px'});dcN.textContent=bom('\u0218tergere toate datele. Nu poate fi anulat.','Dai reset la tot. Nu mai dai inapoi, boss!');dc.appendChild(dcN);
-  var delB=el('button',{s:'background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
-  delB.appendChild(ic('trash',11));var delT=document.createTextNode('\u0218tergere tot');delB.appendChild(delT);
+  var dc=el('div',{c:'card cp',s:'border:1px solid rgba(248,113,113,.15)'});
+  var dcH=el('div',{s:'color:#f87171;font-size:12px;font-weight:600;margin-bottom:3px'});dcH.textContent=bom('Resetare date locale','Sterge totul local');dc.appendChild(dcH);
+  var dcN=el('div',{s:'color:var(--tx4);font-size:11px;margin-bottom:8px;line-height:1.5'});dcN.textContent=bom('\u0218terge toate datele locale (alimente, sport, somn, progres). Contul r\u0103m\u00e2ne intact \u2014 datele din cloud nu sunt afectate.','Dai reset la tot ce e salvat pe telefon. Contul tau ramine, boss!');dc.appendChild(dcN);
+  var delB=el('button',{s:'background:none;border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
+  delB.appendChild(ic('trash',11));var delT=document.createTextNode(bom('Resetare date locale','Sterge tot local'));delB.appendChild(delT);
   delB.onclick=function(){
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.del(k)});
     S.view='onboarding';S.nav='dash';S.profile=null;S.metrics=null;S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];S.obStep=0;S.ob={name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''};S.editing=false;S.wtIn='';S.bfIn='';S.pnote='';S.sportDur='';S.sportNote='';S.sportInt=5;S.slH='';S.slQ=0;S.slD='';S.mIn={piept:'',sold:'',pulpa:'',biceps:''};S.photoNote='';S.wIn='';S.gangCode='';S.gangNick='';S.chatIn='';S.chatLoading=false;S.wellTab='a';S.chTab='d';S.showManual=false;S.manF={name:'',c:'',p:'',f:'',h:''};S.fsel=null;S.fsearch='';S.fqty='';
@@ -2369,10 +2371,11 @@ function vProf(){
     logoutBtn.textContent='Deconectare';logoutBtn.onclick=function(){authLogout()};
     ac.appendChild(logoutBtn);
     // Delete account
-    var delAccBtn=el('button',{s:'background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit'});
-    delAccBtn.textContent='Șterge cont';
+    var delAccHint=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:8px;margin-bottom:5px;line-height:1.4'});delAccHint.textContent='Ștergere cont: elimină permanent contul și toate datele din cloud (ireversibil).';ac.appendChild(delAccHint);
+    var delAccBtn=el('button',{s:'background:none;border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
+    delAccBtn.appendChild(ic('user-x',11));var delAccT=document.createTextNode('Șterge cont & date cloud');delAccBtn.appendChild(delAccT);
     delAccBtn.onclick=function(){
-      if(!confirm('Ștergi contul și toate datele? Acțiunea este ireversibilă.'))return;
+      if(!confirm('Ștergi PERMANENT contul și toate datele din cloud? Nu poți recupera nimic după aceasta.'))return;
       authDelete();
     };
     ac.appendChild(delAccBtn);
@@ -2394,7 +2397,24 @@ function vProf(){
   }else{
     var loginHint=el('div',{s:'color:var(--tx4);font-size:11px'});loginHint.textContent='Nu ești autentificat.';ac.appendChild(loginHint);
   }
-  return mkSec(hdr,pc,mc,logoCard,ac,dc)
+  // UI Settings card — accessible on mobile (sidebar not visible on mobile)
+  var uiCard=el('div',{c:'card cp'});
+  var uiH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});uiH.textContent='Interfață';uiCard.appendChild(uiH);
+  var modeL=el('div',{s:'font-size:10px;color:var(--tx4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em'});modeL.textContent='Mod';uiCard.appendChild(modeL);
+  var modeRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px;margin-bottom:10px'});
+  [{v:'normal',l:'Normal'},{v:'bom',l:'💣 Bombardier'}].forEach(function(opt){
+    var mb=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:6px 0;border-radius:6px;transition:all .15s;'+(S.mode===opt.v?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
+    mb.textContent=opt.l;mb.onclick=function(){S.mode=opt.v;DB.save('uiMode',opt.v);render()};
+    modeRow2.appendChild(mb);
+  });uiCard.appendChild(modeRow2);
+  var themeL=el('div',{s:'font-size:10px;color:var(--tx4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em'});themeL.textContent='Temă';uiCard.appendChild(themeL);
+  var themeRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px'});
+  [{v:'dark',l:'Dark'},{v:'light',l:'Light'}].forEach(function(opt){
+    var tb2=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:6px 0;border-radius:6px;transition:all .15s;'+(S.theme===opt.v?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
+    tb2.textContent=opt.l;tb2.onclick=function(){S.theme=opt.v;DB.save('uiTheme',opt.v);render()};
+    themeRow2.appendChild(tb2);
+  });uiCard.appendChild(themeRow2);
+  return mkSec(hdr,pc,mc,logoCard,uiCard,ac,dc)
 }
 render();
 (function(){
