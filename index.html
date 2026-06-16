@@ -152,7 +152,7 @@ input[type="number"].inp{-moz-appearance:textfield}
 @keyframes barFill{from{width:0!important}to{}}
 @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes flashReq{0%{box-shadow:0 0 0 3px #f87171;background:rgba(248,113,113,.18)}30%{box-shadow:0 0 0 3px #f87171;background:rgba(248,113,113,.18)}100%{box-shadow:none;background:transparent}}
-.flash-req{animation:flashReq .9s ease-out forwards;border-radius:8px}
+.flash-req{animation:flashReq .9s ease-out forwards !important;border-radius:8px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style>
 <div id="app"><div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;background:var(--bg);color:var(--tx4);font-size:12px">Se încarcă...</div></div>
@@ -685,6 +685,8 @@ function render(){
   GOALS=S.mode==='bom'?_GOALS_B:_GOALS_N;
   NAV=S.mode==='bom'?_NAV_B:_NAV_N;
   OBS=S.mode==='bom'?_OBS_B:_OBS_N;
+  // preserve mob-nav scroll position
+  var _navScroll=0;try{var _mn=document.querySelector('.mob-nav');if(_mn)_navScroll=_mn.scrollLeft}catch(e){}
   // preserve focused input state
   var _focusInfo=null;try{_focusInfo=(function(){var ae=document.activeElement;if(!ae||!document.contains(ae))return null;var id=ae.id||null;var tag=ae.tagName;var selStart=ae.selectionStart,selEnd=ae.selectionEnd;var ph=ae.placeholder||null;return{id:id,tag:tag,selStart:selStart,selEnd:selEnd,value:ae.value,placeholder:ph};})()}catch(e){}
   try{
@@ -726,6 +728,8 @@ function render(){
       }
     }
   }catch(e3){}
+  // restore mob-nav scroll position
+  try{var _mn2=document.querySelector('.mob-nav');if(_mn2)_mn2.scrollLeft=_navScroll}catch(e){}
 }
 function vLoad(){
   var d=el('div',{s:'display:flex;align-items:center;justify-content:center;min-height:100dvh;background:var(--bg)'});
@@ -876,7 +880,7 @@ function vOB(){
   }
   function flashMissing(s){
     var maps=[
-      ['ob-name','ob-age','ob-sex'],
+      ['ob-name','ob-age','ob-sex','ob-height','ob-weight'],
       ['ob-neck','ob-waist','ob-hip'],
       ['ob-activity'],
       ['ob-goal','ob-targetWeight'],
@@ -889,6 +893,8 @@ function vOB(){
       if(id==='ob-sex'&&!S.ob.sex)missing=true;
       else if(id==='ob-name'&&!S.ob.name)missing=true;
       else if(id==='ob-age'&&!S.ob.age)missing=true;
+      else if(id==='ob-height'&&!S.ob.height)missing=true;
+      else if(id==='ob-weight'&&!S.ob.weight)missing=true;
       else if(id==='ob-neck'&&!S.ob.neck)missing=true;
       else if(id==='ob-waist'&&!S.ob.waist)missing=true;
       else if(id==='ob-hip'&&S.ob.sex==='F'&&!S.ob.hip)missing=true;
@@ -896,7 +902,15 @@ function vOB(){
       else if(id==='ob-goal'&&!S.ob.goal)missing=true;
       else if(id==='ob-targetWeight'&&!S.ob.targetWeight)missing=true;
       else if(id==='ob-diet'&&!S.ob.diet)missing=true;
-      if(missing){el2.classList.remove('flash-req');void el2.offsetWidth;el2.classList.add('flash-req');el2.addEventListener('animationend',function(){el2.classList.remove('flash-req')},{once:true});}
+      if(missing){
+        var target=el2.querySelector('input.inp,select.inp')||el2.querySelector('div')||el2;
+        target.style.outline='1.5px solid rgba(248,113,113,.5)';
+        target.style.outlineOffset='2px';
+        setTimeout(function(){
+          target.style.outline='1.5px solid rgba(248,113,113,0)';
+          setTimeout(function(){target.style.outline='';target.style.outlineOffset=''},900);
+        },600);
+      }
     });
   }
   function finish(){
