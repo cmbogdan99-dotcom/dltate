@@ -497,6 +497,7 @@ function el(t,p){
 }
 function ic(n,sz){var i=document.createElement('i');i.className='ti ti-'+n;i.style.fontSize=(sz||13)+'px';i.setAttribute('aria-hidden','true');return i}
 function mkGauge(cons,tgt){
+  cons=isNaN(+cons)?0:Math.round(+cons);tgt=isNaN(+tgt)||!+tgt?2000:Math.round(+tgt);
   var r=50,cx=68,cy=68,circ=2*Math.PI*r,pct=Math.min(cons/tgt,1.1),off=circ*(1-Math.min(pct,1));
   var col=pct>1?'var(--er)':pct>0.9?'var(--wa)':'var(--su)';
   var rem=Math.max(tgt-cons,0);
@@ -567,12 +568,13 @@ function mkStreakCalendar(){
   days.forEach(function(d){var lbl=el('div',{s:'color:var(--tx5);font-size:8px;text-align:center;flex:1'});lbl.textContent=d;hdr.appendChild(lbl)});
   wrap.appendChild(hdr);
   var grid=el('div',{c:'scal'});
+  /* Show last 4 weeks (28 days) aligned to Monday */
   var startDow=today.getDay();var startDow1=(startDow===0?6:startDow-1);
-  var totalCells=Math.ceil((48+startDow1+1)/7)*7;
+  var DAYS=28;var totalCells=DAYS+startDow1;
   for(var i=totalCells-1;i>=0;i--){
-    var d2=new Date(today);d2.setDate(today.getDate()-(i-(totalCells-1-(48))-startDow1));
-    var isFuture=d2>today;
-    if(isFuture){var ph=el('div',{c:'scal-cell',s:'background:transparent'});grid.appendChild(ph);continue;}
+    var d2=new Date(today);d2.setDate(today.getDate()-(i-startDow1));
+    var isFuture=d2>today||i>=DAYS;
+    if(isFuture){var ph=el('div',{c:'scal-cell',s:'background:transparent;pointer-events:none'});grid.appendChild(ph);continue;}
     var dateStr=d2.toISOString().split('T')[0];
     var hasWk=S.workouts.some(function(w){return w.date===dateStr});
     var hasMl=S.food.some(function(f){return f.date===dateStr});
@@ -585,12 +587,80 @@ function mkStreakCalendar(){
     grid.appendChild(cell);
   }
   wrap.appendChild(grid);
+  /* Compact legend */
+  var leg=el('div',{s:'display:flex;gap:8px;margin-top:5px;flex-wrap:wrap'});
+  [{c:'s0',l:'Inactiv'},{c:'s1',l:'Mese/Apă'},{c:'s2',l:'Mese+Apă'},{c:'s3',l:'Antrenament'}].forEach(function(item){
+    var r=el('div',{s:'display:flex;align-items:center;gap:3px'});
+    var sq=el('div',{c:'scal-cell '+item.c,s:'width:10px;height:10px;border-radius:3px;flex-shrink:0'});
+    var lt=el('span',{s:'color:var(--tx5);font-size:9px'});lt.textContent=item.l;
+    r.appendChild(sq);r.appendChild(lt);leg.appendChild(r);
+  });
+  wrap.appendChild(leg);
   return wrap;
 }
 
 function lookupOFF(barcode,cb){fetch('https://world.openfoodfacts.org/api/v2/product/'+barcode+'?fields=product_name,brands,nutriments,image_front_small_url').then(function(r){return r.json()}).then(function(data){if(data.status!==1){cb(null);return;}var pr=data.product,n=pr.nutriments||{};cb({name:pr.product_name||(pr.brands?pr.brands+' ('+barcode+')':'Produs '+barcode),brand:pr.brands||'',c:Math.round(n['energy-kcal_100g']||n['energy-kcal']||0),p:Math.round(n.proteins_100g||0),f:Math.round(n.fat_100g||0),h:Math.round(n.carbohydrates_100g||0),img:pr.image_front_small_url||null,barcode:barcode});}).catch(function(){cb(null);});}
 function openBarcodeScanner(){var overlay=document.createElement('div');overlay.className='bc-overlay';var hint=document.createElement('div');hint.className='bc-hint';overlay.appendChild(hint);var stream=null;function doCleanup(){if(stream)stream.getTracks().forEach(function(t){t.stop()});if(overlay.parentNode)overlay.parentNode.removeChild(overlay);}var closeB=document.createElement('button');closeB.className='bc-act';closeB.textContent='Anuleaza';closeB.onclick=doCleanup;overlay.appendChild(closeB);function clearPhotoUI(){overlay.querySelectorAll('.bc-pui').forEach(function(n){n.parentNode&&n.parentNode.removeChild(n);});}function doLookup(code){clearPhotoUI();hint.textContent='Se cauta: '+code+'...';lookupOFF(code,function(prod){doCleanup();if(prod){S.barcodeResult=prod;try{render()}catch(e){}}else{notify('Produs negasit','Nu am gasit date pentru '+code);}});}function showManual(pre){clearPhotoUI();hint.textContent=pre||'Introduceti codul de bare:';var row=document.createElement('div');row.style.cssText='display:flex;gap:6px;margin-top:6px';var mi=document.createElement('input');mi.style.cssText='padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:14px;font-family:inherit;width:180px;text-align:center';mi.placeholder='ex: 5941234567890';mi.type='text';mi.inputMode='numeric';var mib=document.createElement('button');mib.className='bc-act';mib.textContent='Cauta';mib.onclick=function(){var c=mi.value.trim();if(!c)return;mib.textContent='...';mib.disabled=true;doLookup(c);};row.appendChild(mi);row.appendChild(mib);overlay.insertBefore(row,closeB);setTimeout(function(){mi.focus()},80);}function tryDetectFromBlob(blob){if(!('BarcodeDetector' in window)){showManual('Camera nu detecteaza automat. Introduceti codul:');return;}createImageBitmap(blob).then(function(bmp){return new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']}).detect(bmp);}).then(function(codes){if(codes&&codes.length){doLookup(codes[0].rawValue);}else{showManual('Cod nedetectat. Fotografiati mai clar sau introduceti manual:');}}).catch(function(){showManual('Eroare detectie. Introduceti codul manual:');});}function showPhotoCapture(){hint.textContent='Fotografiati codul de bare:';var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';fi.className='bc-pui';fi.onchange=function(){if(!fi.files||!fi.files[0])return;hint.textContent='Se analizeaza imaginea...';tryDetectFromBlob(fi.files[0]);};var camBtn=document.createElement('button');camBtn.className='bc-act bc-pui';camBtn.textContent='Deschide Camera';camBtn.style.marginTop='4px';camBtn.onclick=function(){fi.click();};var manBtn=document.createElement('button');manBtn.className='bc-act bc-pui';manBtn.textContent='Introduceti manual';manBtn.style.marginTop='4px';manBtn.onclick=function(){showManual('Introduceti codul de bare:');};overlay.insertBefore(fi,closeB);overlay.insertBefore(camBtn,closeB);overlay.insertBefore(manBtn,closeB);}document.body.appendChild(overlay);var hasBD='BarcodeDetector' in window;var hasGUM=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);if(hasBD&&hasGUM){var frame=document.createElement('div');frame.className='bc-frame';var video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;var reticle=document.createElement('div');reticle.className='bc-reticle';frame.appendChild(video);frame.appendChild(reticle);overlay.insertBefore(frame,hint);hint.textContent='Indreptati camera spre codul de bare...';var photoBtn=document.createElement('button');photoBtn.className='bc-act bc-pui';photoBtn.textContent='Fotografiaza in schimb';photoBtn.style.marginTop='6px';photoBtn.onclick=function(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null;}if(frame.parentNode)frame.parentNode.removeChild(frame);showPhotoCapture();};overlay.insertBefore(photoBtn,closeB);navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}}).then(function(s){stream=s;video.srcObject=s;var bd=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});var active=true;var can=document.createElement('canvas');var ctx=can.getContext('2d');(function tick(){if(!active)return;if(!video.videoWidth)return setTimeout(tick,200);can.width=video.videoWidth;can.height=video.videoHeight;ctx.drawImage(video,0,0);bd.detect(can).then(function(codes){if(!active)return;if(codes.length){active=false;stream.getTracks().forEach(function(t){t.stop()});stream=null;doLookup(codes[0].rawValue);}else setTimeout(tick,350);}).catch(function(){if(active)setTimeout(tick,400);});})();}).catch(function(){if(frame.parentNode)frame.parentNode.removeChild(frame);showPhotoCapture();});return;}showPhotoCapture();}
 function resizePhoto(file,cb){var reader=new FileReader();reader.onload=function(ev){var img=new Image();img.onload=function(){var MAX=480,w=img.width,h=img.height;if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>=w&&h>MAX){w=Math.round(w*MAX/h);h=MAX;}var can=document.createElement('canvas');can.width=w;can.height=h;can.getContext('2d').drawImage(img,0,0,w,h);cb(can.toDataURL('image/jpeg',0.78));};img.src=ev.target.result;};reader.readAsDataURL(file);}
+function resizeForAI(file,cb){var reader=new FileReader();reader.onload=function(ev){var img=new Image();img.onload=function(){var MAX=900,w=img.width,h=img.height;if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}var can=document.createElement('canvas');can.width=w;can.height=h;can.getContext('2d').drawImage(img,0,0,w,h);cb(can.toDataURL('image/jpeg',0.82));};img.src=ev.target.result;};reader.readAsDataURL(file);}
+function openScreenshotScanner(mode){
+  /* mode: 'sport' | 'nutr' */
+  var overlay=document.createElement('div');overlay.className='bc-overlay';
+  var card=document.createElement('div');card.style.cssText='background:var(--bg2,#1e293b);border-radius:16px;padding:20px;max-width:340px;width:92%;display:flex;flex-direction:column;gap:12px;';
+  var hdr=document.createElement('div');hdr.style.cssText='color:#f1f5f9;font-size:14px;font-weight:700;text-align:center';
+  hdr.textContent=mode==='sport'?'Scaneaza screenshot activitate':'Scaneaza screenshot nutritie';
+  var sub=document.createElement('div');sub.style.cssText='color:#94a3b8;font-size:11px;text-align:center;line-height:1.5';
+  sub.textContent=mode==='sport'?'Incarca un screenshot din Strava, Garmin, Apple Fitness etc. AI-ul va extrage tipul de activitate, durata si caloriile.':'Incarca o poza cu eticheta nutritionala sau un screenshot. AI-ul va extrage caloriile si macronutrientii.';
+  var hint=document.createElement('div');hint.style.cssText='color:#94a3b8;font-size:11px;text-align:center;min-height:16px';
+  var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.style.display='none';
+  var uploadBtn=document.createElement('button');uploadBtn.className='bc-act';uploadBtn.textContent='Alege imagine / Fotografiaza';
+  uploadBtn.onclick=function(){fi.click();};
+  var closeBtn=document.createElement('button');closeBtn.className='bc-act';closeBtn.style.cssText='margin-top:2px;opacity:.7';closeBtn.textContent='Anuleaza';
+  closeBtn.onclick=function(){overlay.parentNode&&overlay.parentNode.removeChild(overlay);};
+  fi.onchange=function(){
+    if(!fi.files||!fi.files[0])return;
+    var key=S.apiKey||(S.profile&&S.profile.apiKey)||'';
+    if(!key){hint.textContent='Adauga o cheie API Anthropic in Profil > AI pentru scanare automata.';return;}
+    hint.textContent='Se analizeaza imaginea...';uploadBtn.disabled=true;
+    resizeForAI(fi.files[0],function(b64){
+      var imgData=b64.split(',')[1];
+      var prompt=mode==='sport'
+        ?'Analizeaza acest screenshot de activitate sportiva. Extrage urmatoarele informatii in format JSON strict, fara explicatii suplimentare:\n{"sport":"<tipul sportului in romana, ex: Alergare, Ciclism, Mers>","duration":<durata in minute, numar intreg>,"kcal":<calorii arse, numar intreg sau null>,"distance":<distanta in km, numar zecimal sau null>,"note":"<observatie scurta sau \\"\\">"}. Daca nu gasesti o informatie, foloseste null.'
+        :'Analizeaza aceasta imagine cu informatii nutritionale (eticheta, screenshot app, meniu etc). Extrage urmatoarele in format JSON strict:\n{"name":"<numele produsului/mesei>","kcal":<calorii la 100g sau per portie, numar intreg>,"protein":<proteine g, numar intreg>,"fat":<grasimi g, numar intreg>,"carbs":<carbohidrati g, numar intreg>,"qty":<cantitate in grame daca e vizibila sau null>}. Daca nu gasesti o valoare, pune null.';
+      fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgData}},{type:'text',text:prompt}]}]})})
+      .then(function(r){return r.json()})
+      .then(function(resp){
+        var txt=(resp.content&&resp.content[0]&&resp.content[0].text)||'';
+        var jsonMatch=txt.match(/\{[\s\S]*\}/);
+        if(!jsonMatch){hint.textContent='Nu am reusit sa extrag datele. Incearca cu o imagine mai clara.';uploadBtn.disabled=false;return;}
+        try{
+          var d=JSON.parse(jsonMatch[0]);
+          overlay.parentNode&&overlay.parentNode.removeChild(overlay);
+          if(mode==='sport'){
+            if(d.sport)S.sportType=d.sport;
+            if(d.duration)S.sportDur=String(d.duration);
+            if(d.kcal)S.sportKcalOverride=d.kcal;
+            if(d.note)S.sportNote=d.note;
+            S._aiScanResult={type:'sport',data:d};
+          }else{
+            S._aiScanResult={type:'nutr',data:d};
+            S.showManual=true;
+            if(d.name)S.manF.name=d.name;
+            if(d.kcal!=null)S.manF.c=String(d.kcal);
+            if(d.protein!=null)S.manF.p=String(d.protein);
+            if(d.fat!=null)S.manF.f=String(d.fat);
+            if(d.carbs!=null)S.manF.h=String(d.carbs);
+          }
+          try{render()}catch(e){}
+          notify('AI Scan','Datele au fost extrase si introduse automat.',3500);
+        }catch(e2){hint.textContent='Eroare la parsarea raspunsului AI. Incearca din nou.';uploadBtn.disabled=false;}
+      })
+      .catch(function(){hint.textContent='Eroare retea sau cheie API invalida.';uploadBtn.disabled=false;});
+    });
+  };
+  card.appendChild(hdr);card.appendChild(sub);card.appendChild(hint);card.appendChild(fi);card.appendChild(uploadBtn);card.appendChild(closeBtn);
+  overlay.appendChild(card);document.body.appendChild(overlay);
+}
 
 function addXP(reason,amt){
   var prevLvl=getLvl().n;
@@ -1177,8 +1247,23 @@ function vMain(){
     var lvlBadge=el('div',{s:'display:inline-block;background:'+lvlC+'22;color:'+lvlC+';border:1px solid '+lvlC+'55;border-radius:99px;padding:3px 11px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px'});
     lvlBadge.textContent=bom('Nivel nou!','Ai avansat, boss!');
     var lvlN=el('div',{s:'color:'+lvlC+';font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px'});lvlN.textContent=S.newLevel;
-    var lvlSub=el('div',{s:'color:var(--tx3);font-size:12px;line-height:1.5;margin-bottom:10px'});
+    var lvlSub=el('div',{s:'color:var(--tx3);font-size:12px;line-height:1.5;margin-bottom:8px'});
     lvlSub.textContent=bom('Felicitări! Continuă să progresezi și vei atinge nivelul următor.','Tati, ai trecut la nivelul următor! Continuă așa și ajungi în vârf!');
+    /* Recent achievements earned */
+    var recentAchs=(S.xpLog||[]).filter(function(e){return e.reason&&e.reason.indexOf('Realizare:')===0}).slice(-3).reverse();
+    if(recentAchs.length){
+      var achBox=el('div',{s:'background:var(--bg1);border-radius:10px;padding:8px 10px;margin-bottom:10px;text-align:left'});
+      var achBoxLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});achBoxLbl.textContent='Realizări deblocate';
+      achBox.appendChild(achBoxLbl);
+      recentAchs.forEach(function(e){
+        var achRow=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:3px'});
+        var achIco=el('span',{s:'color:#fbbf24;font-size:13px'});achIco.textContent='🏆';
+        var achTxt=el('span',{s:'color:var(--tx2);font-size:11px;flex:1'});achTxt.textContent=e.reason.replace('Realizare: ','');
+        var achXP=el('span',{s:'color:#fbbf24;font-size:10px;font-family:ui-monospace,monospace'});achXP.textContent='+'+e.amt+' XP';
+        achRow.appendChild(achIco);achRow.appendChild(achTxt);achRow.appendChild(achXP);achBox.appendChild(achRow);
+      });
+      lvlCard.appendChild(achBox);
+    }
     var lvlXP=el('div',{s:'color:'+lvlC+';font-size:14px;font-weight:700;margin-bottom:18px;font-family:ui-monospace,monospace'});
     lvlXP.textContent=getXP()+' XP total';
     var btnRow=el('div',{s:'display:flex;gap:8px;justify-content:center;flex-direction:column;align-items:center'});
@@ -1531,7 +1616,7 @@ function vDash(){
   // Streak calendar card
   var strCard=el('div',{c:'card cp'});
   var strHdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:8px'});
-  var strTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});strTitle.textContent=bom('Activitate ultimele 7 săptămâni','Cât ai mișcat, boss?');
+  var strTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});strTitle.textContent=bom('Activitate ultimele 4 săptămâni','Cât ai mișcat, boss?');
   var streak=0;var todayD=new Date();
   for(var si=0;si<30;si++){var sd2=new Date(todayD);sd2.setDate(todayD.getDate()-si);var sds=sd2.toISOString().split('T')[0];if(S.workouts.some(function(w){return w.date===sds})){streak++}else if(si>0){break;}}
   var strBadge=el('div',{s:'color:#fbbf24;font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px'});strBadge.textContent='🔥 '+streak+'z';
@@ -1609,6 +1694,10 @@ function vNutr(){
   scanB.appendChild(ic('scan-line',10));scanB.appendChild(document.createTextNode(' Scan'));
   scanB.onclick=function(){S.barcodeResult=null;openBarcodeScanner();};
   modeRow.appendChild(scanB);
+  var aiScanB=el('button',{s:'padding:3px 8px;border-radius:6px;border:none;background:var(--bg2);color:var(--tx4);cursor:pointer;font-size:10px;font-family:inherit;display:flex;align-items:center;gap:3px'});
+  aiScanB.appendChild(ic('camera-ai',10));aiScanB.appendChild(document.createTextNode(' AI Scan'));
+  aiScanB.onclick=function(){openScreenshotScanner('nutr');};
+  modeRow.appendChild(aiScanB);
   addH.appendChild(addHT);addH.appendChild(modeRow);addCard.appendChild(addH);
   if(S.barcodeResult){
     var br=S.barcodeResult;
@@ -1919,7 +2008,13 @@ function vProgr(){
 }
 function vSport(){
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Sport & Antrenamente','Fier \u015fi Sudori');
-  var frm=el('div',{c:'card cp'});var frmH=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:500;margin-bottom:9px'});frmH.textContent='\u00cenregistreaz\u0103 antrenament';frm.appendChild(frmH);
+  var frm=el('div',{c:'card cp'});
+  var frmHRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:9px'});
+  var frmH=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:500'});frmH.textContent='\u00cenregistreaz\u0103 antrenament';
+  var aiScanSportBtn=el('button',{s:'padding:3px 9px;border-radius:7px;border:none;background:var(--bg3);color:var(--tx4);cursor:pointer;font-size:10px;font-family:inherit;display:flex;align-items:center;gap:4px'});
+  aiScanSportBtn.appendChild(ic('camera-ai',11));aiScanSportBtn.appendChild(document.createTextNode(' Scan screenshot'));
+  aiScanSportBtn.onclick=function(){openScreenshotScanner('sport');};
+  frmHRow.appendChild(frmH);frmHRow.appendChild(aiScanSportBtn);frm.appendChild(frmHRow);
   var spLbl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:4px'});spLbl.textContent='Tip sport';frm.appendChild(spLbl);
   // Sport dropdown with search
   var sg=el('div',{s:'position:relative;margin-bottom:9px'});
@@ -2402,9 +2497,9 @@ function vGang(){
 
     var content=el('div',null);
     if(S._gangTab==='search'){
-      var srchLbl=el('div',{s:'color:var(--tx4);font-size:10px;margin-bottom:4px'});srchLbl.textContent='Cauta dupa cod sau nume clan';
+      /* Search by code */
       var srchRow=el('div',{s:'display:flex;gap:6px;margin-bottom:8px'});
-      var srchI=el('input',{c:'inp',s:'flex:1;font-size:13px;text-transform:uppercase',ph:'WOLVES',val:S._gangSearch||'',inp:function(e2){S._gangSearch=e2.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');S._gangResults=null;}});
+      var srchI=el('input',{c:'inp',s:'flex:1;font-size:13px;text-transform:uppercase',ph:'Cod exact (ex: WOLVES)',val:S._gangSearch||'',inp:function(e2){S._gangSearch=e2.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');S._gangResults=null;}});
       var srchBtn=el('button',{c:'btn bp',s:'font-size:11px;padding:8px 12px;flex-shrink:0'});srchBtn.textContent='Cauta';
       srchBtn.onclick=function(){
         var q=(S._gangSearch||'').trim();if(!q){return;}
@@ -2415,21 +2510,54 @@ function vGang(){
         }).catch(function(){srchBtn.textContent='Cauta';srchBtn.disabled=false;S._gangResults=[];render();});
       };
       srchRow.appendChild(srchI);srchRow.appendChild(srchBtn);
-      content.appendChild(srchLbl);content.appendChild(srchRow);
+      content.appendChild(srchRow);
       if(S._gangResults&&S._gangResults.length===0){
-        var nf=el('div',{s:'text-align:center;padding:16px;color:var(--tx5);font-size:11px'});nf.textContent='Niciun clan gasit cu codul "'+S._gangSearch+'".';content.appendChild(nf);
-      }else if(S._gangResults){
+        var nf=el('div',{s:'text-align:center;padding:10px;color:var(--tx5);font-size:11px'});nf.textContent='Niciun clan gasit cu codul "'+S._gangSearch+'".';content.appendChild(nf);
+      }else if(S._gangResults&&S._gangResults.length){
         S._gangResults.forEach(function(cl){
           var clCard=el('div',{s:'background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;margin-bottom:8px'});
           var clN=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:700;margin-bottom:2px'});clN.textContent=cl.name||cl.code;
           var clC=el('div',{s:'color:var(--tx5);font-size:10px;font-family:ui-monospace,monospace;margin-bottom:8px'});clC.textContent='Cod: '+cl.code;
           clCard.appendChild(clN);clCard.appendChild(clC);
-          clCard.appendChild(nickRow.cloneNode?nickRow:nickRow);
           var clJoin=el('button',{c:'btn bp bw',s:'font-size:11px;padding:7px;width:100%'});clJoin.appendChild(ic('users',12));clJoin.appendChild(document.createTextNode(' Alatura-te'));
-          clJoin.onclick=function(){doJoinClan(cl.code);};
+          clJoin.onclick=(function(code){return function(){doJoinClan(code);};})(cl.code);
           clCard.appendChild(clJoin);content.appendChild(clCard);
         });
       }
+      /* Browse all clans with sort */
+      var browseDiv=el('div',null);
+      var brHdr=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;margin-top:4px'});
+      var brLbl=el('div',{s:'color:var(--tx4);font-size:10px'});brLbl.textContent='Sau browse clanuri publice:';
+      var sortSel=el('select',{c:'inp',s:'font-size:10px;padding:4px 6px;width:auto'});
+      [{v:'xp',l:'XP total'},{v:'members',l:'Membri'},{v:'avg',l:'XP/membru'}].forEach(function(opt){var o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if(S._gangSort===opt.v)o.selected=true;sortSel.appendChild(o);});
+      sortSel.onchange=function(){S._gangSort=this.value;S._clanBrowse=null;render();};
+      brHdr.appendChild(brLbl);brHdr.appendChild(sortSel);
+      browseDiv.appendChild(brHdr);
+      var brBody=el('div',{id:'clanBrowseBody'});
+      if(!S._clanBrowse){
+        var brLoad=el('div',{s:'text-align:center;padding:12px;color:var(--tx5);font-size:11px'});brLoad.textContent='Se incarca clanurile...';brBody.appendChild(brLoad);
+        RTDB.ref('sh/gang').get().then(function(snap){
+          var clans=[];
+          snap.forEach(function(cSnap){var code=cSnap.key;var cVal=cSnap.val()||{};var meta=cVal.meta||{};var totalXP=0;var mc=0;Object.keys(cVal).forEach(function(k){if(k==='meta')return;var m2=cVal[k];if(m2&&typeof m2.xp==='number'){totalXP+=m2.xp;mc++;}});if(mc>0)clans.push({code:code,name:meta.name||code,totalXP:totalXP,memberCount:mc,avgXP:Math.round(totalXP/mc)});});
+          S._clanBrowse=clans;render();
+        }).catch(function(){});
+      }else{
+        var sortKey=S._gangSort||'xp';
+        var sorted2=(S._clanBrowse||[]).slice().sort(function(a,b){return sortKey==='members'?(b.memberCount-a.memberCount):sortKey==='avg'?(b.avgXP-a.avgXP):(b.totalXP-a.totalXP);});
+        if(!sorted2.length){var bem=el('div',{s:'text-align:center;padding:12px;color:var(--tx5);font-size:11px'});bem.textContent='Niciun clan public gasit.';brBody.appendChild(bem);}
+        sorted2.forEach(function(cl,i){
+          var clCard=el('div',{s:'display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--bg1)'});
+          var rkEl=el('span',{s:'color:var(--tx5);font-size:10px;font-family:ui-monospace,monospace;width:18px;flex-shrink:0'});rkEl.textContent='#'+(i+1);
+          var clInfo=el('div',{s:'flex:1;min-width:0'});
+          var clNm=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});clNm.textContent=cl.name;
+          var clSt=el('div',{s:'color:var(--tx5);font-size:10px'});clSt.textContent=cl.memberCount+' membri · '+cl.totalXP+' XP total';
+          clInfo.appendChild(clNm);clInfo.appendChild(clSt);
+          var clJ=el('button',{c:'btn bp',s:'font-size:10px;padding:4px 8px;flex-shrink:0'});clJ.textContent='Intru';
+          clJ.onclick=(function(code){return function(){doJoinClan(code);};})(cl.code);
+          clCard.appendChild(rkEl);clCard.appendChild(clInfo);clCard.appendChild(clJ);brBody.appendChild(clCard);
+        });
+      }
+      browseDiv.appendChild(brBody);content.appendChild(browseDiv);
       content.appendChild(nickRow);
     }else if(S._gangTab==='join'){
       var jLbl=el('div',{s:'color:var(--tx4);font-size:10px;margin-bottom:4px'});jLbl.textContent='Cod Clan primit de la cineva';
@@ -2782,7 +2910,7 @@ function vProf(){
   delB.appendChild(ic('trash',11));var delT=document.createTextNode(bom('Resetare date locale','Sterge tot local'));delB.appendChild(delT);
   delB.onclick=function(){
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.del(k)});
-    S.view='onboarding';S.nav='dash';S.profile=null;S.metrics=null;S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];S.obStep=0;S.ob={name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''};S.editing=false;S.wtIn='';S.bfIn='';S.pnote='';S.sportDur='';S.sportNote='';S.sportInt=5;S.slH='';S.slQ=0;S.slD='';S.mIn={piept:'',sold:'',pulpa:'',biceps:''};S.photoNote='';S.wIn='';S.gangCode='';S.gangNick='';S._gangTab=null;S._gangSearch='';S._gangResults=null;S._topTab=null;S.chatIn='';S.chatLoading=false;S.wellTab='a';S.chTab='d';S.showManual=false;S.manF={name:'',c:'',p:'',f:'',h:''};S.fsel=null;S.fsearch='';S.fqty='';
+    S.view='onboarding';S.nav='dash';S.profile=null;S.metrics=null;S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];S.obStep=0;S.ob={name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''};S.editing=false;S.wtIn='';S.bfIn='';S.pnote='';S.sportDur='';S.sportNote='';S.sportInt=5;S.slH='';S.slQ=0;S.slD='';S.mIn={piept:'',sold:'',pulpa:'',biceps:''};S.photoNote='';S.wIn='';S.gangCode='';S.gangNick='';S._gangTab=null;S._gangSearch='';S._gangResults=null;S._gangSort='xp';S._clanBrowse=null;S._topTab=null;S.chatIn='';S.chatLoading=false;S.wellTab='a';S.chTab='d';S.showManual=false;S.manF={name:'',c:'',p:'',f:'',h:''};S.fsel=null;S.fsearch='';S.fqty='';
     render();
   };
   dc.appendChild(delB);
