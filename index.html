@@ -713,13 +713,14 @@ var _OBS_B=['Cine dracu esti, bre?','Cate kile tragi?','Cum iti omori timpul?','
 var OBS=_OBS_N;
 function vOB(){
   var step=S.obStep,D=S.ob;
-  var ok=[
-    !!(D.name&&D.age&&D.sex&&D.height&&D.weight),
-    !!(D.neck&&D.waist&&(D.sex==='M'||D.hip)),
-    !!D.activityLevel,
-    !!(D.goal&&D.targetWeight),
-    !!D.diet
-  ];
+  function getOk(){var d=S.ob;return[
+    !!(d.name&&d.age&&d.sex&&d.height&&d.weight),
+    !!(d.neck&&d.waist&&(d.sex==='M'||d.hip)),
+    !!d.activityLevel,
+    !!(d.goal&&d.targetWeight),
+    !!d.diet
+  ];}
+  var ok=getOk();
   function sd(k){return function(e2){S.ob[k]=e2.target.value;var c=NUM_CONSTRAINTS[k];if(c&&e2.target.value!==''){var n=Number(e2.target.value);if(isNaN(n)||n<0){e2.target.classList.add('inp-err')}else{e2.target.classList.remove('inp-err')}}}}
   function fld(l,k,ph,u,t){
     var d=el('div',{s:'margin-bottom:9px'});
@@ -885,7 +886,7 @@ function vOB(){
   if(step>0){var bb=el('button',{c:'btn bg',s:'font-size:11px',click:function(){S.obStep--;render()}});bb.textContent='\u00cenapo\u012b';nav.appendChild(bb);}
   var bn=el('button',{c:'btn bp',s:'flex:1;font-size:11px'});
   bn.textContent=step<OBS.length-1?bom('Continua \u2192','Continua \u2192'):bom('Creeaza planul meu \u2192','Fa-mi planul, boss! \u2192');
-  bn.onclick=function(){if(!ok[step]){flashMissing(step);return;}if(step<OBS.length-1){S.obStep++;render();}else finish();};
+  bn.onclick=function(){if(!getOk()[step]){flashMissing(step);return;}if(step<OBS.length-1){S.obStep++;render();}else finish();};
   nav.appendChild(bn);frm.appendChild(nav);
   var wrap=el('div',{c:'ob'});
   var oc=el('div',{c:'oc'});
