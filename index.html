@@ -1013,15 +1013,16 @@ function vOB(){
       else if(id==='ob-diet'&&!S.ob.diet)missing=true;
       if(missing){
         var target=el2.querySelector('input.inp,select.inp')||el2.querySelector('div')||el2;
+        clearTimeout(target._fT1);clearTimeout(target._fT2);
         target.style.transition='none';
         target.style.outline='1.5px solid rgba(248,113,113,.5)';
         target.style.outlineOffset='2px';
         target.style.boxShadow='0 0 10px rgba(248,113,113,.22)';
-        setTimeout(function(){
+        target._fT1=setTimeout(function(){
           target.style.transition='outline-color 1.8s ease-out,box-shadow 1.8s ease-out';
           target.style.outline='1.5px solid rgba(248,113,113,0)';
           target.style.boxShadow='0 0 0px rgba(248,113,113,0)';
-          setTimeout(function(){target.style.outline='';target.style.outlineOffset='';target.style.boxShadow='';target.style.transition='';},1850);
+          target._fT2=setTimeout(function(){target.style.outline='';target.style.outlineOffset='';target.style.boxShadow='';target.style.transition='';},1850);
         },700);
       }
     });
