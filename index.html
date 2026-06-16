@@ -164,8 +164,9 @@ input[type="number"].inp{-moz-appearance:textfield}
 .badge-admin{background:rgba(79,126,247,.18);color:var(--ac-l);border:1px solid rgba(79,126,247,.3)}
 /* Streak calendar */
 .scal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.scal-cell{aspect-ratio:1;border-radius:3px;background:var(--bg3);transition:transform .1s}
-.scal-cell:hover{transform:scale(1.2)}
+.scal-cell{aspect-ratio:1;border-radius:3px;background:var(--bg3);transition:background .1s,outline .1s;cursor:default;position:relative}
+.scal-cell:hover{outline:2px solid var(--ac);outline-offset:1px;z-index:1}
+.scal-cell.today{outline:1px solid var(--tx4);outline-offset:1px}
 .scal-cell.s0{background:var(--bg3)}
 .scal-cell.s1{background:rgba(79,126,247,.25)}
 .scal-cell.s2{background:rgba(79,126,247,.5)}
@@ -394,7 +395,8 @@ function authRegister(user,pw,cb){
     if(snap.exists()){cb('Utilizatorul există deja.');return;}
     var rec={pwHash:_hashPw(user,pw),uid:UID,createdAt:TODAY,username:user};
     RTDB.ref('accounts/'+key).set(rec).then(function(){
-      S.loggedIn=true;S.authUser=user;
+      S.loggedIn=true;S.authUser=user;S.guest=false;
+      _ls.rm('dltate:guestActive');
       if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:user,pwHash:_hashPw(user,pw)}));
       cb(null);
     }).catch(function(e){cb('Eroare la înregistrare: '+e.message)});
@@ -406,7 +408,8 @@ function authLogin(user,pw,cb){
     if(!snap.exists()){cb('Utilizator inexistent.');return;}
     var rec=snap.val();
     if(rec.pwHash!==_hashPw(user,pw)){cb('Parolă incorectă.');return;}
-    S.loggedIn=true;S.authUser=user;
+    S.loggedIn=true;S.authUser=user;S.guest=false;
+    _ls.rm('dltate:guestActive');
     if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:user,pwHash:rec.pwHash}));
     else _ls.rm('dltate:session');
     cb(null);
@@ -576,8 +579,8 @@ function mkStreakCalendar(){
     var wAmt=(S.waterLog||[]).filter(function(e){return e.date===dateStr}).reduce(function(a,e){return a+e.amt},0);
     var hasW=wAmt>=1500;
     var sc=hasWk?3:hasMl&&hasW?2:hasMl||hasW?1:0;
-    if(dateStr===TODAY)sc=Math.max(sc,1);
-    var cell=el('div',{c:'scal-cell s'+sc});
+    var isToday=dateStr===TODAY;
+    var cell=el('div',{c:'scal-cell s'+sc+(isToday?' today':'')});
     cell.title=dateStr+(hasWk?' · antrenament':'')+(hasMl?' · mese':'')+(hasW?' · hidratat':'');
     grid.appendChild(cell);
   }
@@ -595,7 +598,7 @@ function addXP(reason,amt){
   S.xpLog.push({date:TODAY,reason:reason,amt:amt});
   DB.save('xpLog',S.xpLog);
   var newLvl=getLvl().n;
-  if(newLvl!==prevLvl){S.newLevel=newLvl;setTimeout(function(){S.newLevel=null;render()},4000)}
+  if(newLvl!==prevLvl){S.newLevel=newLvl;}
   // publish XP to global + clan leaderboard
   var totalXP=getXP();
   if(S.profile){RTDB.ref('users/'+UID+'/xp').set(totalXP).catch(function(){});RTDB.ref('users/'+UID+'/level').set(getLvl().n).catch(function(){})}
@@ -772,6 +775,11 @@ function vLogin(){
   guestBtn.onmouseenter=function(){this.style.borderColor='var(--ac)';this.style.color='var(--tx1)'};
   guestBtn.onmouseleave=function(){this.style.borderColor='var(--bd)';this.style.color='var(--tx3)'};
   guestBtn.onclick=function(){
+    if(S.guest){S.view='app';render();return;}
+    if(_ls.get('dltate:guestActive')==='1'&&!S.guest){
+      S.loginErr='Există deja o sesiune de vizitator activă. Înregistrează-te pentru a salva datele.';render();return;
+    }
+    _ls.set('dltate:guestActive','1');
     S.guest=true;S.loggedIn=false;S.authUser=null;
     DB.load('profile').then(function(p){
       if(p){
@@ -882,7 +890,7 @@ function vOB(){
     items.forEach(function(o){
       var b=el('button',{c:'ob2'+(D[k]===o.id?' sel':''),click:function(){S.ob[k]=o.id;render()}});
       b.textContent=o.label;
-      if(o.sub){var sub=el('span',{s:'display:block;font-size:10px;color:'+(D[k]===o.id?'rgba(74,222,128,.4)':'var(--tx5)')+';margin-top:1px;font-weight:400'});sub.textContent=o.sub;b.appendChild(sub);}
+      if(o.sub){var sub=el('span',{s:'display:block;font-size:11px;color:'+(D[k]===o.id?'rgba(74,222,128,.6)':'var(--tx4)')+';margin-top:2px;font-weight:400'});sub.textContent=o.sub;b.appendChild(sub);}
       w.appendChild(b);
     });return w
   }
@@ -1173,12 +1181,12 @@ function vMain(){
     lvlSub.textContent=bom('Felicitări! Continuă să progresezi și vei atinge nivelul următor.','Tati, ai trecut la nivelul următor! Continuă așa și ajungi în vârf!');
     var lvlXP=el('div',{s:'color:'+lvlC+';font-size:14px;font-weight:700;margin-bottom:18px;font-family:ui-monospace,monospace'});
     lvlXP.textContent=getXP()+' XP total';
-    var btnRow=el('div',{s:'display:flex;gap:8px;justify-content:center'});
-    var lvlAch=el('button',{s:'padding:8px 14px;background:transparent;color:var(--ac);border:1px solid var(--ac);border-radius:9px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit'});
-    lvlAch.textContent='Realizările mele';lvlAch.onclick=function(){S.newLevel=null;S.nav='ach';render()};
-    var lvlClose=el('button',{s:'padding:8px 20px;background:'+lvlC+';color:#000;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit'});
-    lvlClose.textContent=bom('Mulțumesc!','Merge, tati!');lvlClose.onclick=function(){S.newLevel=null;render()};
-    btnRow.appendChild(lvlAch);btnRow.appendChild(lvlClose);
+    var btnRow=el('div',{s:'display:flex;gap:8px;justify-content:center;flex-direction:column;align-items:center'});
+    var lvlClose=el('button',{s:'padding:10px 32px;background:'+lvlC+';color:#000;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit'});
+    lvlClose.textContent=bom('Merge, tati!','Merge, tati!');lvlClose.onclick=function(){S.newLevel=null;render()};
+    var lvlAch=el('button',{s:'padding:6px 14px;background:transparent;color:var(--tx4);border:none;border-radius:9px;cursor:pointer;font-size:11px;font-family:inherit;text-decoration:underline'});
+    lvlAch.textContent='Vezi realizările mele';lvlAch.onclick=function(){S.newLevel=null;S.nav='ach';render()};
+    btnRow.appendChild(lvlClose);btnRow.appendChild(lvlAch);
     lvlCard.appendChild(lvlIco);lvlCard.appendChild(lvlBadge);lvlCard.appendChild(lvlN);lvlCard.appendChild(lvlSub);lvlCard.appendChild(lvlXP);lvlCard.appendChild(btnRow);
     lvlOverlay.appendChild(lvlCard);wrap.appendChild(lvlOverlay);
   }
@@ -1271,6 +1279,7 @@ function mkRec(tips){
 function getRec(view){
   var p=S.profile,m=S.metrics;if(!p||!m)return null;
   var tips=[];
+  var acctAge=0;if(p.createdAt){var cd=new Date(p.createdAt),now=new Date();acctAge=Math.floor((now-cd)/(864e5));}
   var tw=watToday(S)/1000,wg=Calc.wGoal(p)/1000;
   var tl=S.food.filter(function(f){return f.date===TODAY});
   var tc=tl.reduce(function(a,f){return a+f.c},0);
@@ -1290,9 +1299,9 @@ function getRec(view){
     if(!ls)tips.push('Nu ai înregistrat somnul. Urmărind somnul 7 zile vei vedea cum influențează energia și rezultatele.');
   }
   if(view==='sport'){
-    if(!wkToday)tips.push('Nu ai antrenament logat azi. Chiar și 20 min de mers rapid contează pentru obiectivul tău.');
+    if(!wkToday&&acctAge>0)tips.push('Nu ai antrenament logat azi. Chiar și 20 min de mers rapid contează pentru obiectivul tău.');
     var wkWeek=S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]}).length;
-    if(wkWeek<2)tips.push('Ai avut doar '+wkWeek+' antrenamente săptămâna asta. Targetul tău necesită minim '+(p.trainingFrequency||3)+' sesiuni/săptămână.');
+    if(wkWeek<2&&acctAge>=7)tips.push('Ai avut doar '+wkWeek+' antrenamente săptămâna asta. Targetul tău necesită minim '+(p.trainingFrequency||3)+' sesiuni/săptămână.');
     if(p.preferredSports&&p.preferredSports.length)tips.push('Sporturile tale preferate ('+p.preferredSports.slice(0,2).join(', ')+') sunt incluse în recomandările AI. Întreabă antrenorul pentru un plan detaliat.');
   }
   if(view==='progr'){
@@ -1530,7 +1539,7 @@ function vDash(){
   strCard.appendChild(mkStreakCalendar());
   var strLeg=el('div',{s:'display:flex;align-items:center;gap:8px;margin-top:7px'});
   var legItems=[{c:'var(--bg3)',l:'Inactiv'},{c:'rgba(79,126,247,.5)',l:'Parțial'},{c:'var(--ac)',l:'Antrenament'}];
-  legItems.forEach(function(li){var lRow=el('div',{s:'display:flex;align-items:center;gap:3px'});var lDot=el('div',{s:'width:8px;height:8px;border-radius:2px;background:'+li.c});var lTxt=el('div',{s:'color:var(--tx5);font-size:9px'});lTxt.textContent=li.l;lRow.appendChild(lDot);lRow.appendChild(lTxt);strLeg.appendChild(lRow)});
+  legItems.forEach(function(li){var lRow=el('div',{s:'display:flex;align-items:center;gap:4px'});var lDot=el('div',{s:'width:9px;height:9px;border-radius:2px;background:'+li.c});var lTxt=el('div',{s:'color:var(--tx4);font-size:11px'});lTxt.textContent=li.l;lRow.appendChild(lDot);lRow.appendChild(lTxt);strLeg.appendChild(lRow)});
   strCard.appendChild(strLeg);
   return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,rdyCard,calRow,sg,wCard,gCard2,(S.mode==='bom'&&typeof bCard!=='undefined'?bCard:null),overCard,strCard,getRec('dash'),progCard,recCard,aiCard)
 }
@@ -1912,10 +1921,14 @@ function vSport(){
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Sport & Antrenamente','Fier \u015fi Sudori');
   var frm=el('div',{c:'card cp'});var frmH=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:500;margin-bottom:9px'});frmH.textContent='\u00cenregistreaz\u0103 antrenament';frm.appendChild(frmH);
   var spLbl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:4px'});spLbl.textContent='Tip sport';frm.appendChild(spLbl);
-  var sg=el('div',{s:'display:flex;flex-wrap:wrap;gap:3px;margin-bottom:9px'});
-  SPORTS.forEach(function(sp){
-    var b=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(S.sportType===sp?'var(--ac)':'var(--bd)')+';background:'+(S.sportType===sp?'var(--ac-glow)':'transparent')+';color:'+(S.sportType===sp?'var(--ac-l)':'var(--tx3)')+';cursor:pointer;font-size:10px;font-family:inherit;transition:all .12s',click:function(){S.sportType=sp;render()}});
-    b.textContent=sp;sg.appendChild(b);
+  var sg=el('div',{s:'margin-bottom:9px'});
+  SPORTS_CATS.forEach(function(cat){
+    var catHdr=el('div',{s:'font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);margin:5px 0 2px;font-weight:600'});catHdr.textContent=cat.cat;sg.appendChild(catHdr);
+    var row=el('div',{s:'display:flex;flex-wrap:wrap;gap:2px'});
+    cat.sports.forEach(function(sp){
+      var b=el('button',{s:'padding:2px 8px;border-radius:99px;border:1px solid '+(S.sportType===sp?'var(--ac)':'var(--bd)')+';background:'+(S.sportType===sp?'var(--ac-glow)':'transparent')+';color:'+(S.sportType===sp?'var(--ac-l)':'var(--tx3)')+';cursor:pointer;font-size:10px;font-family:inherit;transition:all .12s',click:function(){S.sportType=sp;render()}});
+      b.textContent=sp;row.appendChild(b);
+    });sg.appendChild(row);
   });frm.appendChild(sg);
   var sRow=el('div',{c:'g2',s:'margin-bottom:8px'});
   var durDiv=el('div',null);var durL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});durL.textContent='Durat\u0103 (min) *';
@@ -2361,7 +2374,7 @@ function vAI(){
   if(!S.chat.length){
     var bulliesAI=S.mode==='bom'?getBully(p,m):[];
     var intro=el('div',{s:'text-align:center;padding:10px 0 16px'});
-    var iE=el('div',{s:'font-size:34px;margin-bottom:5px'});if(S.mode==='bom'){iE.textContent='\uD83D\uDC13'}else{iE.style.fontSize='18px';iE.style.fontWeight='600';iE.style.color='var(--tx2)';iE.textContent='AI Coach'}
+    var iE=el('div',{s:'font-size:34px;margin-bottom:5px'});iE.textContent=S.mode==='bom'?'\uD83D\uDC13':'\uD83E\uDD16';
     var iT=el('p',{s:'color:var(--tx2);font-weight:500;font-size:12px'});iT.textContent=t('ai_tagline');
     var iS=el('p',{s:'color:var(--tx5);font-size:11px;margin-top:2px'});iS.textContent=t('ai_intro_blurb');
     intro.appendChild(iE);intro.appendChild(iT);intro.appendChild(iS);msgs.appendChild(intro);
