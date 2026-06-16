@@ -151,8 +151,8 @@ input[type="number"].inp{-moz-appearance:textfield}
 @keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes barFill{from{width:0!important}to{}}
 @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes flashReq{0%,25%{border-color:#f87171!important;box-shadow:0 0 0 2px rgba(248,113,113,.22)!important;background:rgba(248,113,113,.08)!important}100%{border-color:inherit;box-shadow:none;background:inherit}}
-.flash-req{animation:flashReq .8s ease-out forwards!important;border-radius:8px}
+@keyframes flashReq{0%{box-shadow:0 0 0 3px #f87171;background:rgba(248,113,113,.18)}30%{box-shadow:0 0 0 3px #f87171;background:rgba(248,113,113,.18)}100%{box-shadow:none;background:transparent}}
+.flash-req{animation:flashReq .9s ease-out forwards;border-radius:8px}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style>
 <div id="app"><div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;background:var(--bg);color:var(--tx4);font-size:12px">Se încarcă...</div></div>
