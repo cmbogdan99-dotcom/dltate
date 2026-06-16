@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dl. Siski — Fitness Tracker</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4AA;</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
@@ -10,23 +10,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Backgrounds — forest dark */
-  --bg:#090d0a;--bg1:#111914;--bg2:#182018;--bg3:#1e2a1e;--bd:#1e2c1e;
-  /* Text — neutral, clean */
-  --tx1:#e8f5ec;--tx2:#a8c4b0;--tx2b:#c4dcc8;--tx3:#6b9478;--tx4:#3d6147;--tx5:#2a4231;
-  /* Accent: forest green primary */
-  --ac:#2d6a4f;--ac-h:#40916c;--ac-l:#74c69d;--ac-glow:rgba(45,106,79,.16);
+  /* Backgrounds — deep slate */
+  --bg:#08090e;--bg1:#0f1018;--bg2:#161824;--bg3:#1c1f2e;--bd:#272b40;
+  /* Text — high contrast */
+  --tx1:#f2f4ff;--tx2:#8f99bb;--tx2b:#b4bcda;--tx3:#575f84;--tx4:#3a4260;--tx5:#262d47;
+  /* Accent: electric blue */
+  --ac:#4f7ef7;--ac-h:#3b6ef0;--ac-l:#93b4fc;--ac-glow:rgba(79,126,247,.18);
   /* Semantic */
-  --or:#f97316;--or-l:#fb923c;   /* orange — XP, energy */
-  --su:#34d399;                   /* teal — success */
-  --wa:#fbbf24;                   /* amber — warnings, achievements */
-  --er:#f87171;                   /* red — errors */
-  --in:#38bdf8;                   /* sky — info, water */
-  --fu:#e879f9;                   /* fuchsia — special */
+  --or:#f97316;--or-l:#fb923c;
+  --su:#34d399;
+  --wa:#fbbf24;
+  --er:#f87171;
+  --in:#38bdf8;
+  --fu:#e879f9;
 }
 [data-theme="light"]{
-  --bg:#f0faf5;--bg1:#ffffff;--bg2:#d8f3dc;--bg3:#b7e4c7;--bd:#74c69d55;
-  --tx1:#1b4332;--tx2:#2d6a4f;--tx2b:#40916c;--tx3:#52b788;--tx4:#2d6a4f;--tx5:#40916c;
+  --bg:#f0f4ff;--bg1:#ffffff;--bg2:#e4eaff;--bg3:#ccd6fa;--bd:#93b4fc55;
+  --tx1:#0a1128;--tx2:#1e3060;--tx2b:#2a4490;--tx3:#3b5fcf;--tx4:#4f7ef7;--tx5:#93b4fc;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Roboto,ui-sans-serif,system-ui,sans-serif;font-size:14px}
@@ -115,18 +115,33 @@ input[type="number"].inp{-moz-appearance:textfield}
 .mob-nav{display:none}
 @media(max-width:680px){
   .sb{display:none}
-  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--bd);z-index:50;padding:3px 0 env(safe-area-inset-bottom,3px)}
-  .mob-nav .ni{flex:1;flex-direction:column;gap:2px;font-size:9px;padding:5px 2px;border-radius:0;justify-content:center;align-items:center}
+  /* Safe area: Dynamic Island / notch */
+  #app{padding-top:env(safe-area-inset-top,0px)}
+  /* Bottom nav */
+  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--bd);z-index:50;padding:3px 0 env(safe-area-inset-bottom,4px);overflow-x:auto;scrollbar-width:none}
+  .mob-nav::-webkit-scrollbar{display:none}
+  .mob-nav .ni{min-width:58px;flex:1;flex-direction:column;gap:2px;font-size:9px;padding:5px 3px;border-radius:0;justify-content:center;align-items:center;white-space:nowrap}
   .mob-nav .ni::before{display:none}
   .mob-nav .ni.act{background:none;color:var(--ac-l)}
-  .mob-nav .ni svg{width:17px;height:17px}
-  .mc{padding-bottom:60px}
+  .mob-nav .ni svg{width:18px;height:18px;flex-shrink:0}
+  /* Content */
+  .mc{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   .wrap{height:100dvh}
-  .sec{padding:10px}
-  .card{border-radius:9px}
+  .sec{padding:10px;gap:8px}
+  .card{border-radius:10px}
+  /* Grids: collapse 3/4 cols → 2 cols on mobile */
   .g2{grid-template-columns:1fr 1fr;gap:5px}
+  .g3{grid-template-columns:1fr 1fr;gap:5px}
+  .g4{grid-template-columns:1fr 1fr;gap:5px}
+  /* Text safety */
+  .card *{overflow-wrap:break-word;word-break:break-word}
   .cb{max-width:92%}
   body{font-size:13px}
+  /* Onboarding */
+  .ob{padding:10px;align-items:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 10px)}
+  .ofrm{padding:14px}
+  /* Login card */
+  .login-card{padding:20px 16px!important}
 }
 /* Animations */
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -559,7 +574,7 @@ var I18N={
 };
 function t(key){var v=(I18N[S.lang]&&I18N[S.lang][key])||I18N['ro'][key]||key;if(S.mode==='bom'){var bk=key+'_bom';var vb=(I18N[S.lang]&&I18N[S.lang][bk])||I18N['ro'][bk];if(vb)return vb}return v}
 function vLogin(){
-  var wrap=el('div',{s:'min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg1)'});
+  var wrap=el('div',{s:'min-height:100dvh;width:100%;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg1)'});
   var card=el('div',{s:'width:100%;max-width:340px;background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px 24px'});
   var logoRow=el('div',{s:'text-align:center;margin-bottom:20px'});
   var logoTxt=el('div',{s:'font-size:22px;font-weight:700;color:var(--tx1);letter-spacing:-.5px'});logoTxt.textContent='Dl. Siski';
@@ -655,6 +670,7 @@ function vLogin(){
 }
 function render(){
   var r=document.getElementById('app');if(!r)return;
+  S.isMobile=window.innerWidth<=680||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   document.documentElement.setAttribute('data-theme',S.theme||'dark');
   ACT=S.mode==='bom'?_ACT_B:_ACT_N;
   GOALS=S.mode==='bom'?_GOALS_B:_GOALS_N;
@@ -814,10 +830,11 @@ function vOB(){
     [{v:'acasa',l:'Acas\u0103 (g\u0103te\u0219ti)'},{v:'restaurant',l:'Restaurant / livrare'},{v:'mixt',l:'Mixt (50/50)'},{v:'mealprep',l:'Meal prep (preg\u0103te\u0219ti \u00een avans)'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(S.ob.mealContext===o.v)op.selected=true;mcSel.appendChild(op)});
     mcSel.onchange=function(){S.ob.mealContext=this.value};mcW.appendChild(mcLbl);mcW.appendChild(mcSel);r4.appendChild(mcW);content.push(r4);
     var spLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);border-top:1px solid var(--bd);padding-top:9px;margin-bottom:7px;margin-top:4px'});spLbl.textContent='Sporturi preferate (alege ce îți place)';content.push(spLbl);
-    var spGrid=el('div',{s:'display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px'});
-    ['Alergare','Sala (forță)','Ciclism','Înot','Yoga','CrossFit','Fotbal','Baschet','HIIT','Pilates','Box','Drumeție','Dans','Tenis','Volei','Padel','Streetworkout','Spinning','Powerlifting','MMA'].forEach(function(sp){
+    var spGrid=el('div',{s:'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;max-height:160px;overflow-y:auto;padding-right:2px'});
+    SPORTS.forEach(function(sp){
       var on=S.ob.preferredSports.indexOf(sp)>-1;
-      var sb2=el('button',{s:'padding:4px 9px;border-radius:20px;border:1px solid '+(on?'#16a34a':'var(--bd)')+';background:'+(on?'var(--ac-glow)':'var(--bg2)')+';color:'+(on?'var(--su)':'var(--tx4)')+';font-size:10px;cursor:pointer;font-family:inherit',click:function(){var idx=S.ob.preferredSports.indexOf(sp);if(idx>-1)S.ob.preferredSports.splice(idx,1);else S.ob.preferredSports.push(sp);render()}});
+      var sb2=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(on?'var(--ac)':'var(--bd)')+';background:'+(on?'var(--ac-glow)':'transparent')+';color:'+(on?'var(--ac-l)':'var(--tx3)')+';font-size:10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s'});
+      sb2.onclick=function(){var idx=S.ob.preferredSports.indexOf(sp);if(idx>-1)S.ob.preferredSports.splice(idx,1);else S.ob.preferredSports.push(sp);render()};
       sb2.textContent=sp;spGrid.appendChild(sb2);
     });content.push(spGrid);
     var spHint=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});spHint.textContent='Opțional — AI-ul va sugera planuri bazate pe preferințele tale.';content.push(spHint);
@@ -984,7 +1001,7 @@ function vMain(){
   }
   sbWrap.appendChild(sbF);
   var mc=el('div',{c:'mc'});
-  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,top:vTop,ai:vAI,prof:vProf};
+  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,top:vTop,ai:vAI,prof:vProf,friends:vFriends,notif:vNotif};
   var fn=views[S.nav]||vDash;
   var content=null;
   try{content=fn();}catch(er){content=el('div',{s:'padding:20px;color:#f87171;font-size:12px;font-family:monospace'});content.textContent='Eroare: '+er.message;}
@@ -1005,21 +1022,22 @@ function vMain(){
   if(S.dropdown){
     var ddView=S.dropdown==='notif'?vNotif:vFriends;
     var ddContent=null;try{ddContent=ddView();}catch(e2){ddContent=el('div',null);ddContent.textContent='Eroare';}
-    var overlay=el('div',{s:'position:absolute;left:220px;bottom:0;width:340px;max-height:80vh;overflow-y:auto;background:var(--bg1);border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:100;padding:4px',click:function(e){e.stopPropagation()}});
+    var isMob=window.innerWidth<=680;
+    var overlayPos=isMob?'left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));width:auto;border-radius:12px 12px 0 0':'left:220px;bottom:0;width:340px;border-radius:12px';
+    var overlay=el('div',{s:'position:absolute;'+overlayPos+';max-height:80vh;overflow-y:auto;background:var(--bg1);border:1px solid var(--bd);box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:100;padding:4px',click:function(e){e.stopPropagation()}});
     var ddClose=el('button',{s:'position:absolute;top:8px;right:10px;background:none;border:none;cursor:pointer;color:var(--tx4);font-size:14px;line-height:1',click:function(){S.dropdown=null;render()}});ddClose.textContent='×';
     overlay.appendChild(ddClose);overlay.appendChild(ddContent);
     wrap.appendChild(overlay);
     document.addEventListener('click',function _dd(){S.dropdown=null;render();document.removeEventListener('click',_dd)},{once:true});
   }
-  // Mobile bottom nav (hidden on desktop via CSS)
-  var mobNavItems=[{id:'dash',ic:'layout-dashboard'},{id:'nutr',ic:'apple'},{id:'sport',ic:'barbell'},{id:'ai',ic:'message-circle-2'},{id:'prof',ic:'user'}];
+  // Mobile bottom nav — all items, horizontally scrollable
   var mobNav=el('div',{c:'mob-nav'});
-  mobNavItems.forEach(function(n){
-    var btn=el('button',{c:'ni'+(S.nav===n.id?' act':''),click:function(){S.nav=n.id;render()}});
-    btn.appendChild(ic(n.ic,17));
-    var lbl=document.createTextNode(NAV.find(function(x){return x.id===n.id})||{l:''});
-    var navItem=NAV.find(function(x){return x.id===n.id});
-    if(navItem){var lblEl=el('span',null);lblEl.textContent=navItem.l.split(' ')[0];btn.appendChild(lblEl)}
+  NAV.forEach(function(n){
+    var btn=el('button',{c:'ni'+(S.nav===n.id?' act':'')});
+    btn.onclick=function(){S.nav=n.id;render()};
+    btn.appendChild(ic(n.ic,18));
+    var lblEl=el('span');lblEl.textContent=n.l.split(' ')[0];
+    btn.appendChild(lblEl);
     mobNav.appendChild(btn);
   });
   wrap.appendChild(mobNav);
@@ -1643,7 +1661,7 @@ function vSport(){
   var spLbl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:4px'});spLbl.textContent='Tip sport';frm.appendChild(spLbl);
   var sg=el('div',{s:'display:flex;flex-wrap:wrap;gap:3px;margin-bottom:9px'});
   SPORTS.forEach(function(sp){
-    var b=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(S.sportType===sp?'#16a34a':'var(--bg3)')+';background:'+(S.sportType===sp?'var(--ac-glow)':'none')+';color:'+(S.sportType===sp?'var(--su)':'var(--tx4)')+';cursor:pointer;font-size:10px;font-family:inherit',click:function(){S.sportType=sp;render()}});
+    var b=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(S.sportType===sp?'var(--ac)':'var(--bd)')+';background:'+(S.sportType===sp?'var(--ac-glow)':'transparent')+';color:'+(S.sportType===sp?'var(--ac-l)':'var(--tx3)')+';cursor:pointer;font-size:10px;font-family:inherit;transition:all .12s',click:function(){S.sportType=sp;render()}});
     b.textContent=sp;sg.appendChild(b);
   });frm.appendChild(sg);
   var sRow=el('div',{c:'g2',s:'margin-bottom:8px'});
@@ -2327,10 +2345,11 @@ function vProf(){
   logoBtns.appendChild(logoFile);logoBtns.appendChild(logoUpBtn);
   if(S.logoData){var logoRmBtn=el('button',{c:'btn bg',s:'font-size:11px',click:function(){S.logoData=null;DB.save('appLogo',null);render()}});logoRmBtn.textContent=bom('Sterge','Scoate-o');logoBtns.appendChild(logoRmBtn);}
   logoRow.appendChild(logoPreview);logoRow.appendChild(logoBtns);logoCard.appendChild(logoRow);
-  var dc=el('div',{c:'card cp'});var dcH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:3px'});dcH.textContent=bom('Resetare','Sterge totul');dc.appendChild(dcH);
-  var dcN=el('div',{s:'color:var(--tx4);font-size:11px;margin-bottom:8px'});dcN.textContent=bom('\u0218tergere toate datele. Nu poate fi anulat.','Dai reset la tot. Nu mai dai inapoi, boss!');dc.appendChild(dcN);
-  var delB=el('button',{s:'background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
-  delB.appendChild(ic('trash',11));var delT=document.createTextNode('\u0218tergere tot');delB.appendChild(delT);
+  var dc=el('div',{c:'card cp',s:'border:1px solid rgba(248,113,113,.15)'});
+  var dcH=el('div',{s:'color:#f87171;font-size:12px;font-weight:600;margin-bottom:3px'});dcH.textContent=bom('Resetare date locale','Sterge totul local');dc.appendChild(dcH);
+  var dcN=el('div',{s:'color:var(--tx4);font-size:11px;margin-bottom:8px;line-height:1.5'});dcN.textContent=bom('\u0218terge toate datele locale (alimente, sport, somn, progres). Contul r\u0103m\u00e2ne intact \u2014 datele din cloud nu sunt afectate.','Dai reset la tot ce e salvat pe telefon. Contul tau ramine, boss!');dc.appendChild(dcN);
+  var delB=el('button',{s:'background:none;border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
+  delB.appendChild(ic('trash',11));var delT=document.createTextNode(bom('Resetare date locale','Sterge tot local'));delB.appendChild(delT);
   delB.onclick=function(){
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.del(k)});
     S.view='onboarding';S.nav='dash';S.profile=null;S.metrics=null;S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];S.obStep=0;S.ob={name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:''};S.editing=false;S.wtIn='';S.bfIn='';S.pnote='';S.sportDur='';S.sportNote='';S.sportInt=5;S.slH='';S.slQ=0;S.slD='';S.mIn={piept:'',sold:'',pulpa:'',biceps:''};S.photoNote='';S.wIn='';S.gangCode='';S.gangNick='';S.chatIn='';S.chatLoading=false;S.wellTab='a';S.chTab='d';S.showManual=false;S.manF={name:'',c:'',p:'',f:'',h:''};S.fsel=null;S.fsearch='';S.fqty='';
@@ -2352,10 +2371,11 @@ function vProf(){
     logoutBtn.textContent='Deconectare';logoutBtn.onclick=function(){authLogout()};
     ac.appendChild(logoutBtn);
     // Delete account
-    var delAccBtn=el('button',{s:'background:none;border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit'});
-    delAccBtn.textContent='Șterge cont';
+    var delAccHint=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:8px;margin-bottom:5px;line-height:1.4'});delAccHint.textContent='Ștergere cont: elimină permanent contul și toate datele din cloud (ireversibil).';ac.appendChild(delAccHint);
+    var delAccBtn=el('button',{s:'background:none;border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
+    delAccBtn.appendChild(ic('user-x',11));var delAccT=document.createTextNode('Șterge cont & date cloud');delAccBtn.appendChild(delAccT);
     delAccBtn.onclick=function(){
-      if(!confirm('Ștergi contul și toate datele? Acțiunea este ireversibilă.'))return;
+      if(!confirm('Ștergi PERMANENT contul și toate datele din cloud? Nu poți recupera nimic după aceasta.'))return;
       authDelete();
     };
     ac.appendChild(delAccBtn);
@@ -2377,7 +2397,24 @@ function vProf(){
   }else{
     var loginHint=el('div',{s:'color:var(--tx4);font-size:11px'});loginHint.textContent='Nu ești autentificat.';ac.appendChild(loginHint);
   }
-  return mkSec(hdr,pc,mc,logoCard,ac,dc)
+  // UI Settings card — accessible on mobile (sidebar not visible on mobile)
+  var uiCard=el('div',{c:'card cp'});
+  var uiH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});uiH.textContent='Interfață';uiCard.appendChild(uiH);
+  var modeL=el('div',{s:'font-size:10px;color:var(--tx4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em'});modeL.textContent='Mod';uiCard.appendChild(modeL);
+  var modeRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px;margin-bottom:10px'});
+  [{v:'normal',l:'Normal'},{v:'bom',l:'💣 Bombardier'}].forEach(function(opt){
+    var mb=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:6px 0;border-radius:6px;transition:all .15s;'+(S.mode===opt.v?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
+    mb.textContent=opt.l;mb.onclick=function(){S.mode=opt.v;DB.save('uiMode',opt.v);render()};
+    modeRow2.appendChild(mb);
+  });uiCard.appendChild(modeRow2);
+  var themeL=el('div',{s:'font-size:10px;color:var(--tx4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em'});themeL.textContent='Temă';uiCard.appendChild(themeL);
+  var themeRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px'});
+  [{v:'dark',l:'Dark'},{v:'light',l:'Light'}].forEach(function(opt){
+    var tb2=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:6px 0;border-radius:6px;transition:all .15s;'+(S.theme===opt.v?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
+    tb2.textContent=opt.l;tb2.onclick=function(){S.theme=opt.v;DB.save('uiTheme',opt.v);render()};
+    themeRow2.appendChild(tb2);
+  });uiCard.appendChild(themeRow2);
+  return mkSec(hdr,pc,mc,logoCard,uiCard,ac,dc)
 }
 render();
 (function(){
