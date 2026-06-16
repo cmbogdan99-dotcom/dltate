@@ -196,14 +196,23 @@ window.addEventListener('error',function(ev){
 'use strict';
 var TODAY=new Date().toISOString().split('T')[0];
 var _ACT_N=[{id:'sedentar',label:'Sedentar',sub:'Birou, miscare minima',mult:1.2},{id:'usor',label:'Usor activ',sub:'1-3x/sapt.',mult:1.375},{id:'moderat',label:'Moderat activ',sub:'3-5x/sapt.',mult:1.55},{id:'activ',label:'Foarte activ',sub:'6-7x/sapt.',mult:1.725},{id:'extrem',label:'Extrem activ',sub:'Munca fizica + training zilnic',mult:1.9}];
-var _ACT_B=[{id:'sedentar',label:'Cartoful de canapea',sub:'Birou, miscare minima',mult:1.2},{id:'usor',label:'Rar te misti',sub:'1-3x/sapt.',mult:1.375},{id:'moderat',label:'Destul de activ',sub:'3-5x/sapt.',mult:1.55},{id:'activ',label:'Bestia din sala',sub:'6-7x/sapt.',mult:1.725},{id:'extrem',label:'Esti un nebun total',sub:'Munca fizica + training zilnic',mult:1.9}];
+var _ACT_B=[{id:'sedentar',label:'Cartof de canapea, tati',sub:'Stat pe loc, mișcare zero',mult:1.2},{id:'usor',label:'Mai ieși din casă, boss',sub:'1-3x/săpt., cam rar',mult:1.375},{id:'moderat',label:'Mișcare normală, frate',sub:'3-5x/săpt., merge',mult:1.55},{id:'activ',label:'Dai la fier serios, cocoș',sub:'6-7x/săpt., respect',mult:1.725},{id:'extrem',label:'Bestia din sală, tati!',sub:'Training + muncă fizică zilnic',mult:1.9}];
 var ACT=_ACT_N;
 var _GOALS_N=[{id:'pA',label:'Pierdere agresiva (-650 kcal)',delta:-650},{id:'p',label:'Pierdere de grasime (-400 kcal)',delta:-400},{id:'r',label:'Recompozitie (-100 kcal)',delta:-100},{id:'m',label:'Mentenanta',delta:0},{id:'mc',label:'Masa curata (+250 kcal)',delta:250},{id:'mb',label:'Masa / Bulking (+450 kcal)',delta:450}];
-var _GOALS_B=[{id:'pA',label:'Dai jos colaceii AGRESIV (-650 kcal)',delta:-650},{id:'p',label:'Dai jos colaceii (-400 kcal)',delta:-400},{id:'r',label:'Recompozitie — dai jos grasimea, bagi muschi (-100 kcal)',delta:-100},{id:'m',label:'Ramai cum esti, boss (mentenanta)',delta:0},{id:'mc',label:'Te umfli frumos — masa curata (+250 kcal)',delta:250},{id:'mb',label:'Te umfli tata — bulking total (+450 kcal)',delta:450}];
+var _GOALS_B=[{id:'pA',label:'Dai jos tot agresiv, boss (-650 kcal)',delta:-650},{id:'p',label:'Slăbești tati, pă bune (-400 kcal)',delta:-400},{id:'r',label:'Dai jos grăsime, bagi mușchi (-100 kcal)',delta:-100},{id:'m',label:'Stai pe formă, n-ai de ce (mentenanță)',delta:0},{id:'mc',label:'Pui masă curată, cocoș (+250 kcal)',delta:250},{id:'mb',label:'Bulking total, dă-i drumul tati (+450 kcal)',delta:450}];
 var GOALS=_GOALS_N;
 var DIETS=[{id:'omnivor',label:'Omnivor'},{id:'vegetarian',label:'Vegetarian'},{id:'vegan',label:'Vegan'},{id:'keto',label:'Ketogenic'},{id:'lowCarb',label:'Low Carb'},{id:'mediteranean',label:'Mediteranean'}];
 var MEALS=[{id:'md',label:'Mic dejun'},{id:'pr',label:'Pranz'},{id:'cn',label:'Cina'},{id:'gs',label:'Gustari'}];
-var SPORTS=['Alergare','Ciclism','Inot','Sala (forta)','Yoga','CrossFit','Fotbal','Baschet','Tenis','Volei','Box','Maraton','HIIT','Pilates','Drumetie','Dans','Schi','Karate','Kickbox','Padel','MMA','Muay Thai','Judo','BJJ','Handbal','Rugby','Atletism','Spinning','Rowing','Powerlifting','Streetworkout','Fitness Cardio','Badminton','Tenis de Masa','Escalada','Triatlon','Ciclism Indoor','Saritura cu coarda','Lupte','Taekwondo','Canotaj'];
+var SPORTS=['Alergare','Atletism','Badminton','Baschet','BJJ','Box','Canotaj','Ciclism','Ciclism Indoor','CrossFit','Dans','Drumetie','Escalada','Fitness Cardio','Fotbal','Handbal','HIIT','Inot','Judo','Karate','Kickbox','Lupte','Maraton','MMA','Muay Thai','Padel','Pilates','Powerlifting','Rowing','Rugby','Sala (forta)','Saritura cu coarda','Schi','Spinning','Streetworkout','Taekwondo','Tenis','Tenis de Masa','Triatlon','Volei','Yoga'];
+var SPORTS_CATS=[
+  {cat:'Cardio',sports:['Alergare','Atletism','Ciclism','Ciclism Indoor','Fitness Cardio','HIIT','Maraton','Saritura cu coarda','Spinning','Triatlon']},
+  {cat:'Forță',sports:['CrossFit','Powerlifting','Rowing','Sala (forta)','Streetworkout']},
+  {cat:'Arte martiale',sports:['BJJ','Box','Judo','Karate','Kickbox','Lupte','MMA','Muay Thai','Taekwondo']},
+  {cat:'Sporturi de echipa',sports:['Baschet','Fotbal','Handbal','Rugby','Volei']},
+  {cat:'Racheta & Padelă',sports:['Badminton','Padel','Tenis','Tenis de Masa']},
+  {cat:'Apă & Natură',sports:['Canotaj','Drumetie','Escalada','Inot','Schi']},
+  {cat:'Mind & Body',sports:['Dans','Pilates','Yoga']}
+];
 var FOODS=[
 {id:1,n:'Piept de pui',cat:'Proteine',s:100,c:165,p:31,f:3.6,h:0,u:'g'},{id:2,n:'Somon',cat:'Proteine',s:100,c:208,p:20,f:13,h:0,u:'g'},{id:3,n:'Piept de curcan',cat:'Proteine',s:100,c:135,p:30,f:1,h:0,u:'g'},{id:4,n:'Ton (conserva)',cat:'Proteine',s:100,c:116,p:26,f:1,h:0,u:'g'},{id:5,n:'Macrou',cat:'Proteine',s:100,c:205,p:19,f:14,h:0,u:'g'},{id:6,n:'Sardine',cat:'Proteine',s:100,c:208,p:24.6,f:11.5,h:0,u:'g'},{id:7,n:'Creveti',cat:'Proteine',s:100,c:99,p:24,f:0.3,h:0,u:'g'},{id:8,n:'Carne vita 90%',cat:'Proteine',s:100,c:215,p:26,f:12,h:0,u:'g'},{id:9,n:'Ou intreg',cat:'Proteine',s:50,c:78,p:6,f:5,h:0.6,u:'g'},{id:10,n:'Albusuri',cat:'Proteine',s:100,c:52,p:11,f:0.2,h:0.7,u:'g'},
 {id:11,n:'Porc pulpa slaba',cat:'Proteine',s:100,c:180,p:26,f:8,h:0,u:'g'},{id:12,n:'Mici (gratar)',cat:'Romanesti',s:100,c:230,p:15,f:18,h:0,u:'g'},{id:13,n:'Iaurt grecesc 0%',cat:'Lactate',s:170,c:100,p:17,f:0.7,h:6,u:'g'},{id:14,n:'Iaurt natural',cat:'Lactate',s:150,c:90,p:5,f:5,h:6,u:'g'},{id:15,n:'Branza de vaci',cat:'Lactate',s:100,c:98,p:11,f:4.3,h:3.4,u:'g'},{id:16,n:'Telemea',cat:'Lactate',s:30,c:75,p:5,f:6,h:0.5,u:'g'},{id:17,n:'Lapte integral',cat:'Lactate',s:240,c:146,p:7.7,f:7.9,h:11.5,u:'ml'},{id:18,n:'Chefir',cat:'Lactate',s:240,c:100,p:8,f:2.5,h:9,u:'ml'},{id:19,n:'Mozzarella',cat:'Lactate',s:28,c:85,p:6.3,f:6.3,h:0.6,u:'g'},{id:20,n:'Cas proaspat',cat:'Lactate',s:100,c:120,p:10,f:8,h:2,u:'g'},
@@ -528,24 +537,24 @@ var I18N={
   ro:{
     loading:'Se incarca...',
     add:'Adauga',
-    ai_title:'Antrenor AI',ai_title_bom:'Cocoșul tău personal',
-    ai_powered:'Powered by Claude · Date complete active',ai_powered_bom:'Cocoșu\' știe tot — date live',
-    ai_tagline:'Antrenorul tau personal',ai_tagline_bom:'Cocoșul care nu te lasă în pace',
-    ai_intro_blurb:'Tine totul despre tine: mancare, somn, apa, sport, XP.',ai_intro_blurb_bom:'Știe ce ai mâncat, cât ai dormit, cât ai băut, cât te-ai mișcat. Nu-l poți păcăli, boss.',
-    ai_suggested:'Intrebari sugerate',ai_suggested_bom:'Întreabă-l pe Cocoș, boss',
-    ai_q1:'De ce nu scade greutatea mea?',ai_q1_bom:'De ce nu slabesc, ma?',
-    ai_q2:'Ce mananc inainte de antrenament?',ai_q2_bom:'Ce mananc inainte sa ma duc la sala?',
-    ai_q3:'Cata apa trebuie sa beau?',ai_q3_bom:'Cat de multa apa trebuie sa beau?',
-    ai_q4:'Cum imbunatatesc somnul profund?',ai_q4_bom:'Cum dorm mai bine noaptea?',
-    ai_q5:'Ce sport e bun pentru obiectivul meu?',ai_q5_bom:'Ce sport se potriveste cu obiectivul meu?',
-    ai_q6:'Explica-mi scorul FFMI',ai_q6_bom:'Ce inseamna scorul FFMI al meu?',
-    ai_q7:'De cate proteine am nevoie zilnic?',ai_q7_bom:'De cate proteine am nevoie pe zi?',
+    ai_title:'Antrenor AI',ai_title_bom:'Cocoșul, boss',
+    ai_powered:'Powered by Claude · Date complete active',ai_powered_bom:'Cocoșu\' știe tot — date live, pă bune',
+    ai_tagline:'Antrenorul tau personal',ai_tagline_bom:'Tati știe tot despre tine',
+    ai_intro_blurb:'Tine totul despre tine: mancare, somn, apa, sport, XP.',ai_intro_blurb_bom:'Boss-ul ăsta știe tot: ce ai mâncat, cât ai dormit, câtă apă ai băut. Nu-l poți păcăli, frate.',
+    ai_suggested:'Intrebari sugerate',ai_suggested_bom:'Hai întreabă, tati',
+    ai_q1:'De ce nu scade greutatea mea?',ai_q1_bom:'De ce nu slăbesc, mă?',
+    ai_q2:'Ce mananc inainte de antrenament?',ai_q2_bom:'Ce mănânc înainte de sală, boss?',
+    ai_q3:'Cata apa trebuie sa beau?',ai_q3_bom:'Câtă apă îmi trebuie, tati?',
+    ai_q4:'Cum imbunatatesc somnul profund?',ai_q4_bom:'Cum dorm mai bine, frate?',
+    ai_q5:'Ce sport e bun pentru obiectivul meu?',ai_q5_bom:'Ce sport e bun pentru mine, boss?',
+    ai_q6:'Explica-mi scorul FFMI',ai_q6_bom:'Ce înseamnă FFMI-ul meu, tati?',
+    ai_q7:'De cate proteine am nevoie zilnic?',ai_q7_bom:'Câte proteine îmi trebuie, cocoș?',
     ai_key_placeholder:'Cheie API Anthropic',
     ai_save_key:'Salveaza cheia',
     ai_no_key:'Cheie API lipsa — salveaza cheia pentru a folosi AI',
     macros_today:'Macronutrienti azi',
     water_today:'Apa azi',
-    remove_confirm:'Sigur vrei sa stergi?',remove_confirm_bom:'Boss, chiar vrei sa stergi asta?',
+    remove_confirm:'Sigur vrei sa stergi?',remove_confirm_bom:'Boss, chiar stergi asta? Nu mai dai înapoi!',
     greet:'Salut, ',greet_bom:'Ce faci, '
   },
   en:{
@@ -725,7 +734,7 @@ function vLoad(){
   inner.appendChild(spinner);inner.appendChild(document.createTextNode(t('loading')));d.appendChild(inner);return d
 }
 var _OBS_N=['Informatii personale','Masuratori corporale','Stil de viata','Obiectivele tale','Dieta'];
-var _OBS_B=['Cine dracu esti, bre?','Cate kile tragi?','Cum iti omori timpul?','Ce vrei sa devii, tata?','Ce bagi in tine?'];
+var _OBS_B=['Zi-mi cine ești, tati','Cât cântărești, boss?','Cât te miști, bre?','Ce vrei de la viață, tati?','Ce bagi în tine, frate?'];
 var OBS=_OBS_N;
 function vOB(){
   var step=S.obStep,D=S.ob;
@@ -830,13 +839,19 @@ function vOB(){
     [{v:'acasa',l:'Acas\u0103 (g\u0103te\u0219ti)'},{v:'restaurant',l:'Restaurant / livrare'},{v:'mixt',l:'Mixt (50/50)'},{v:'mealprep',l:'Meal prep (preg\u0103te\u0219ti \u00een avans)'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(S.ob.mealContext===o.v)op.selected=true;mcSel.appendChild(op)});
     mcSel.onchange=function(){S.ob.mealContext=this.value};mcW.appendChild(mcLbl);mcW.appendChild(mcSel);r4.appendChild(mcW);content.push(r4);
     var spLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);border-top:1px solid var(--bd);padding-top:9px;margin-bottom:7px;margin-top:4px'});spLbl.textContent='Sporturi preferate (alege ce îți place)';content.push(spLbl);
-    var spGrid=el('div',{s:'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;max-height:160px;overflow-y:auto;padding-right:2px'});
-    SPORTS.forEach(function(sp){
-      var on=S.ob.preferredSports.indexOf(sp)>-1;
-      var sb2=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(on?'var(--ac)':'var(--bd)')+';background:'+(on?'var(--ac-glow)':'transparent')+';color:'+(on?'var(--ac-l)':'var(--tx3)')+';font-size:10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s'});
-      sb2.onclick=function(){var idx=S.ob.preferredSports.indexOf(sp);if(idx>-1)S.ob.preferredSports.splice(idx,1);else S.ob.preferredSports.push(sp);render()};
-      sb2.textContent=sp;spGrid.appendChild(sb2);
-    });content.push(spGrid);
+    var spContainer=el('div',{s:'margin-bottom:4px'});
+    SPORTS_CATS.forEach(function(cat){
+      var catLbl=el('div',{s:'font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx4);margin:6px 0 3px;font-weight:600'});
+      catLbl.textContent=cat.cat;spContainer.appendChild(catLbl);
+      var row=el('div',{s:'display:flex;flex-wrap:wrap;gap:3px'});
+      cat.sports.forEach(function(sp){
+        var on=S.ob.preferredSports.indexOf(sp)>-1;
+        var sb2=el('button',{s:'padding:2px 7px;border-radius:99px;border:1px solid '+(on?'var(--ac)':'var(--bd)')+';background:'+(on?'var(--ac-glow)':'transparent')+';color:'+(on?'var(--ac-l)':'var(--tx3)')+';font-size:9px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s'});
+        sb2.onclick=function(){var idx=S.ob.preferredSports.indexOf(sp);if(idx>-1)S.ob.preferredSports.splice(idx,1);else S.ob.preferredSports.push(sp);render()};
+        sb2.textContent=sp;row.appendChild(sb2);
+      });
+      spContainer.appendChild(row);
+    });content.push(spContainer);
     var spHint=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});spHint.textContent='Opțional — AI-ul va sugera planuri bazate pe preferințele tale.';content.push(spHint);
   }else if(step===3){
     var gLbl=el('label',{s:'display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);margin-bottom:5px'});gLbl.textContent=bom('Obiectiv','Ce vrei, nene?');
@@ -928,7 +943,7 @@ function vOB(){
   oc.appendChild(logoDiv);oc.appendChild(obToggles);oc.appendChild(prog);oc.appendChild(frm);wrap.appendChild(oc);return wrap
 }
 var _NAV_N=[{id:'dash',l:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutritie & Jurnal',ic:'apple'},{id:'stat',l:'Hidratare & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',ic:'barbell'},{id:'chal',l:'Provocari',ic:'trophy'},{id:'ach',l:'Realizari',ic:'award'},{id:'gang',l:'Clan',ic:'users'},{id:'top',l:'Top Global',ic:'medal'},{id:'ai',l:'Antrenor AI',ic:'message-circle-2'},{id:'prof',l:'Profil',ic:'user'}];
-var _NAV_B=[{id:'dash',l:'Situatia, boss',ic:'layout-dashboard'},{id:'nutr',l:'Ce bagi in tine',ic:'apple'},{id:'stat',l:'Apa & Nani',ic:'heart-rate-monitor'},{id:'progr',l:'Evolutia ta',ic:'chart-line'},{id:'sport',l:'Fier & Sudori',ic:'barbell'},{id:'chal',l:'Dare-deal',ic:'trophy'},{id:'ach',l:'Trofee',ic:'award'},{id:'gang',l:'Clan 💪',ic:'users'},{id:'top',l:'Topul Regilor 🏆',ic:'medal'},{id:'ai',l:'Cocoșul Tău',ic:'message-circle-2'},{id:'prof',l:'Yo, tata',ic:'user'}];
+var _NAV_B=[{id:'dash',l:'Situatia, boss',ic:'layout-dashboard'},{id:'nutr',l:'Ce bagi în gură',ic:'apple'},{id:'stat',l:'Apă & Somn',ic:'heart-rate-monitor'},{id:'progr',l:'Cum evoluezi',ic:'chart-line'},{id:'sport',l:'Fier & Sudori',ic:'barbell'},{id:'chal',l:'Dare-deal',ic:'trophy'},{id:'ach',l:'Trofee, boss',ic:'award'},{id:'gang',l:'Clanul tău',ic:'users'},{id:'top',l:'Top Cocoși',ic:'medal'},{id:'ai',l:'Cocoșul tău',ic:'message-circle-2'},{id:'prof',l:'Profilul, tati',ic:'user'}];
 var NAV=_NAV_N;
 function getAvatar(p,lvl){
   var sp=p&&p.preferredSports&&p.preferredSports[0];
@@ -2094,7 +2109,8 @@ function vAI(){
   function sysP(){
     var tw=watToday(S),wg=Calc.wGoal(p),ls=S.sleepLog.length?S.sleepLog[S.sleepLog.length-1]:null;
     var tl=S.food.filter(function(e){return e.date===TODAY}),tc=tl.reduce(function(a,e){return a+e.c},0);
-    return 'Eti antrenorul personal din "Dl. Siski". R\u0103spunde MEREU \u00een rom\u00e2n\u0103. Fii direct, cald, bazat pe dovezi.\n\nPROFIL:\n'+p.name+', '+p.age+' ani, '+(p.sex==='M'?'masculin':'feminin')+', '+p.height+'cm, '+p.weight+'kg \u2192 \u021Aint\u0103: '+p.targetWeight+'kg\nGr\u0103sime: ~'+fmt(m.bf,1)+'% | Mas\u0103 slab\u0103: '+fmt(m.lbm,1)+'kg | FFMI: '+(m.ffmi?fmt(m.ffmi):'N/A')+'\n\n\u021AINTE:\nBMR: '+m.bmr+' kcal | TDEE: '+m.tdee+' kcal | \u021Aint\u0103: '+m.kcal+' kcal\nProteine: '+(m.macros?m.macros.prot:'-')+'g | Gr\u0103simi: '+(m.macros?m.macros.fat:'-')+'g | Carbo: '+(m.macros?m.macros.carbs:'-')+'g\nObiectiv: '+(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label+'\n\nPREFERIN\u021aE:\nDiet\u0103: '+(p.diet||'omnivor')+(p.allergies&&p.allergies.length?'\nAlergii/intoleran\u021be: '+p.allergies.join(', '):'')+((p.avoidedFoods&&p.avoidedFoods.trim())?'\nAlimente evitate: '+p.avoidedFoods:'')+(p.preferredSports&&p.preferredSports.length?'\nSporturi preferate: '+p.preferredSports.join(', '):'')+'\n\nPROGRAM:\nOre sport/s\u0103pt: '+(p.sportHoursWeek||3)+'h | Ore lucru/zi: '+(p.workHoursDay||8)+'h | G\u0103tit/zi: '+(p.cookTimeDay||30)+'min | Context mese: '+({'acasa':'acas\u0103','restaurant':'restaurant','mixt':'mixt','mealprep':'meal prep'}[p.mealContext||'acasa']||'acas\u0103')+'\n\nSTARE AZI:\nAp\u0103: '+(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L\nSomn: '+(ls?ls.hours+'h, calitate '+ls.q+'/5':'ne\u00eenregistrat')+'\nCalorii: '+tc+' kcal\nAntrenamente total: '+S.workouts.length+'\nXP: '+getXP()+' ('+getLvl().n+')\n\nREGULI ESEN\u021aIALE:\n- R\u0103spunde DETALIAT \u0219i PERSONALIZAT \u2014 folose\u0219te datele concrete din profil \u00een fiecare r\u0103spuns\n- Citeaz\u0103 MEREU cifre reale (kg, kcal, g, %, minute) din profilul utilizatorului\n- Structureaz\u0103 r\u0103spunsul clar: explica\u021bie \u2192 cifre concrete \u2192 ac\u021biuni practice\n- La final ofer\u0103 \u00ceNTOTDEAUNA 2-3 \u00eentreb\u0103ri de follow-up pe care utilizatorul le poate pune pentru a aprofunda subiectul (format: "Vrei s\u0103 aflii mai mult despre: X, Y sau Z?")\n- Adapteaz\u0103 recomand\u0103rile la sporturile preferate ale utilizatorului c\u00e2nd e relevant\n- Nu diagnostica. Nu recomanda sub '+(p.sex==='M'?1400:1200)+' kcal/zi. Max 400 cuvinte.'
+    var bomPersona=S.mode==='bom'?'\n\nMOD BOMBARDIER ACTIV: Vorbe\u0219ti exact ca un cocalar autentic din cartierele Bucure\u0219tiului \u2014 stilul Roby Roberto, Florin Salam-fan, manele & sal\u0103. Folose\u0219ti: "tati", "boss", "coco\u0219", "frate", "bre", "m\u0103 b\u0103iete", "p\u0103 bune", "zi-i", "d\u0103-i drumul", "las\' c\u0103 merge", "n-ai de ce", "e ok tati", "stai p\u0103 loc", "bag seam\u0103", "ce \u0219mecher", "hai sictir" (surpriz\u0103). Dai informa\u021bii corecte DAR \u00een ton cartier \u2014 casual, direct, cu personalitate. Nu exagera \u2014 un "tati" din 3 \u00een 3 propozi\u021bii e suficient. NU folosi limbaj vulgar gros.':'';
+    return 'E\u0219ti antrenorul personal din "Dl. Siski". R\u0103spunde MEREU \u00een rom\u00e2n\u0103. Fii direct, cald, bazat pe dovezi.'+bomPersona+'\n\n\nPROFIL:\n'+p.name+', '+p.age+' ani, '+(p.sex==='M'?'masculin':'feminin')+', '+p.height+'cm, '+p.weight+'kg \u2192 \u021Aint\u0103: '+p.targetWeight+'kg\nGr\u0103sime: ~'+fmt(m.bf,1)+'% | Mas\u0103 slab\u0103: '+fmt(m.lbm,1)+'kg | FFMI: '+(m.ffmi?fmt(m.ffmi):'N/A')+'\n\n\u021AINTE:\nBMR: '+m.bmr+' kcal | TDEE: '+m.tdee+' kcal | \u021Aint\u0103: '+m.kcal+' kcal\nProteine: '+(m.macros?m.macros.prot:'-')+'g | Gr\u0103simi: '+(m.macros?m.macros.fat:'-')+'g | Carbo: '+(m.macros?m.macros.carbs:'-')+'g\nObiectiv: '+(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label+'\n\nPREFERIN\u021aE:\nDiet\u0103: '+(p.diet||'omnivor')+(p.allergies&&p.allergies.length?'\nAlergii/intoleran\u021be: '+p.allergies.join(', '):'')+((p.avoidedFoods&&p.avoidedFoods.trim())?'\nAlimente evitate: '+p.avoidedFoods:'')+(p.preferredSports&&p.preferredSports.length?'\nSporturi preferate: '+p.preferredSports.join(', '):'')+'\n\nPROGRAM:\nOre sport/s\u0103pt: '+(p.sportHoursWeek||3)+'h | Ore lucru/zi: '+(p.workHoursDay||8)+'h | G\u0103tit/zi: '+(p.cookTimeDay||30)+'min | Context mese: '+({'acasa':'acas\u0103','restaurant':'restaurant','mixt':'mixt','mealprep':'meal prep'}[p.mealContext||'acasa']||'acas\u0103')+'\n\nSTARE AZI:\nAp\u0103: '+(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L\nSomn: '+(ls?ls.hours+'h, calitate '+ls.q+'/5':'ne\u00eenregistrat')+'\nCalorii: '+tc+' kcal\nAntrenamente total: '+S.workouts.length+'\nXP: '+getXP()+' ('+getLvl().n+')\n\nREGULI ESEN\u021aIALE:\n- R\u0103spunde DETALIAT \u0219i PERSONALIZAT \u2014 folose\u0219te datele concrete din profil \u00een fiecare r\u0103spuns\n- Citeaz\u0103 MEREU cifre reale (kg, kcal, g, %, minute) din profilul utilizatorului\n- Structureaz\u0103 r\u0103spunsul clar: explica\u021bie \u2192 cifre concrete \u2192 ac\u021biuni practice\n- La final ofer\u0103 \u00ceNTOTDEAUNA 2-3 \u00eentreb\u0103ri de follow-up pe care utilizatorul le poate pune pentru a aprofunda subiectul (format: "Vrei s\u0103 aflii mai mult despre: X, Y sau Z?")\n- Adapteaz\u0103 recomand\u0103rile la sporturile preferate ale utilizatorului c\u00e2nd e relevant\n- Nu diagnostica. Nu recomanda sub '+(p.sex==='M'?1400:1200)+' kcal/zi. Max 400 cuvinte.'
   }
   var QUICK=['De ce nu scade greutatea mea?','Ce m\u0103n\u00e2nc \u00eenainte de antrenament?','C\u00e2t\u0103 ap\u0103 trebuie s\u0103 beau?','Cum m\u00eembun\u0103t\u0103\u021besc somnul profund?','Ce sport e bun pentru obiectivul meu?','Explic\u0103-mi scorul FFMI','De c\u00e2te proteine am nevoie zilnic?'];
   var wrap=el('div',{s:'display:flex;flex-direction:column;height:100%'});
@@ -2141,7 +2157,27 @@ function vAI(){
     var prot=m.macros?m.macros.prot:Math.round(p.weight*2);
     var protAzi=Math.round(tl.reduce(function(a,e){return a+e.p},0));
     var spPref=p.preferredSports&&p.preferredSports.length?p.preferredSports:null;
-    var fu='\n\n💡 Vrei să aprofundezi?';
+    var bom2=S.mode==='bom';
+    var fu=bom2?'\n\n💪 Hai tati, mai întreabă-mă:':'\n\n💡 Vrei să aprofundezi?';
+    // Negation handling — "nu vreau sa fac X", "nu imi place Y" etc.
+    var negMatch=lc.match(/nu\s+(vreau|vrea|fac|pot\s+face|imi|îmi|mi.?e)|n-am chef|nu.+(place|dori)|nu\s+fac\s/);
+    if(negMatch){
+      var negSport='';var altSports=[];
+      if(lc.match(/hiit/)){negSport='HIIT';altSports=['Ciclism Indoor','Înot','Dans','Alergare ușoară','Drumeție','Rowing'];}
+      else if(lc.match(/alergare|fug\b|alerg/)){negSport='alergare';altSports=['Ciclism','Înot','Rowing','Dans','Drumeție','Spinning'];}
+      else if(lc.match(/sala\b|greutati|haltera|fier\b/)){negSport='sală/greutăți';altSports=['Streetworkout','Calistenie','Yoga','Pilates','Înot','CrossFit'];}
+      else if(lc.match(/cardio/)){negSport='cardio tradițional';altSports=['Forță (EPOC post-exercițiu)','Înot','Sporturi de echipă','Martial arts'];}
+      else if(lc.match(/yoga/)){negSport='Yoga';altSports=['Pilates','Stretching','Dans','Înnot','Mers rapid'];}
+      else if(lc.match(/pilates/)){negSport='Pilates';altSports=['Yoga','Stretching','Dans','Înot'];}
+      if(negSport){
+        var pref2=spPref?spPref.filter(function(s){return altSports.indexOf(s)>-1}):[];
+        var altsD=(pref2.length?pref2:altSports.slice(0,4)).join(', ');
+        if(bom2)return 'Pă bune, tati, nu-ți place '+negSport+' — nicio problemă, boss! Să faci ceva ce urăști e rețeta abandonului.\n\nAlternative cu același efect:\n• '+altsD+'\n\nPentru obiectivul tău ('+goalObj.label+') merge oricare, frate. Ce contează e să te miști constant, nu exact ce sport.\n\nZi-mi: care opțiune ți se pare mai faină și îți fac un plan pe loc?'+fu+' alternative la '+negSport+', cum ard calorii fără '+negSport+' sau ce sport se potrivește temperamentului meu?';
+        return 'Înțeles — nu vrei '+negSport+'. Nu e obligatorie nicio activitate care îți displace.\n\nAlternative cu rezultate similare:\n• '+altsD+'\n\nPentru obiectivul tău ('+goalObj.label+'), oricare funcționează — consistența bate exercițiul "perfect".\n\nSfat: alege activitatea pe care o vei face chiar și când nu ai chef.'+fu+' alternative la '+negSport+', cum ard calorii fără '+negSport+' sau ce sport se potrivește temperamentului meu?';
+      }
+      if(bom2)return 'Ei, tati, ai zis nu — dar nu mi-ai spus la ce anume! Zi-mi mai clar ce nu vrei și găsim o alternativă care-ți place, boss.';
+      return 'Ai spus că nu vrei ceva, dar spune-mi mai specific — ca să găsim alternative potrivite.\n\nExemplu: "Nu vreau să fac alergare, ce altceva merge pentru slăbit?"';
+    }
     if(lc.match(/grasime|slab|fat|bf|body fat/)){
       if(!m.bf)return 'Completează măsurătorile (gât, talie'+(p.sex==='F'?', șold':'')+') în Profil → Editează pentru a calcula grăsimea cu Metoda Navy (precizie ±3-4%).\n\n💡 Vrei să afli mai mult despre: cum se măsoară corect, ce înseamnă FFMI sau care e grăsimea optimă pentru obiectivul tău?';
       var bfCat=p.sex==='M'?(m.bf<10?'atletism':(m.bf<18?'fitness':(m.bf<25?'mediu':'ridicat'))):(m.bf<20?'atletism':(m.bf<28?'fitness':(m.bf<35?'mediu':'ridicat')));
@@ -2214,14 +2250,17 @@ function vAI(){
     // Check if question is too short or vague
     var isVague=msg.trim().length<8||lc.match(/^(da|nu|ok|hai|asta|ce|cum|de ce|ajutor|help|buna|salut|hey)$/i);
     if(isVague){
-      return 'Nu am înțeles întrebarea ta. Poți fi mai specific?\n\nSugestii pe baza profilului tău:\n• "Fă-mi un plan de antrenament complet cu zile de odihnă"\n• "Câte calorii să mănânc azi pentru '+goalObj.label+'?"\n• "Care e grăsimea mea corporală și ce înseamnă?"\n• "De ce nu '+(p.goal==='p'||p.goal==='pA'?'slăbesc':'iau în greutate')+' deși urmez planul?"\n• "Cum îmbunătățesc recuperarea musculară?"'+(spPref?'\n• "Fă-mi un plan săptămânal de '+spPref[0]+'"':'');
+      if(bom2)return 'Tati, n-am priceput ce ai vrut să zici! Fii mai specific, boss.\n\nSugestii pă datele tale:\n• "Fă-mi un plan de antrenament cu zile de odihnă"\n• "Câte calorii mănânc azi, boss?"\n• "De ce nu '+(p.goal==='p'||p.goal==='pA'?'slăbesc':'iau masă')+', mă?"\n• "Cum stau cu profilul meu, tati?"'+(spPref?'\n• "Plan săptămânal de '+spPref[0]+', zi-i!"':'');
+      return 'Nu am înțeles întrebarea. Poți fi mai specific?\n\nSugestii pe baza profilului tău:\n• "Fă-mi un plan de antrenament complet cu zile de odihnă"\n• "Câte calorii să mănânc azi pentru '+goalObj.label+'?"\n• "De ce nu '+(p.goal==='p'||p.goal==='pA'?'slăbesc':'iau în greutate')+' deși urmez planul?"\n• "Cum stau cu profilul meu?"'+(spPref?'\n• "Fă-mi un plan săptămânal de '+spPref[0]+'"':'');
     }
     // Try to detect partial keywords and suggest closest topics
-    var topics=[{kw:/nutri|aliment|manca|mancare|masa|dieta/,s:'nutriție și dietă'},{ kw:/sport|antren|sala|exerc|miscare/,s:'plan de antrenament'},{kw:/slabit|greutate|kg|kilogram/,s:'progres și greutate'},{kw:/corp|muschi|forta|masa/,s:'compoziție corporală'},{kw:/energie|obos|fatigat/,s:'energie și recuperare'},{kw:/supli|vitamin|creatin|protei.*pudra/,s:'suplimente'}];
+    var topics=[{kw:/nutri|aliment|manca|mancare|masa|dieta/,s:'nutriție și dietă'},{kw:/sport|antren|sala|exerc|miscare/,s:'plan de antrenament'},{kw:/slabit|greutate|kg|kilogram/,s:'progres și greutate'},{kw:/corp|muschi|forta|masa/,s:'compoziție corporală'},{kw:/energie|obos|fatigat/,s:'energie și recuperare'},{kw:/supli|vitamin|creatin|protei.*pudra/,s:'suplimente'}];
     var matched=topics.filter(function(t){return lc.match(t.kw)});
     if(!matched.length){
-      return 'Nu am găsit un răspuns specific pentru "'+msg+'".\n\nAm date complete despre tine ('+ p.weight+'kg, '+p.age+' ani, obiectiv: '+goalObj.label+'). Încearcă:\n• "Plan de antrenament personalizat pentru mine"\n• "Analizează-mi nutriția de azi"\n• "Ce sport mi se potrivește mai bine?"\n• "Cum stau cu profilul meu?"';
+      if(bom2)return 'Frate, "'+msg+'" nu l-am prins — dar am toate datele tale ('+ p.weight+'kg, '+p.age+' ani, obiectiv: '+goalObj.label+'). Încearcă altfel, tati:\n• "Plan de antrenament pentru mine"\n• "Analizează-mi nutriția de azi"\n• "Cum stau boss?"';
+      return 'Nu am găsit un răspuns specific pentru "'+msg+'".\n\nAm date complete despre tine ('+p.weight+'kg, '+p.age+' ani, obiectiv: '+goalObj.label+'). Încearcă:\n• "Plan de antrenament personalizat pentru mine"\n• "Analizează-mi nutriția de azi"\n• "Cum stau cu profilul meu?"';
     }
+    if(bom2)return 'Bag seamă, tati — întrebi despre '+matched.map(function(t){return t.s}).join(' sau ')+'. Zi-mi mai clar, boss:\n'+(matched[0].kw.toString().includes('nutri')||matched[0].kw.toString().includes('aliment')?'• "Câte proteine îmi trebuie azi?"\n• "Ce bag în gură înainte de antrenament?"':'')+(matched[0].kw.toString().includes('sport')||matched[0].kw.toString().includes('antren')?'• "Program 4 zile cu odihnă"\n• "Ce exerciții pentru '+goalObj.label+'?"':'')+(matched[0].kw.toString().includes('slabit')?'• "De ce am platou, mă?"\n• "Cât mai durează să ajung la '+p.targetWeight+'kg?"':'')+'Sau zi "sumar" și îți dau analiza completă, cocoș.';
     return 'Am înțeles că întrebi despre '+matched.map(function(t){return t.s}).join(' sau ')+'.\n\nPoți reformula mai specific? Exemple:\n'+(matched[0].kw.toString().includes('nutri')||matched[0].kw.toString().includes('aliment')?'• "Câte proteine să mănânc azi?"\n• "Ce mănânc înainte de antrenament?"':'')+(matched[0].kw.toString().includes('sport')||matched[0].kw.toString().includes('antren')?'• "Fă-mi un program pe 4 zile cu zile de odihnă"\n• "Ce exerciții sunt bune pentru '+goalObj.label+'?"':'')+(matched[0].kw.toString().includes('slabit')?'• "De ce am platou de greutate?"\n• "Cât durează să ajung la '+p.targetWeight+'kg?"':'')+'Sau scrie "sumar" pentru o analiză completă a profilului tău.';
   }
   function sendMsg(){
