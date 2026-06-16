@@ -918,7 +918,16 @@ function vOB(){
   if(step>0){var bb=el('button',{c:'btn bg',s:'font-size:11px',click:function(){S.obStep--;render()}});bb.textContent='\u00cenapo\u012b';nav.appendChild(bb);}
   var bn=el('button',{c:'btn bp',s:'flex:1;font-size:11px'});
   bn.textContent=step<OBS.length-1?bom('Continua \u2192','Continua \u2192'):bom('Creeaza planul meu \u2192','Fa-mi planul, boss! \u2192');
-  bn.onclick=function(){if(!getOk()[step]){flashMissing(step);return;}if(step<OBS.length-1){S.obStep++;render();}else finish();};
+  bn.onclick=function(){
+    // Flush all visible input values into S.ob before validation
+    // Handles cases where oninput didn't fire (autofill, paste, spin buttons)
+    frm.querySelectorAll('input[id]').forEach(function(inp){
+      var k=inp.id;
+      if(k&&Object.prototype.hasOwnProperty.call(S.ob,k)&&inp.value!=='')S.ob[k]=inp.value;
+    });
+    if(!getOk()[step]){flashMissing(step);return;}
+    if(step<OBS.length-1){S.obStep++;render();}else finish();
+  };
   nav.appendChild(bn);frm.appendChild(nav);
   var wrap=el('div',{c:'ob'});
   var oc=el('div',{c:'oc'});
