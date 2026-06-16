@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dl. Siski — Fitness Tracker</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4AA;</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
@@ -115,18 +115,33 @@ input[type="number"].inp{-moz-appearance:textfield}
 .mob-nav{display:none}
 @media(max-width:680px){
   .sb{display:none}
-  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--bd);z-index:50;padding:3px 0 env(safe-area-inset-bottom,3px)}
-  .mob-nav .ni{flex:1;flex-direction:column;gap:2px;font-size:9px;padding:5px 2px;border-radius:0;justify-content:center;align-items:center}
+  /* Safe area: Dynamic Island / notch */
+  #app{padding-top:env(safe-area-inset-top,0px)}
+  /* Bottom nav */
+  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--bd);z-index:50;padding:3px 0 env(safe-area-inset-bottom,4px);overflow-x:auto;scrollbar-width:none}
+  .mob-nav::-webkit-scrollbar{display:none}
+  .mob-nav .ni{min-width:58px;flex:1;flex-direction:column;gap:2px;font-size:9px;padding:5px 3px;border-radius:0;justify-content:center;align-items:center;white-space:nowrap}
   .mob-nav .ni::before{display:none}
   .mob-nav .ni.act{background:none;color:var(--ac-l)}
-  .mob-nav .ni svg{width:17px;height:17px}
-  .mc{padding-bottom:60px}
+  .mob-nav .ni svg{width:18px;height:18px;flex-shrink:0}
+  /* Content */
+  .mc{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   .wrap{height:100dvh}
-  .sec{padding:10px}
-  .card{border-radius:9px}
+  .sec{padding:10px;gap:8px}
+  .card{border-radius:10px}
+  /* Grids: collapse 3/4 cols → 2 cols on mobile */
   .g2{grid-template-columns:1fr 1fr;gap:5px}
+  .g3{grid-template-columns:1fr 1fr;gap:5px}
+  .g4{grid-template-columns:1fr 1fr;gap:5px}
+  /* Text safety */
+  .card *{overflow-wrap:break-word;word-break:break-word}
   .cb{max-width:92%}
   body{font-size:13px}
+  /* Onboarding */
+  .ob{padding:10px;align-items:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 10px)}
+  .ofrm{padding:14px}
+  /* Login card */
+  .login-card{padding:20px 16px!important}
 }
 /* Animations */
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -559,7 +574,7 @@ var I18N={
 };
 function t(key){var v=(I18N[S.lang]&&I18N[S.lang][key])||I18N['ro'][key]||key;if(S.mode==='bom'){var bk=key+'_bom';var vb=(I18N[S.lang]&&I18N[S.lang][bk])||I18N['ro'][bk];if(vb)return vb}return v}
 function vLogin(){
-  var wrap=el('div',{s:'min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg1)'});
+  var wrap=el('div',{s:'min-height:100dvh;width:100%;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg1)'});
   var card=el('div',{s:'width:100%;max-width:340px;background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:28px 24px'});
   var logoRow=el('div',{s:'text-align:center;margin-bottom:20px'});
   var logoTxt=el('div',{s:'font-size:22px;font-weight:700;color:var(--tx1);letter-spacing:-.5px'});logoTxt.textContent='Dl. Siski';
@@ -1005,21 +1020,22 @@ function vMain(){
   if(S.dropdown){
     var ddView=S.dropdown==='notif'?vNotif:vFriends;
     var ddContent=null;try{ddContent=ddView();}catch(e2){ddContent=el('div',null);ddContent.textContent='Eroare';}
-    var overlay=el('div',{s:'position:absolute;left:220px;bottom:0;width:340px;max-height:80vh;overflow-y:auto;background:var(--bg1);border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:100;padding:4px',click:function(e){e.stopPropagation()}});
+    var isMob=window.innerWidth<=680;
+    var overlayPos=isMob?'left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));width:auto;border-radius:12px 12px 0 0':'left:220px;bottom:0;width:340px;border-radius:12px';
+    var overlay=el('div',{s:'position:absolute;'+overlayPos+';max-height:80vh;overflow-y:auto;background:var(--bg1);border:1px solid var(--bd);box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:100;padding:4px',click:function(e){e.stopPropagation()}});
     var ddClose=el('button',{s:'position:absolute;top:8px;right:10px;background:none;border:none;cursor:pointer;color:var(--tx4);font-size:14px;line-height:1',click:function(){S.dropdown=null;render()}});ddClose.textContent='×';
     overlay.appendChild(ddClose);overlay.appendChild(ddContent);
     wrap.appendChild(overlay);
     document.addEventListener('click',function _dd(){S.dropdown=null;render();document.removeEventListener('click',_dd)},{once:true});
   }
-  // Mobile bottom nav (hidden on desktop via CSS)
-  var mobNavItems=[{id:'dash',ic:'layout-dashboard'},{id:'nutr',ic:'apple'},{id:'sport',ic:'barbell'},{id:'ai',ic:'message-circle-2'},{id:'prof',ic:'user'}];
+  // Mobile bottom nav — all items, horizontally scrollable
   var mobNav=el('div',{c:'mob-nav'});
-  mobNavItems.forEach(function(n){
-    var btn=el('button',{c:'ni'+(S.nav===n.id?' act':''),click:function(){S.nav=n.id;render()}});
-    btn.appendChild(ic(n.ic,17));
-    var lbl=document.createTextNode(NAV.find(function(x){return x.id===n.id})||{l:''});
-    var navItem=NAV.find(function(x){return x.id===n.id});
-    if(navItem){var lblEl=el('span',null);lblEl.textContent=navItem.l.split(' ')[0];btn.appendChild(lblEl)}
+  NAV.forEach(function(n){
+    var btn=el('button',{c:'ni'+(S.nav===n.id?' act':'')});
+    btn.onclick=function(){S.nav=n.id;render()};
+    btn.appendChild(ic(n.ic,18));
+    var lblEl=el('span');lblEl.textContent=n.l.split(' ')[0];
+    btn.appendChild(lblEl);
     mobNav.appendChild(btn);
   });
   wrap.appendChild(mobNav);
