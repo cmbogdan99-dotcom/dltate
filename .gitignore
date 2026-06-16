@@ -1,3 +1,10 @@
 .DS_Store
 Thumbs.db
 *.log
+node_modules/
+android/
+ios/
+package.json
+package-lock.json
+capacitor.config.json
+.claude/
