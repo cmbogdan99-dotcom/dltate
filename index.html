@@ -1908,6 +1908,7 @@ function vProgr(){
 '+fmt(e.weight,1)+'kg':'')+(e.note&&e.note!=='Foto'?'
 '+e.note:'');cell.appendChild(lbl);if(e.img){cell.onclick=(function(src){return function(){var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center';var im=document.createElement('img');im.src=src;im.style.cssText='max-width:94vw;max-height:90vh;border-radius:10px;object-fit:contain';ov.appendChild(im);ov.onclick=function(){document.body.removeChild(ov)};document.body.appendChild(ov);};})(e.img);}var dBtn=el('button',{c:'pgrid-del'});dBtn.textContent='×';dBtn.onclick=(function(eid){return function(ev){ev.stopPropagation();if(!confirm('Stergi aceasta poza?'))return;S.photos=S.photos.filter(function(x){return x.id!==eid});DB.save('photos',S.photos);render();};})(e.id);cell.appendChild(dBtn);pg.appendChild(cell);});ph2.appendChild(pg);}
   return mkSec(hdr,getRec('progr'),pf,ph2)
+}
 function vSport(){
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Sport & Antrenamente','Fier \u015fi Sudori');
   var frm=el('div',{c:'card cp'});var frmH=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:500;margin-bottom:9px'});frmH.textContent='\u00cenregistreaz\u0103 antrenament';frm.appendChild(frmH);
