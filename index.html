@@ -10,23 +10,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Backgrounds — forest dark */
-  --bg:#090d0a;--bg1:#111914;--bg2:#182018;--bg3:#1e2a1e;--bd:#1e2c1e;
-  /* Text — neutral, clean */
-  --tx1:#e8f5ec;--tx2:#a8c4b0;--tx2b:#c4dcc8;--tx3:#6b9478;--tx4:#3d6147;--tx5:#2a4231;
-  /* Accent: forest green primary */
-  --ac:#2d6a4f;--ac-h:#40916c;--ac-l:#74c69d;--ac-glow:rgba(45,106,79,.16);
+  /* Backgrounds — deep slate */
+  --bg:#08090e;--bg1:#0f1018;--bg2:#161824;--bg3:#1c1f2e;--bd:#272b40;
+  /* Text — high contrast */
+  --tx1:#f2f4ff;--tx2:#8f99bb;--tx2b:#b4bcda;--tx3:#575f84;--tx4:#3a4260;--tx5:#262d47;
+  /* Accent: electric blue */
+  --ac:#4f7ef7;--ac-h:#3b6ef0;--ac-l:#93b4fc;--ac-glow:rgba(79,126,247,.18);
   /* Semantic */
-  --or:#f97316;--or-l:#fb923c;   /* orange — XP, energy */
-  --su:#34d399;                   /* teal — success */
-  --wa:#fbbf24;                   /* amber — warnings, achievements */
-  --er:#f87171;                   /* red — errors */
-  --in:#38bdf8;                   /* sky — info, water */
-  --fu:#e879f9;                   /* fuchsia — special */
+  --or:#f97316;--or-l:#fb923c;
+  --su:#34d399;
+  --wa:#fbbf24;
+  --er:#f87171;
+  --in:#38bdf8;
+  --fu:#e879f9;
 }
 [data-theme="light"]{
-  --bg:#f0faf5;--bg1:#ffffff;--bg2:#d8f3dc;--bg3:#b7e4c7;--bd:#74c69d55;
-  --tx1:#1b4332;--tx2:#2d6a4f;--tx2b:#40916c;--tx3:#52b788;--tx4:#2d6a4f;--tx5:#40916c;
+  --bg:#f0f4ff;--bg1:#ffffff;--bg2:#e4eaff;--bg3:#ccd6fa;--bd:#93b4fc55;
+  --tx1:#0a1128;--tx2:#1e3060;--tx2b:#2a4490;--tx3:#3b5fcf;--tx4:#4f7ef7;--tx5:#93b4fc;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Roboto,ui-sans-serif,system-ui,sans-serif;font-size:14px}
@@ -829,10 +829,11 @@ function vOB(){
     [{v:'acasa',l:'Acas\u0103 (g\u0103te\u0219ti)'},{v:'restaurant',l:'Restaurant / livrare'},{v:'mixt',l:'Mixt (50/50)'},{v:'mealprep',l:'Meal prep (preg\u0103te\u0219ti \u00een avans)'}].forEach(function(o){var op=document.createElement('option');op.value=o.v;op.textContent=o.l;if(S.ob.mealContext===o.v)op.selected=true;mcSel.appendChild(op)});
     mcSel.onchange=function(){S.ob.mealContext=this.value};mcW.appendChild(mcLbl);mcW.appendChild(mcSel);r4.appendChild(mcW);content.push(r4);
     var spLbl=el('div',{s:'font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx4);border-top:1px solid var(--bd);padding-top:9px;margin-bottom:7px;margin-top:4px'});spLbl.textContent='Sporturi preferate (alege ce îți place)';content.push(spLbl);
-    var spGrid=el('div',{s:'display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px'});
-    ['Alergare','Sala (forță)','Ciclism','Înot','Yoga','CrossFit','Fotbal','Baschet','HIIT','Pilates','Box','Drumeție','Dans','Tenis','Volei','Padel','Streetworkout','Spinning','Powerlifting','MMA'].forEach(function(sp){
+    var spGrid=el('div',{s:'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;max-height:160px;overflow-y:auto;padding-right:2px'});
+    SPORTS.forEach(function(sp){
       var on=S.ob.preferredSports.indexOf(sp)>-1;
-      var sb2=el('button',{s:'padding:4px 9px;border-radius:20px;border:1px solid '+(on?'#16a34a':'var(--bd)')+';background:'+(on?'var(--ac-glow)':'var(--bg2)')+';color:'+(on?'var(--su)':'var(--tx4)')+';font-size:10px;cursor:pointer;font-family:inherit',click:function(){var idx=S.ob.preferredSports.indexOf(sp);if(idx>-1)S.ob.preferredSports.splice(idx,1);else S.ob.preferredSports.push(sp);render()}});
+      var sb2=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(on?'var(--ac)':'var(--bd)')+';background:'+(on?'var(--ac-glow)':'transparent')+';color:'+(on?'var(--ac-l)':'var(--tx3)')+';font-size:10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s'});
+      sb2.onclick=function(){var idx=S.ob.preferredSports.indexOf(sp);if(idx>-1)S.ob.preferredSports.splice(idx,1);else S.ob.preferredSports.push(sp);render()};
       sb2.textContent=sp;spGrid.appendChild(sb2);
     });content.push(spGrid);
     var spHint=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});spHint.textContent='Opțional — AI-ul va sugera planuri bazate pe preferințele tale.';content.push(spHint);
@@ -1659,7 +1660,7 @@ function vSport(){
   var spLbl=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:4px'});spLbl.textContent='Tip sport';frm.appendChild(spLbl);
   var sg=el('div',{s:'display:flex;flex-wrap:wrap;gap:3px;margin-bottom:9px'});
   SPORTS.forEach(function(sp){
-    var b=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(S.sportType===sp?'#16a34a':'var(--bg3)')+';background:'+(S.sportType===sp?'var(--ac-glow)':'none')+';color:'+(S.sportType===sp?'var(--su)':'var(--tx4)')+';cursor:pointer;font-size:10px;font-family:inherit',click:function(){S.sportType=sp;render()}});
+    var b=el('button',{s:'padding:3px 8px;border-radius:99px;border:1px solid '+(S.sportType===sp?'var(--ac)':'var(--bd)')+';background:'+(S.sportType===sp?'var(--ac-glow)':'transparent')+';color:'+(S.sportType===sp?'var(--ac-l)':'var(--tx3)')+';cursor:pointer;font-size:10px;font-family:inherit;transition:all .12s',click:function(){S.sportType=sp;render()}});
     b.textContent=sp;sg.appendChild(b);
   });frm.appendChild(sg);
   var sRow=el('div',{c:'g2',s:'margin-bottom:8px'});
