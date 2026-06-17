@@ -427,36 +427,36 @@ function recommendSupps(p,ins){
   return scored;
 }
 var ACH_DEF=[
-  {id:'ff',icon:'\uD83C\uDF4E',title:'Prima masa',desc:'Prima inregistrare de aliment',xp:50,cond:function(s){return s.food.length>=1}},
-  {id:'f10',icon:'\uD83C\uDF7D\uFE0F',title:'Mancatorul constient',desc:'10 inregistrari aliment',xp:100,cond:function(s){return s.food.length>=10}},
+  {id:'ff',icon:'apple',title:'Prima masa',desc:'Prima inregistrare de aliment',xp:50,cond:function(s){return s.food.length>=1}},
+  {id:'f10',icon:'tools-kitchen-2',title:'Mancatorul constient',desc:'10 inregistrari aliment',xp:100,cond:function(s){return s.food.length>=10}},
   {id:'w1',icon:'droplet',title:'Prima hidratare',desc:'Primul log de apa',xp:50,cond:function(s){return s.waterLog.length>=1}},
-  {id:'w7',icon:'\uD83C\uDF0A',title:'Sursa de apa',desc:'7 zile hidratare completa',xp:200,cond:function(s){return cntHyd(s)>=7}},
-  {id:'sl1',icon:'\uD83C\uDF19',title:'Dormitor',desc:'Prima inregistrare somn',xp:50,cond:function(s){return s.sleepLog.length>=1}},
+  {id:'w7',icon:'waves',title:'Sursa de apa',desc:'7 zile hidratare completa',xp:200,cond:function(s){return cntHyd(s)>=7}},
+  {id:'sl1',icon:'moon-stars',title:'Dormitor',desc:'Prima inregistrare somn',xp:50,cond:function(s){return s.sleepLog.length>=1}},
   {id:'sl7',icon:'moon',title:'Dormitor de fier',desc:'7 nopti calitate ≥4',xp:250,cond:function(s){return s.sleepLog.filter(function(e){return e.q>=4}).length>=7}},
   {id:'wp5',icon:'scale',title:'Cantarul fidel',desc:'5 inregistrari greutate',xp:100,cond:function(s){return s.progress.length>=5}},
   {id:'wp30',icon:'trending-up',title:'30 zile tracking',desc:'30 inregistrari greutate',xp:400,cond:function(s){return s.progress.length>=30}},
-  {id:'wk1',icon:'\uD83C\uDFCB\uFE0F',title:'Prima sesiune',desc:'Primul antrenament',xp:75,cond:function(s){return s.workouts.length>=1}},
+  {id:'wk1',icon:'dumbbell',title:'Prima sesiune',desc:'Primul antrenament',xp:75,cond:function(s){return s.workouts.length>=1}},
   {id:'wk10',icon:'barbell',title:'Atletic',desc:'10 antrenamente',xp:200,cond:function(s){return s.workouts.length>=10}},
-  {id:'wk50',icon:'\uD83C\uDFC6',title:'Warrior',desc:'50 antrenamente',xp:750,cond:function(s){return s.workouts.length>=50}},
+  {id:'wk50',icon:'trophy',title:'Warrior',desc:'50 antrenamente',xp:750,cond:function(s){return s.workouts.length>=50}},
   {id:'m1',icon:'ruler',title:'Masurat',desc:'Prima masuratoare',xp:75,cond:function(s){return s.measurements.length>=1}},
   {id:'m10',icon:'microscope',title:'Analitic',desc:'10 seturi masuratori',xp:300,cond:function(s){return s.measurements.length>=10}},
-  {id:'g1',icon:'C',title:'Clan',desc:'Ai intrat \u00EEntr-un Clan',xp:100,cond:function(s){return !!(s.profile&&s.profile.gangCode)}},
-  {id:'ch1',icon:'\uD83C\uDFAF',title:'Provocatorul',desc:'Prima provocare completata',xp:100,cond:function(s){return cntChals(s)>=1}},
+  {id:'g1',icon:'users',title:'Clan',desc:'Ai intrat \u00EEntr-un Clan',xp:100,cond:function(s){return !!(s.profile&&s.profile.gangCode)}},
+  {id:'ch1',icon:'target',title:'Provocatorul',desc:'Prima provocare completata',xp:100,cond:function(s){return cntChals(s)>=1}},
   {id:'ch10',icon:'medal',title:'Campionul',desc:'10 provocari completate',xp:500,cond:function(s){return cntChals(s)>=10}},
-  {id:'g25',icon:'\uD83C\uDF1F',title:'25% din obiectiv',desc:'Quart din drum parcurs',xp:150,cond:function(s){return gPct(s)>=25}},
-  {id:'g50',icon:'\u2B50',title:'Jumatatea drumului',desc:'50% din obiectiv atins',xp:300,cond:function(s){return gPct(s)>=50}},
+  {id:'g25',icon:'star',title:'25% din obiectiv',desc:'Quart din drum parcurs',xp:150,cond:function(s){return gPct(s)>=25}},
+  {id:'g50',icon:'star-filled',title:'Jumatatea drumului',desc:'50% din obiectiv atins',xp:300,cond:function(s){return gPct(s)>=50}},
   {id:'g100',icon:'crown',title:'OBIECTIV ATINS!',desc:'Ai atins greutatea \u021Bint\u0103!',xp:1000,cond:function(s){return gPct(s)>=100}},
   {id:'photo1',icon:'camera',title:'Fotograf',desc:'Prima poza de progres marcata',xp:75,cond:function(s){return s.photos.length>=1}}
 ];
 var CHALS=[
   {id:'cd1',type:'d',cat:'nutritie',icon:'droplet',title:'Hidrat azi',desc:'Bea 2L de apa',xp:30,check:function(s){return watToday(s)>=2000}},
-  {id:'cd2',type:'d',cat:'nutritie',icon:'\uD83C\uDF7D\uFE0F',title:'3 mese azi',desc:'Inregistreaza micul dejun, pranzul si cina',xp:40,check:function(s){var dl=s.food.filter(function(e){return e.date===TODAY});return['md','pr','cn'].every(function(m){return dl.some(function(e){return e.meal===m})})}},
-  {id:'cd3',type:'d',cat:'fitness',icon:'\uD83C\uDFC3',title:'Antrenament azi',desc:'Inregistreaza un antrenament',xp:50,check:function(s){return s.workouts.some(function(w){return w.date===TODAY})}},
-  {id:'cd4',type:'d',cat:'wellness',icon:'\uD83C\uDF19',title:'Somn bun',desc:'≥7h somn cu calitate ≥4',xp:35,check:function(s){var l=s.sleepLog[s.sleepLog.length-1];return !!(l&&l.hours>=7&&l.q>=4)}},
+  {id:'cd2',type:'d',cat:'nutritie',icon:'tools-kitchen-2',title:'3 mese azi',desc:'Inregistreaza micul dejun, pranzul si cina',xp:40,check:function(s){var dl=s.food.filter(function(e){return e.date===TODAY});return['md','pr','cn'].every(function(m){return dl.some(function(e){return e.meal===m})})}},
+  {id:'cd3',type:'d',cat:'fitness',icon:'run',title:'Antrenament azi',desc:'Inregistreaza un antrenament',xp:50,check:function(s){return s.workouts.some(function(w){return w.date===TODAY})}},
+  {id:'cd4',type:'d',cat:'wellness',icon:'moon',title:'Somn bun',desc:'≥7h somn cu calitate ≥4',xp:35,check:function(s){var l=s.sleepLog[s.sleepLog.length-1];return !!(l&&l.hours>=7&&l.q>=4)}},
   {id:'cw1',type:'w',cat:'fitness',icon:'barbell',title:'5 antrenamente',desc:'5 antrenamente saptamana asta',xp:150,check:function(s){var m=getMonday();return s.workouts.filter(function(w){return w.date>=m}).length>=5}},
   {id:'cw2',type:'w',cat:'nutritie',icon:'chart-bar',title:'Jurnal 5 zile',desc:'Inregistreaza mancare 5 zile',xp:120,check:function(s){var m=getMonday();var days=new Set(s.food.filter(function(e){return e.date>=m}).map(function(e){return e.date}));return days.size>=5}},
   {id:'cw3',type:'w',cat:'wellness',icon:'droplet',title:'Hidratare 7 zile',desc:'2L apa in fiecare zi',xp:200,check:function(s){return cntHyd7(s)>=7}},
-  {id:'cm1',type:'m',cat:'fitness',icon:'\uD83C\uDFC6',title:'20 antrenamente/luna',desc:'20 antrenamente luna asta',xp:500,check:function(s){var ms=TODAY.slice(0,7);return s.workouts.filter(function(w){return w.date.startsWith(ms)}).length>=20}},
+  {id:'cm1',type:'m',cat:'fitness',icon:'trophy',title:'20 antrenamente/luna',desc:'20 antrenamente luna asta',xp:500,check:function(s){var ms=TODAY.slice(0,7);return s.workouts.filter(function(w){return w.date.startsWith(ms)}).length>=20}},
   {id:'cm2',type:'m',cat:'sanatate',icon:'scale',title:'15 cantariri/luna',desc:'Cantarire de 15 ori luna asta',xp:300,check:function(s){var ms=TODAY.slice(0,7);return s.progress.filter(function(e){return e.date.startsWith(ms)}).length>=15}}
 ];
 function getMonday(){var d=new Date(),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff)).toISOString().split('T')[0]}
@@ -482,10 +482,16 @@ var Calc={
     var bfDeur=bmi&&p.age?+(1.2*bmi+0.23*p.age-10.8*(p.sex==='M'?1:0)-5.4).toFixed(1):null;
     if(bfDeur&&(bfDeur<3||bfDeur>65))bfDeur=null;
     var bmr=Calc.bmr(Object.assign({},p,{height:h,bodyFat:bf}));
-    var tdee=Calc.tdee(bmr,p.activityLevel),raw=Calc.calTgt(tdee,p.goal);
+    var tdeeEst=Calc.tdee(bmr,p.activityLevel);
+    // Adaptive TDEE: when the forecast engine has measured real maintenance from
+    // weight response vs intake, it stores it on the profile and the whole macro
+    // chain self-corrects to reality.
+    var tdeeAdaptive=!!(p.tdeeOverride&&+p.tdeeOverride>800&&+p.tdeeOverride<6000);
+    var tdee=tdeeAdaptive?Math.round(+p.tdeeOverride):tdeeEst;
+    var raw=Calc.calTgt(tdee,p.goal);
     var floor=p.sex==='M'?1400:1200,kcal=Math.max(raw,floor);
     var macros=lbm?Calc.macros(kcal,lbm,p.goal,p.diet):null;
-    return{bf:bf,bfDeur:bfDeur,bmi:bmi,lbm:lbm,ffmi:ffmi,bmr:bmr,tdee:tdee,kcal:kcal,macros:macros,warn:raw<floor}
+    return{bf:bf,bfDeur:bfDeur,bmi:bmi,lbm:lbm,ffmi:ffmi,bmr:bmr,tdee:tdee,tdeeEst:tdeeEst,tdeeAdaptive:tdeeAdaptive,kcal:kcal,macros:macros,warn:raw<floor}
   }
 };
 // Safe localStorage wrapper — falls back to in-memory store when localStorage
@@ -503,7 +509,7 @@ if(!_lsOk){
 }
 var DB={
   load:function(k){return new Promise(function(res){try{var v=_ls.get('dltate:'+k);res(v!=null?JSON.parse(v):null)}catch(e){res(null)}})},
-  save:function(k,v){try{_ls.set('dltate:'+k,JSON.stringify(v))}catch(e){}},
+  save:function(k,v){try{_ls.set('dltate:'+k,JSON.stringify(v))}catch(e){} if(k==='profile'&&!S._suppressCloudSync){try{cloudProfileSync()}catch(e){}}},
   del:function(k){try{_ls.rm('dltate:'+k)}catch(e){}},
   ldSh:function(k){return new Promise(function(res){RTDB.ref('sh/'+k.replace(/:/g,'/')).get().then(function(s){res(s.exists()?s.val():null)}).catch(function(){res(null)})})},
   svSh:function(k,v){RTDB.ref('sh/'+k.replace(/:/g,'/')).set(v).catch(function(){})},
@@ -578,22 +584,37 @@ function authForgot(user,cb){
   }).catch(function(e){cb(e.message)});
 }
 function authChangeCredentials(newUser,newPw,cb){
-  var oldKey=_safeKey(S.authUser);
-  RTDB.ref('accounts/'+oldKey).get().then(function(snap){
-    if(!snap.exists()){cb('Cont negăsit.');return;}
-    var rec=snap.val();
-    var newKey=_safeKey(newUser);
-    var updates={};
-    if(newUser!==S.authUser){
-      updates['accounts/'+newKey]=Object.assign({},rec,{username:newUser,pwHash:_hashPw(newUser,newPw)});
-      updates['accounts/'+oldKey]=null;
-    }else{
-      updates['accounts/'+oldKey+'/pwHash']=_hashPw(newUser,newPw);
-    }
-    RTDB.ref().update(updates).then(function(){
-      S.authUser=newUser;
+  var oldKey=_safeKey(S.authUser);var newKey=_safeKey(newUser);
+  if(newUser===S.authUser){
+    // password-only change
+    RTDB.ref('accounts/'+oldKey+'/pwHash').set(_hashPw(newUser,newPw)).then(function(){
       if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:newUser,pwHash:_hashPw(newUser,newPw)}));
       cb(null);
+    }).catch(function(e){cb(e.message)});
+    return;
+  }
+  RTDB.ref('accounts/'+newKey).get().then(function(exSnap){
+    if(exSnap.exists()){cb('Numele de utilizator este deja folosit.');return;}
+    // Read account + canonical user subtree so the identity migrates intact.
+    Promise.all([RTDB.ref('accounts/'+oldKey).get(),RTDB.ref('users/'+oldKey).get()]).then(function(res){
+      if(!res[0].exists()){cb('Cont negăsit.');return;}
+      var rec=res[0].val();var userNode=res[1].val();
+      var updates={};
+      updates['accounts/'+newKey]=Object.assign({},rec,{username:newUser,pwHash:_hashPw(newUser,newPw)});
+      updates['accounts/'+oldKey]=null;
+      if(userNode){updates['users/'+newKey]=Object.assign({},userNode,{username:newUser});updates['users/'+oldKey]=null;}
+      RTDB.ref().update(updates).then(function(){
+        // Move clan membership to the new key (display name is unchanged).
+        if(S.profile&&S.profile.gangCode){
+          var gc=S.profile.gangCode;
+          RTDB.ref('sh/gang/'+gc+'/'+oldKey).get().then(function(gs){
+            if(gs.exists()){RTDB.ref('sh/gang/'+gc+'/'+newKey).set(gs.val()).then(function(){RTDB.ref('sh/gang/'+gc+'/'+oldKey).remove().catch(function(){})}).catch(function(){});}
+          }).catch(function(){});
+        }
+        S.authUser=newUser;
+        if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:newUser,pwHash:_hashPw(newUser,newPw)}));
+        cb(null);
+      }).catch(function(e){cb(e.message)});
     }).catch(function(e){cb(e.message)});
   }).catch(function(e){cb(e.message)});
 }
@@ -605,10 +626,14 @@ function authLogout(){
 }
 function authDelete(cb){
   var key=_safeKey(S.authUser);
-  RTDB.ref('accounts/'+key).remove().then(function(){
+  var gc=S.profile&&S.profile.gangCode;
+  var ups={};ups['accounts/'+key]=null;ups['users/'+key]=null;
+  if(gc)ups['sh/gang/'+gc+'/'+key]=null;
+  RTDB.ref().update(ups).then(function(){
+    if(gc)_cleanupClanIfEmpty(gc);
     _ls.rm('dltate:session');
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog','suppLog'].forEach(function(k){DB.del(k)});
-    S.loggedIn=false;S.authUser=null;S.profile=null;S.view='login';
+    S.loggedIn=false;S.authUser=null;S.profile=null;S._canonName=null;S.view='login';
     render();
     if(cb)cb(null);
   }).catch(function(e){if(cb)cb(e.message)});
@@ -618,6 +643,7 @@ DB.load('uiLang').then(function(v){if(v){S.lang=v;try{render()}catch(e){}}});
 DB.load('uiMode').then(function(v){if(v){S.mode=v;try{render()}catch(e){}}});
 DB.load('uiTheme').then(function(v){if(v){S.theme=v;document.documentElement.setAttribute('data-theme',v);try{render()}catch(e){}}});
 DB.load('anthropicKey').then(function(k){if(k){S.anthropicKey=k}});
+DB.load('openaiKey').then(function(k){if(k){S.openaiKey=k}});
 DB.load('xpPeriods').then(function(v){if(v)S.xpPeriods=v});
 DB.load('suppLog').then(function(v){if(v)S.suppLog=v});
 function bom(n,b){return S.mode==='bom'?b:n}
@@ -671,8 +697,32 @@ var EN_DICT={};
 'niciun xp câștigat în această perioadă încă.':'No XP earned in this period yet.','sau browse clanuri publice:':'Or browse public clans:','niciun clan public încă. creează tu primul!':'No public clans yet. Create the first one!',
 'suplimentele completează, nu înlocuiesc o dietă echilibrată. consultă un medic înainte de a începe orice supliment, mai ales dacă ai afecțiuni sau iei medicație.':'Supplements complement, not replace, a balanced diet. Consult a doctor before starting any supplement, especially if you have conditions or take medication.'
 };Object.keys(pairs).forEach(function(k){EN_DICT[_normTxt(k)]=pairs[k];});})();
-[['Poză de profil','Profile photo'],['Poza ta, boss','Profile photo'],['Încarcă poză','Upload photo'],['Schimbă poza','Change photo'],['Mod','Mode'],['Temă','Theme'],['Limbă','Language']].forEach(function(pr){EN_DICT[_normTxt(pr[0])]=pr[1];});
-var EN_TOKENS=[[/Începător/g,'Beginner'],[/Intermediar/g,'Intermediate'],[/Avansat/g,'Advanced'],[/Legendă/g,'Legend'],[/ jucători/g,' players'],[/ jucător/g,' player'],[/\(vizitator\)/g,'(guest)'],[/ antren\./g,' workouts'],[/Top global ·/gi,'Global top ·'],[/Top săptămânal ·/gi,'Weekly top ·'],[/Top lunar ·/gi,'Monthly top ·'],[/Top clanuri ·/gi,'Top clans ·'],[/ membri /g,' members '],[/ membri$/g,' members'],[/Distanța față de lider:/g,'Gap to leader:']];
+[['Poză de profil','Profile photo'],['Poza ta, boss','Profile photo'],['Încarcă poză','Upload photo'],['Schimbă poza','Change photo'],['Mod','Mode'],['Temă','Theme'],['Limbă','Language'],
+['Zilnice','Daily'],['Sapt.','Week'],['Lunare','Monthly'],
+['Completat!','Done!'],['✓ Completat!','✓ Done!'],['În progres','In progress'],['Blocată','Locked'],['Deblocată','Unlocked'],['✓ Deblocată','✓ Unlocked'],['○ Blocată','○ Locked'],
+['Misiuni personalizate','Personal missions'],['Provocări standard','Standard challenges'],
+['Prima masa','First meal'],['Mancatorul constient','Mindful eater'],['Prima hidratare','First hydration'],['Sursa de apa','Water source'],
+['Dormitor','Sleeper'],['Dormitor de fier','Iron sleeper'],['Cantarul fidel','Loyal scale'],['30 zile tracking','30-day tracking'],
+['Prima sesiune','First session'],['Atletic','Athletic'],['Warrior','Warrior'],['Masurat','Measured'],['Analitic','Analytical'],
+['Provocatorul','Challenger'],['Campionul','Champion'],['25% din obiectiv','25% of goal'],['Jumatatea drumului','Halfway there'],['OBIECTIV ATINS!','GOAL REACHED!'],['Fotograf','Photographer'],
+['Hidrat azi','Hydrated today'],['3 mese azi','3 meals today'],['Antrenament azi','Workout today'],['Somn bun','Good sleep'],
+['5 antrenamente','5 workouts'],['Jurnal 5 zile','5-day journal'],['Hidratare 7 zile','Hydration 7 days'],['20 antrenamente/luna','20 workouts/month'],['15 cantariri/luna','15 weigh-ins/month'],
+['Spre ','Next: '],['Următorul nivel: ','Next level: '],
+['Metrici calculate','Calculated metrics'],['Informatii personale','Personal info'],['Masuratori corporale','Body measurements'],['Stil de viata','Lifestyle'],
+['Antrenor AI','AI Coach'],['Cocosul tau','Your AI Bro'],['Trofee','Trophies'],['Dare-deal','Challenges'],
+['Sunt de acord','I agree'],['Conectat ca:','Logged in as:'],['Schimbă username / parolă','Change username / password'],['Deconectare','Log out'],
+['Conta','Account'],['Cont','Account'],['Resetare date locale','Reset local data'],
+['Sfatul meu','My tip'],['Sfat','Tip'],['Recomandare','Recommendation'],
+['Realizări deblocate','Achievements unlocked'],['Quart din drum parcurs','A quarter of the way'],['50% din obiectiv atins','50% of goal reached'],
+['Ai atins greutatea țintă!','You reached your target weight!'],
+['Codul tău de jucător','Your player code'],['Copiază','Copy'],['Copiat!','Copied!'],['Distribuie','Share'],
+['Sincronizare','Sync'],['Sincronizat','Synced'],
+['Fondator','Founder'],['Admin','Admin'],['Intru','Join'],
+['Stiva mea','My stack'],['Stiva','Stack'],
+['Nu ai setat nicio doză','No dose set'],
+['Logat','Logged'],['Nu am luat','Not taken']
+].forEach(function(pr){EN_DICT[_normTxt(pr[0])]=pr[1];});
+var EN_TOKENS=[[/Începător/g,'Beginner'],[/Intermediar/g,'Intermediate'],[/Avansat/g,'Advanced'],[/Legendă/g,'Legend'],[/ jucători/g,' players'],[/ jucător/g,' player'],[/\(vizitator\)/g,'(guest)'],[/ antren\./g,' workouts'],[/Top global ·/gi,'Global top ·'],[/Top săptămânal ·/gi,'Weekly top ·'],[/Top lunar ·/gi,'Monthly top ·'],[/Top clanuri ·/gi,'Top clans ·'],[/ membri /g,' members '],[/ membri$/g,' members'],[/Distanța față de lider:/g,'Gap to leader:'],[/Spre /g,'Next: '],[/Săptămâna asta/gi,'This week'],[/Luna asta/gi,'This month'],[/antrenamente/gi,'workouts'],[/antrenament/gi,'workout'],[/realizări/gi,'achievements'],[/realizare/gi,'achievement'],[/provocări/gi,'challenges'],[/provocare/gi,'challenge'],[/zi consecutive/g,'day streak'],[/zile consecutive/g,'day streak']];
 function _trPat(t){var m;
   if(m=t.match(/^(\d+)\s+membri$/))return m[1]+' members';
   if(m=t.match(/^(\d+)\/(\d+)\s+azi$/))return m[1]+'/'+m[2]+' today';
@@ -753,10 +803,69 @@ function getPeriodXP(){
   return{total:total,week:Math.max(0,total-pp.week.base),month:Math.max(0,total-pp.month.base),wk:wk,mk:mk};
 }
 function publishXP(){
-  if(!S.profile||S.guest)return;
+  if(!S.profile||S.guest||!S.authUser)return;
   var pe=getPeriodXP(),lvl=getLvl();
-  RTDB.ref('users/'+UID).update({name:S.profile.name,username:S.authUser||'',code:PCODE,uid:UID,xp:pe.total,xpWeek:pe.week,xpMonth:pe.month,weekKey:pe.wk,monthKey:pe.mk,level:lvl.n,lastSeen:TODAY}).catch(function(){});
-  if(S.profile.gangCode)RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+UID+'/xp').set(pe.total).catch(function(){});
+  // Key by username (not UID) so one account = one leaderboard entry regardless of device/session
+  var fbKey='users/'+_userKey();
+  RTDB.ref(fbKey).update({name:S._canonName||S.profile.name,username:S.authUser,code:PCODE,uid:UID,xp:pe.total,xpWeek:pe.week,xpMonth:pe.month,weekKey:pe.wk,monthKey:pe.mk,level:lvl.n,lastSeen:TODAY}).catch(function(){});
+  if(S.profile.gangCode)RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+S.authUser+'/xp').set(pe.total).catch(function(){});
+}
+// ── Canonical account identity ────────────────────────────────────────────
+// One username == one permanent profile (name). The cloud copy at
+// users/{key}/profile is the single source of truth; logging in anywhere always
+// reconnects to the ORIGINAL identity. The name is locked after first creation.
+function _userKey(u){return _safeKey((u||S.authUser||'').toLowerCase())}
+function _cleanupClanIfEmpty(clanCode){
+  if(!clanCode)return;
+  RTDB.ref('sh/gang/'+clanCode).get().then(function(s2){
+    var v2=s2.val()||{};
+    var hasMember=Object.keys(v2).some(function(k){return k!=='meta'});
+    if(!hasMember)RTDB.ref('sh/gang/'+clanCode).remove().catch(function(){});
+  }).catch(function(){});
+}
+function cloudProfileSync(){
+  if(!S.profile||S.guest||!S.authUser||S._suppressCloudSync)return;
+  var key=_userKey();
+  // The canonical name can never be reassigned once set for an account.
+  var name=S._canonName||S.profile.name;
+  if(S._canonName&&S.profile.name!==S._canonName){S.profile.name=S._canonName;}
+  var toSave=Object.assign({},S.profile,{name:name});
+  RTDB.ref('users/'+key+'/profile').set(toSave).catch(function(){});
+}
+function _enterApp(prof){
+  S.profile=prof;S.metrics=Calc.getM(prof);S._canonName=prof.name;
+  Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
+    S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
+    S.view='app';syncUserToFB();cloudProfileSync();if(prof.gangCode)setupGangListener(prof.gangCode);render();
+  }).catch(function(){S.view='app';render()});
+}
+// Resolve the logged-in account to its canonical identity, then open the app.
+// Cloud profile (the original) always wins. If a different account's data is
+// cached locally on this device, its activity log is cleared so identities
+// never bleed together.
+function bootAccount(){
+  if(!S.authUser){S.view='login';render();return;}
+  var key=_userKey();
+  RTDB.ref('users/'+key+'/profile').get().then(function(snap){
+    var cloudProf=(snap.exists()&&snap.val()&&snap.val().name)?snap.val():null;
+    DB.load('profile').then(function(localProf){
+      if(cloudProf){
+        if(localProf&&localProf.name&&localProf.name!==cloudProf.name){
+          ['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].forEach(function(k){DB.del(k)});
+        }
+        S._suppressCloudSync=true;try{DB.save('profile',cloudProf)}finally{S._suppressCloudSync=false;}
+        _enterApp(cloudProf);
+      }else if(localProf&&localProf.name){
+        // Account exists but never finished onboarding — adopt local as canonical.
+        S._canonName=localProf.name;_enterApp(localProf);
+      }else{
+        S.view='onboarding';S.obStep=0;render();
+      }
+    });
+  }).catch(function(){
+    // Offline — fall back to local profile so the app still opens.
+    DB.load('profile').then(function(p){if(p&&p.name){S._canonName=p.name;_enterApp(p)}else{S.view='onboarding';render()}});
+  });
 }
 function getBully(p,m){
   var taunts=[];
@@ -859,7 +968,7 @@ function openScreenshotScanner(mode){
   closeBtn.onclick=function(){overlay.parentNode&&overlay.parentNode.removeChild(overlay);};
   fi.onchange=function(){
     if(!fi.files||!fi.files[0])return;
-    var key=S.apiKey||(S.profile&&S.profile.apiKey)||'';
+    var key=S.anthropicKey||'';
     if(!key){hint.textContent='Adauga o cheie API Anthropic in Profil > AI pentru scanare automata.';return;}
     hint.textContent='Se analizeaza imaginea...';uploadBtn.disabled=true;
     resizeForAI(fi.files[0],function(b64){
@@ -1052,19 +1161,18 @@ function vLogin(){
     if(!pw||pw.length<4){S.loginErr='Parola trebuie să aibă minim 4 caractere.';render();return}
     if(S.loginTab==='register'&&pw!==S.loginPass2){S.loginErr='Parolele nu coincid.';render();return}
     S.loginLoading=true;S.loginErr='';render();
-    var fn=S.loginTab==='login'?authLogin:authRegister;
+    var isReg=S.loginTab==='register';
+    var fn=isReg?authRegister:authLogin;
     fn(u,pw,function(err){
       S.loginLoading=false;
       if(err){S.loginErr=err;render();return}
-      DB.load('profile').then(function(p){
-        if(p){
-          S.profile=p;S.metrics=Calc.getM(p);
-          Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].map(function(k){return DB.load(k)})).then(function(r2){
-            S.progress=r2[0]||[];S.food=r2[1]||[];S.workouts=r2[2]||[];S.waterLog=r2[3]||[];S.sleepLog=r2[4]||[];S.measurements=r2[5]||[];S.photos=r2[6]||[];S.doneChals=r2[7]||[];S.chat=r2[8]||[];S.xpLog=r2[9]||[];
-            S.view='app';syncUserToFB();if(p.gangCode)setupGangListener(p.gangCode);render();
-          }).catch(function(){S.view='app';render()});
-        }else{S.view='onboarding';render()}
-      }).catch(function(){S.view='onboarding';render()});
+      if(isReg){
+        // Brand-new account → onboarding sets the canonical identity once.
+        S.profile=null;S.metrics=null;S.obStep=0;S.view='onboarding';render();
+      }else{
+        // Login → always reconnect to the original cloud-stored profile.
+        bootAccount();
+      }
     });
   };
   card.appendChild(mainBtn);
@@ -1350,10 +1458,11 @@ function vOB(){
   function finish(){
     var D2=S.ob;
     var p={name:D2.name,age:+D2.age,sex:D2.sex,height:Calc.nH(D2.height),weight:+D2.weight,neck:+D2.neck,waist:+D2.waist,hip:D2.hip?+D2.hip:null,bodyFat:D2.bodyFat?+D2.bodyFat:null,bmi:(D2.bmi?+D2.bmi:null),activityLevel:D2.activityLevel,trainingFrequency:+D2.trainingFrequency||3,sleepHours:+D2.sleepHours||7,goal:D2.goal,targetWeight:+D2.targetWeight,diet:D2.diet,bloodGlucose:D2.bloodGlucose?+D2.bloodGlucose:null,sportHoursWeek:+D2.sportHoursWeek||3,cookTimeDay:+D2.cookTimeDay||30,workHoursDay:+D2.workHoursDay||8,mealContext:D2.mealContext||'acasa',allergies:D2.allergies||[],avoidedFoods:D2.avoidedFoods||'',preferredSports:D2.preferredSports||[],gangCode:'',gangNick:'',createdAt:new Date().toISOString()};
-    S.profile=p;S.metrics=Calc.getM(p);
+    S.profile=p;S.metrics=Calc.getM(p);S._canonName=p.name;
     S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];
     S.view='app';S.nav='dash';
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.save(k,S[k])});
+    if(S.authUser&&!S.guest){cloudProfileSync();syncUserToFB();}
     render();
   }
   var prog=el('div',{c:'opr'});
@@ -1459,7 +1568,7 @@ function vMain(){
     }
     sbExtras.appendChild(_togRow('Mod',[{v:'normal',l:'Normal'},{v:'bom',l:'Bombardier'}],S.mode,function(v){S.mode=v;DB.save('uiMode',v);render();}));
     sbExtras.appendChild(_togRow('Temă',[{v:'dark',l:'Dark'},{v:'light',l:'Light'}],S.theme,function(v){S.theme=v;DB.save('uiTheme',v);render();}));
-    sbExtras.appendChild(_togRow('Limbă',[{v:'ro',l:'RO'},{v:'en',l:'EN'}],S.lang||'ro',function(v){S.lang=v;DB.save('uiLang',v);render();}));
+    if(S.mode!=='bom')sbExtras.appendChild(_togRow('Limbă',[{v:'ro',l:'RO'},{v:'en',l:'EN'}],S.lang||'ro',function(v){S.lang=v;DB.save('uiLang',v);render();}));
     sbF.appendChild(sbExtras);
   }
   // Logout button always visible in sidebar
@@ -1479,11 +1588,11 @@ function vMain(){
   var wrap=el('div',{c:'wrap',s:'position:relative'});wrap.appendChild(sbWrap);wrap.appendChild(mc);
   if(S.newLevel){
     var lvlC=getLvl().c;
-    var lvlIconMap={'Legendă':'👑','Elite':'⚡','Avansat':'💪','Intermediar':'⭐','Începător':'🌱','Nou':'🐣'};
+    var lvlIconMap={'Legendă':'crown','Elite':'bolt','Avansat':'flame','Intermediar':'star-filled','Începător':'seedling','Nou':'user'};
     var lvlOverlay=el('div',{s:'position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)'});
     var lvlCard=el('div',{s:'background:var(--bg2);border:2px solid '+lvlC+';border-radius:20px;padding:30px 26px;text-align:center;max-width:300px;width:90%;animation:lvlPop .45s cubic-bezier(.22,1,.36,1);box-shadow:0 0 60px '+lvlC+'33,0 20px 60px rgba(0,0,0,.7)'});
-    var lvlIco=el('div',{s:'font-size:52px;margin-bottom:10px;line-height:1'});
-    lvlIco.textContent=S.mode==='bom'?getLvl().e:(lvlIconMap[S.newLevel]||'★');
+    var lvlIco=el('div',{s:'font-size:52px;margin-bottom:10px;line-height:1;display:flex;align-items:center;justify-content:center'});
+    if(S.mode==='bom'){lvlIco.textContent=getLvl().e;}else{var _liEl=ic(lvlIconMap[S.newLevel]||'star',56);_liEl.style.color=lvlC;lvlIco.appendChild(_liEl);}
     var lvlBadge=el('div',{s:'display:inline-block;background:'+lvlC+'22;color:'+lvlC+';border:1px solid '+lvlC+'55;border-radius:99px;padding:3px 11px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px'});
     lvlBadge.textContent=bom('Nivel nou!','Ai avansat, boss!');
     var lvlN=el('div',{s:'color:'+lvlC+';font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px'});lvlN.textContent=S.newLevel;
@@ -1497,7 +1606,7 @@ function vMain(){
       achBox.appendChild(achBoxLbl);
       recentAchs.forEach(function(e){
         var achRow=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:3px'});
-        var achIco=el('span',{s:'color:#fbbf24;font-size:13px'});achIco.textContent='🏆';
+        var achIco=el('span',{s:'color:#fbbf24;display:inline-flex'});achIco.appendChild(ic('trophy',13));
         var achTxt=el('span',{s:'color:var(--tx2);font-size:11px;flex:1'});achTxt.textContent=e.reason.replace('Realizare: ','');
         var achXP=el('span',{s:'color:#fbbf24;font-size:10px;font-family:ui-monospace,monospace'});achXP.textContent='+'+e.amt+' XP';
         achRow.appendChild(achIco);achRow.appendChild(achTxt);achRow.appendChild(achXP);achBox.appendChild(achRow);
@@ -1584,6 +1693,128 @@ function getProgressStats(){
   var p=S.profile,startW=first.weight,curW=last.weight,tgtW=p.targetWeight;
   var goalPct=tgtW&&startW!==tgtW?Math.min(100,Math.max(0,Math.round(Math.abs(startW-curW)/Math.abs(startW-tgtW)*100))):null;
   return{totalChange:totalChange,weeklyRate:weeklyRate,plateau:plateau,streak:streak,goalPct:goalPct,entries:prog.length};
+}
+// ── Adaptive prediction & insight engine ──────────────────────────────────
+// Learns from the user's REAL weight response (least-squares trend on a recency
+// window) and their REAL intake to: (1) forecast ETA-to-goal with a confidence
+// band, (2) measure true maintenance calories (adaptive TDEE), (3) recommend a
+// self-correcting calorie target, (4) classify the trajectory. Everything
+// re-derives from data on each call, so it adapts continuously to progress.
+var KCAL_PER_KG=7700; // mixed-tissue energy density
+function _linReg(pts){ // pts:[{x,y}] → {slope,intercept,r2,n,se}
+  var n=pts.length;if(n<2)return null;
+  var sx=0,sy=0,sxx=0,sxy=0,syy=0;
+  pts.forEach(function(p){sx+=p.x;sy+=p.y;sxx+=p.x*p.x;sxy+=p.x*p.y;syy+=p.y*p.y;});
+  var d=n*sxx-sx*sx;if(d===0)return null;
+  var slope=(n*sxy-sx*sy)/d,intercept=(sy-slope*sx)/n;
+  var ssTot=syy-sy*sy/n,ssRes=0;
+  pts.forEach(function(p){var pr=slope*p.x+intercept;ssRes+=(p.y-pr)*(p.y-pr);});
+  var r2=ssTot>0?Math.max(0,1-ssRes/ssTot):(ssRes<1e-9?1:0);
+  // standard error of the slope
+  var se=null;if(n>2){var resVar=ssRes/(n-2);se=Math.sqrt(resVar/(sxx-sx*sx/n));}
+  return{slope:slope,intercept:intercept,r2:r2,n:n,se:se};
+}
+function getForecast(s){
+  s=s||S;var p=s.profile,m=s.metrics;
+  if(!p)return{ready:false,reason:'no_profile'};
+  var prog=(s.progress||[]).slice().filter(function(e){return e&&e.weight}).sort(function(a,b){return a.date.localeCompare(b.date)});
+  var goal=p.goal||'p';
+  var goalDir=(goal==='mb'||goal==='mc')?1:(goal==='mn'?0:-1); // -1 lose, +1 gain, 0 maintain
+  var tgt=+p.targetWeight||null;
+  if(prog.length<3)return{ready:false,reason:'need_data',have:prog.length,need:3,goalDir:goalDir};
+  // day index = days since first entry
+  var t0=new Date(prog[0].date).getTime();
+  var pts=prog.map(function(e){return{x:Math.round((new Date(e.date).getTime()-t0)/86400000),y:e.weight,date:e.date};});
+  var spanDays=pts[pts.length-1].x-pts[0].x;
+  if(spanDays<6)return{ready:false,reason:'need_span',spanDays:spanDays,goalDir:goalDir};
+  // Adaptive recency window: last 35 days of entries (≥3), else all.
+  var lastX=pts[pts.length-1].x,winStart=lastX-35;
+  var win=pts.filter(function(q){return q.x>=winStart});
+  if(win.length<3)win=pts.slice(-Math.min(pts.length,6));
+  var reg=_linReg(win);
+  if(!reg)return{ready:false,reason:'degenerate',goalDir:goalDir};
+  var ratePerDay=reg.slope,ratePerWeek=+(ratePerDay*7).toFixed(2);
+  var smoothedCurrent=+(reg.slope*lastX+reg.intercept).toFixed(2);
+  var rawCurrent=pts[pts.length-1].y;
+  // Confidence from fit quality + sample size + span
+  var conf=reg.r2*Math.min(1,reg.n/6)*Math.min(1,(lastX-win[0].x)/21);
+  var confLabel=conf>=0.55?'high':conf>=0.25?'medium':'low';
+  // ── Trajectory classification ──
+  var nearGoal=tgt!=null&&Math.abs(smoothedCurrent-tgt)<=0.3;
+  var moving=Math.abs(ratePerWeek)>=0.05; // ≥50 g/week is a real trend
+  var rightDir=goalDir===0?!moving:(Math.sign(ratePerDay)===goalDir);
+  // healthy pace band (kg/week, absolute)
+  var bwPct=smoothedCurrent*0.01; // 1% bodyweight
+  var paceBand=goalDir<0?{lo:0.35,hi:Math.max(0.9,bwPct)}:goalDir>0?{lo:0.12,hi:0.5}:{lo:0,hi:0.15};
+  var absRate=Math.abs(ratePerWeek);
+  var traj,trajColor;
+  if(nearGoal){traj='reached';trajColor='#34d399';}
+  else if(goalDir!==0&&!moving){traj='plateau';trajColor='#fbbf24';}
+  else if(goalDir!==0&&!rightDir){traj='reversed';trajColor='#f87171';}
+  else if(goalDir!==0&&absRate>paceBand.hi*1.15){traj='fast';trajColor='#fb923c';}
+  else if(goalDir!==0&&absRate<paceBand.lo){traj='slow';trajColor='#fbbf24';}
+  else{traj='ontrack';trajColor='#34d399';}
+  // ── ETA to goal ──
+  var eta=null,etaDate=null,etaLo=null,etaHi=null,etaWeeks=null;
+  if(tgt!=null&&!nearGoal&&rightDir&&moving){
+    var remaining=tgt-smoothedCurrent;
+    var days=remaining/ratePerDay;
+    if(days>0&&days<3650){
+      eta=Math.round(days);etaWeeks=+(days/7).toFixed(1);
+      var ed=new Date();ed.setDate(ed.getDate()+eta);etaDate=ed.toISOString().split('T')[0];
+      // band from slope standard error
+      if(reg.se&&reg.se>0){
+        var rLo=ratePerDay-reg.se,rHi=ratePerDay+reg.se;
+        // keep same sign as trend
+        if(Math.sign(rLo)===Math.sign(ratePerDay)&&Math.abs(rLo)>1e-5){var dHi=remaining/rLo;if(dHi>0&&dHi<3650)etaHi=Math.round(dHi);}
+        if(Math.sign(rHi)===Math.sign(ratePerDay)&&Math.abs(rHi)>1e-5){var dLo=remaining/rHi;if(dLo>0)etaLo=Math.round(dLo);}
+      }
+    }
+  }
+  // ── Measured (adaptive) TDEE from intake vs realized rate ──
+  var measuredTDEE=null,intakeDays=0,avgIntake=null,adaptationPct=null;
+  var cutoff=new Date();cutoff.setDate(cutoff.getDate()-Math.min(35,Math.max(14,spanDays)));
+  var cIso=cutoff.toISOString().split('T')[0];
+  var fByDay={};(s.food||[]).filter(function(e){return e.date>=cIso}).forEach(function(e){fByDay[e.date]=(fByDay[e.date]||0)+(e.c||0);});
+  var fDays=Object.keys(fByDay);intakeDays=fDays.length;
+  if(intakeDays>=5){
+    avgIntake=Math.round(fDays.reduce(function(a,d){return a+fByDay[d]},0)/intakeDays);
+    // energy balance: rate*7700 = intake - TDEE  ⇒  TDEE = intake - rate*7700
+    measuredTDEE=Math.round(avgIntake-ratePerDay*KCAL_PER_KG);
+    if(measuredTDEE<800||measuredTDEE>6000)measuredTDEE=null;
+    if(measuredTDEE&&m&&m.tdeeEst)adaptationPct=Math.round((measuredTDEE-m.tdeeEst)/m.tdeeEst*100);
+  }
+  // ── Self-correcting calorie recommendation ──
+  var recKcal=null,recRate=null;
+  var baseTDEE=measuredTDEE||(m&&m.tdee)||null;
+  if(baseTDEE&&goalDir!==0&&tgt!=null&&!nearGoal){
+    // aim for the middle of the healthy pace band, in the goal direction
+    recRate=goalDir*((paceBand.lo+Math.min(paceBand.hi,goalDir<0?0.7:0.4))/2);
+    recKcal=Math.round(baseTDEE+(recRate/7)*KCAL_PER_KG); // recRate kg/week → kcal/day
+    var fl=p.sex==='M'?1400:1200;if(recKcal<fl)recKcal=fl;
+  }else if(baseTDEE&&goalDir===0){recKcal=baseTDEE;recRate=0;}
+  // ── Forward projection series (for chart overlay) ──
+  var proj=[];
+  if(rightDir||goalDir===0){
+    var horizon=eta?Math.min(eta+14,365):84;
+    for(var dd=0;dd<=horizon;dd+=7){
+      var w=reg.slope*(lastX+dd)+reg.intercept;
+      var bandW=reg.se?reg.se*dd*1.0:Math.max(0.3,Math.abs(reg.slope)*dd*0.3);
+      var ld=new Date();ld.setDate(ld.getDate()+dd);
+      proj.push({date:ld.toISOString().split('T')[0],w:+w.toFixed(2),lo:+(w-bandW).toFixed(2),hi:+(w+bandW).toFixed(2)});
+    }
+  }
+  // ── Lean-mass guard: are we losing weight too fast / losing muscle? ──
+  var muscleRisk=goalDir<0&&absRate>Math.max(1.0,bwPct*1.1);
+  return{
+    ready:true,goalDir:goalDir,tgt:tgt,
+    ratePerWeek:ratePerWeek,smoothedCurrent:smoothedCurrent,rawCurrent:rawCurrent,
+    r2:+reg.r2.toFixed(2),conf:+conf.toFixed(2),confLabel:confLabel,n:reg.n,spanDays:spanDays,
+    traj:traj,trajColor:trajColor,paceBand:paceBand,
+    eta:eta,etaDate:etaDate,etaWeeks:etaWeeks,etaLo:etaLo,etaHi:etaHi,
+    measuredTDEE:measuredTDEE,tdeeEst:(m&&m.tdeeEst)||null,avgIntake:avgIntake,intakeDays:intakeDays,adaptationPct:adaptationPct,
+    recKcal:recKcal,recRate:recRate&&+recRate.toFixed(2),muscleRisk:muscleRisk,proj:proj
+  };
 }
 function mkRec(tips){
   if(!tips||!tips.length)return null;
@@ -1779,9 +2010,9 @@ function vDash(){
     if(/forț/i.test(goalBase)&&spPref2.indexOf('Sala (forta)')<0&&spPref2.indexOf('Powerlifting')<0&&spPref2.indexOf('CrossFit')<0&&spPref2.indexOf('Streetworkout')<0)suggestedSports.push('Sala (forta)');
     if(/cardio/i.test(goalBase)&&spPref2.indexOf('Alergare')<0&&spPref2.indexOf('Ciclism')<0&&spPref2.indexOf('Inot')<0&&spPref2.indexOf('HIIT')<0)suggestedSports.push('Alergare / Ciclism');
     if(suggestedSports.length){
-      recItems.push({ic:'plus-circle',col:'var(--ac-l)',txt:bom(
-        'Sugestie suplimentară (neselecționată): '+suggestedSports.join(', ')+' — recomandate pentru "'+goalBase+'". Adaugă-le din Profil → Editează dacă ești interesat.',
-        'Sugestie opțională, boss: '+suggestedSports.join(', ')+' ar da rezultate maxime pentru obiectivul tău. Dacă vrei, adaugă-le din Profil!'
+      recItems.push({ic:'plus-circle',col:'var(--ac-l)',nav:'prof',navLabel:bom('Adaugă în Profil →','Adaugă în Profil →'),txt:bom(
+        suggestedSports.join(', ')+' — recomandate pentru "'+goalBase+'".',
+        suggestedSports.join(', ')+' ar da rezultate maxime pentru obiectivul tău, boss.'
       )});
     }
   }else{
@@ -1801,13 +2032,15 @@ function vDash(){
   }
   // Evidence-based supplement suggestions (top 2)
   var _suppRecs=recommendSupps(p,_ins).slice(0,2);
-  _suppRecs.forEach(function(r){recItems.push({ic:'pill',col:'#34d399',txt:bom(r.s.n+' ('+SUPP_EV_LABEL[r.s.ev].toLowerCase()+'): '+r.s.dose+', '+r.s.timing+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'. Adaugă-l din Nutriție → Jurnal.',r.s.n+': '+r.s.dose+', '+r.s.timing+'. '+r.reason+', tati. Îl bifezi din Jurnal.')});});
+  _suppRecs.forEach(function(r){recItems.push({ic:'pill',col:'#34d399',nav:'nutr',navLabel:bom('Vezi în Nutriție →','Bifează în Jurnal →'),txt:bom(r.s.n+': '+r.s.dose+', '+r.s.timing+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.',r.s.n+': '+r.s.dose+'. '+r.reason+', tati.')});});
   recItems.forEach(function(r){
     var row=el('div',{s:'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bd)'});
     var ico=el('div',{s:'width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px'});
     ico.appendChild(ic(r.ic,11));
-    var txt=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});txt.textContent=r.txt;
-    row.appendChild(ico);row.appendChild(txt);recCard.appendChild(row);
+    var txWrap=el('div',{s:'flex:1;min-width:0'});
+    var txt=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});txt.textContent=r.txt;txWrap.appendChild(txt);
+    if(r.nav){var navBtn=el('button',{s:'margin-top:5px;background:none;border:none;padding:0;cursor:pointer;color:var(--ac-l);font-size:10px;font-weight:600;font-family:inherit;display:inline-flex;align-items:center;gap:2px'});navBtn.textContent=r.navLabel||'→';navBtn.onclick=function(){S.nav=r.nav;render()};txWrap.appendChild(navBtn);}
+    row.appendChild(ico);row.appendChild(txWrap);recCard.appendChild(row);
   });
   var ps=getProgressStats(),progCard=null;
   if(ps){
@@ -1825,7 +2058,7 @@ function vDash(){
     });progCard.appendChild(pgGrid);
     if(ps.plateau){
       var platDiv=el('div',{s:'background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:7px;padding:8px 10px;font-size:11px;color:#fde68a'});
-      platDiv.textContent='⚠️ Platou detectat — greutatea n-a variat semnificativ în ultimele 14 zile. Încearcă: zi de refeed (+200 kcal), schimbă tipul de cardio, sau verifică somnul.';
+      var platW=el('span',{s:'color:#fde68a;display:inline-flex;align-items:center;vertical-align:middle;margin-right:4px'});platW.appendChild(ic('alert-triangle',12));platDiv.appendChild(platW);platDiv.appendChild(document.createTextNode('Platou detectat — greutatea n-a variat semnificativ în ultimele 14 zile. Încearcă: zi de refeed (+200 kcal), schimbă tipul de cardio, sau verifică somnul.'));
       progCard.appendChild(platDiv);
     }
   }
@@ -1833,7 +2066,7 @@ function vDash(){
   var highInt=last5wk.filter(function(w){return w.int>=8});
   var overtrain=highInt.length>=4;
   var overCard=overtrain?el('div',{c:'card cp',s:'border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.04)'}):null;
-  if(overCard){var ocH=el('div',{s:'color:#fde68a;font-size:12px;font-weight:600;margin-bottom:5px'});ocH.textContent='⚠️ Risc supraantrenament';var ocT=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});ocT.textContent=highInt.length+' antrenamente la intensitate ≥8 în ultimele 5 zile. Recomandare: zi de odihnă activă sau antrenament ușor (intensitate ≤5).';overCard.appendChild(ocH);overCard.appendChild(ocT);}
+  if(overCard){var ocH=el('div',{s:'color:#fde68a;font-size:12px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:4px'});var ocW=el('span',{s:'display:inline-flex'});ocW.appendChild(ic('alert-triangle',12));ocH.appendChild(ocW);ocH.appendChild(document.createTextNode('Risc supraantrenament'));var ocT=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});ocT.textContent=highInt.length+' antrenamente la intensitate ≥8 în ultimele 5 zile. Recomandare: zi de odihnă activă sau antrenament ușor (intensitate ≤5).';overCard.appendChild(ocH);overCard.appendChild(ocT);}
   // Daily Readiness Score card
   var rdy=getDailyReadiness();
   var rdyCard=el('div',{c:'card cp'});
@@ -1869,7 +2102,7 @@ function vDash(){
   var strTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});strTitle.textContent=bom('Activitate ultimele 4 săptămâni','Cât ai mișcat, boss?');
   var streak=0;var todayD=new Date();
   for(var si=0;si<30;si++){var sd2=new Date(todayD);sd2.setDate(todayD.getDate()-si);var sds=sd2.toISOString().split('T')[0];if(S.workouts.some(function(w){return w.date===sds})){streak++}else if(si>0){break;}}
-  var strBadge=el('div',{s:'color:#fbbf24;font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px'});strBadge.textContent='🔥 '+streak+'z';
+  var strBadge=el('div',{s:'color:#fbbf24;font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px'});if(S.mode==='bom'){strBadge.textContent='🔥 '+streak+'z';}else{strBadge.appendChild(ic('flame',11));strBadge.appendChild(document.createTextNode(' '+streak+'z'));}
   strHdr.appendChild(strTitle);strHdr.appendChild(strBadge);strCard.appendChild(strHdr);
   strCard.appendChild(mkStreakCalendar());
   var strLeg=el('div',{s:'display:flex;align-items:center;gap:8px;margin-top:7px'});
@@ -2094,7 +2327,7 @@ function rbFL(){
     var qRow=el('div',{s:'display:flex;gap:7px;align-items:flex-end;margin-bottom:7px'});
     var qD=el('div',null);var qL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});qL.textContent='Cantitate ('+sf.u+')';qD.appendChild(qL);
     var qi=el('input',{id:'foodQty',c:'inp',s:'font-size:11px;width:90px',type:'number',ph:String(sf.s),val:S.fqty||String(sf.s),min:NUM_CONSTRAINTS.foodQty.min,max:NUM_CONSTRAINTS.foodQty.max,step:NUM_CONSTRAINTS.foodQty.step,inp:function(e2){S.fqty=e2.target.value;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal'}});
-    try{qi.onblur=function(){S.fqty=clampToConstraints('foodQty',this.value);var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal';render()}}catch(e5){}
+    try{qi.onblur=function(){S.fqty=clampToConstraints('foodQty',this.value);this.value=S.fqty;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal'}}catch(e5){}
     qD.appendChild(qi);
     var pvDiv=el('div',{id:'fl-pv',s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:var(--ac-l);flex-shrink:0'});
     pvDiv.textContent=Math.round(sf.c*((+(S.fqty||sf.s))/sf.s))+' kcal';
@@ -2138,7 +2371,7 @@ function vStat(){
     [150,250,350,500,750].forEach(function(ml){var b=el('button',{c:'wqb',click:function(){S.waterLog.push({id:String(Date.now()),date:TODAY,amt:ml});DB.save('waterLog',S.waterLog);render()}});b.textContent=ml+'ml';qRow.appendChild(b)});wc.appendChild(qRow);
     var cRow=el('div',{s:'display:flex;gap:6px'});
     var ci=el('input',{id:'waterQty',c:'inp',s:'flex:1;font-size:11px',type:'number',ph:'Cantitate (ml)',val:S.wIn||'',min:NUM_CONSTRAINTS.waterQty.min,max:NUM_CONSTRAINTS.waterQty.max,step:NUM_CONSTRAINTS.waterQty.step,inp:function(e2){S.wIn=e2.target.value}});
-    try{ci.onblur=function(){S.wIn=clampToConstraints('waterQty',this.value);render()}}catch(e6){}
+    try{ci.onblur=function(){S.wIn=clampToConstraints('waterQty',this.value);this.value=S.wIn}}catch(e6){}
     var cb=el('button',{c:'btn bp',s:'font-size:11px'});cb.disabled=!S.wIn;cb.textContent='Add';cb.prepend(ic('plus',11));
     cb.onclick=function(){if(!S.wIn)return;S.waterLog.push({id:String(Date.now()),date:TODAY,amt:+S.wIn});S.wIn='';DB.save('waterLog',S.waterLog);render()};
     cRow.appendChild(ci);cRow.appendChild(cb);wc.appendChild(cRow);
@@ -2161,10 +2394,10 @@ function vStat(){
     var sRow=el('div',{c:'g2',s:'margin-bottom:9px'});
     var hD=el('div',null);var hL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});hL.textContent='Ore de somn *';
     var hIw=el('div',{c:'iw'});var hI=el('input',{id:'sleepHours',c:'inp',s:'font-size:11px',type:'number',ph:'7.5',step:NUM_CONSTRAINTS.sleepHours.step,val:S.slH||'',min:NUM_CONSTRAINTS.sleepHours.min,max:NUM_CONSTRAINTS.sleepHours.max,inp:function(e2){S.slH=e2.target.value}});var hIu=el('span',{c:'iu'});hIu.textContent='h';hIw.appendChild(hI);hIw.appendChild(hIu);hD.appendChild(hL);hD.appendChild(hIw);
-    try{hI.onblur=function(){S.slH=clampToConstraints('sleepHours',this.value);render()}}catch(e7){}
+    try{hI.onblur=function(){S.slH=clampToConstraints('sleepHours',this.value);this.value=S.slH}}catch(e7){}
     var dD=el('div',null);var dL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});dL.textContent='Somn profund (opt.)';
     var dIw=el('div',{c:'iw'});var dI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'20',val:S.slD||'',min:NUM_CONSTRAINTS.slD.min,max:NUM_CONSTRAINTS.slD.max,step:NUM_CONSTRAINTS.slD.step,inp:function(e2){S.slD=e2.target.value}});var dIu=el('span',{c:'iu'});dIu.textContent='%';dIw.appendChild(dI);dIw.appendChild(dIu);dD.appendChild(dL);dD.appendChild(dIw);
-    try{dI.onblur=function(){S.slD=clampToConstraints('slD',this.value);render()}}catch(e8){}
+    try{dI.onblur=function(){S.slD=clampToConstraints('slD',this.value);this.value=S.slD}}catch(e8){}
     sRow.appendChild(hD);sRow.appendChild(dD);sf.appendChild(sRow);
     var qualDiv=el('div',{s:'margin-bottom:9px'});
     var qL2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:5px'});qL2.textContent='Calitate somn';qualDiv.appendChild(qL2);
@@ -2222,6 +2455,119 @@ function vStat(){
   });
   return mkSec(hdr,getRec('stat'),rc)
 }
+function mkForecastCard(){
+  var f=getForecast();if(!f)return null;
+  var p=S.profile,m=S.metrics;
+  var card=el('div',{c:'card cp'});
+  var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:8px'});
+  var hIc=el('span',{s:'color:var(--ac-l);display:inline-flex'});hIc.appendChild(ic('chart-line',13));
+  var hT=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});hT.textContent=bom('Predicție adaptivă','Unde ajungi, boss?');
+  hd.appendChild(hIc);hd.appendChild(hT);card.appendChild(hd);
+  if(!f.ready){
+    var msg;
+    if(f.reason==='need_data')msg=bom('Mai cântărește-te de câteva ori — predicția pornește după 3 înregistrări (ai '+(f.have||0)+'/3).','Mai urcă pe cântar, tati — am nevoie de 3 cântăriri ca să-ți zic unde ajungi.');
+    else if(f.reason==='need_span')msg=bom('Predicția se activează după ~1 săptămână de cântăriri (ai '+f.spanDays+' zile).','Încă vreo zile de cântăriri și-ți fac harta, boss.');
+    else msg=bom('Adaugă greutatea ta în secțiunea de mai jos pentru predicții personalizate.','Bagă greutatea jos și-ți fac calculul, tati.');
+    var mb=el('div',{s:'color:var(--tx4);font-size:11px;line-height:1.5'});mb.textContent=msg;card.appendChild(mb);
+    return card;
+  }
+  var trajLabels={reached:bom('Țintă atinsă!','Ai reușit, boss!'),ontrack:bom('Pe traiectorie bună','Mergi ca trenul'),fast:bom('Ritm prea agresiv','Prea repede, tati'),slow:bom('Ritm prea lent','Cam moale, boss'),plateau:bom('Platou','Te-ai blocat'),reversed:bom('Direcție greșită','Mergi invers, frate')};
+  // Headline row
+  var hl=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px'});
+  var hlL=el('div',null);
+  var badge=el('div',{s:'display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:'+f.trajColor});
+  var bi={reached:'circle-check',ontrack:'trending-up',fast:'flame',slow:'hourglass',plateau:'minus',reversed:'alert-triangle'}[f.traj]||'activity';
+  var bIc=el('span',{s:'display:inline-flex'});bIc.appendChild(ic(bi,13));badge.appendChild(bIc);
+  var bTx=el('span');bTx.textContent=trajLabels[f.traj];badge.appendChild(bTx);
+  hlL.appendChild(badge);
+  var rateTx=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:2px'});
+  rateTx.textContent=(f.ratePerWeek>0?'+':'')+f.ratePerWeek+bom(' kg/săpt · tendință reală',' kg/săpt măsurat');
+  hlL.appendChild(rateTx);
+  hl.appendChild(hlL);
+  var confChip=el('div',{s:'font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap;color:'+(f.confLabel==='high'?'#34d399':f.confLabel==='medium'?'#fbbf24':'#94a3b8')+';background:'+(f.confLabel==='high'?'rgba(52,211,153,.12)':f.confLabel==='medium'?'rgba(251,191,36,.12)':'rgba(148,163,184,.12)')});
+  confChip.textContent=bom('încredere ','enc. ')+(f.confLabel==='high'?bom('mare','mare'):f.confLabel==='medium'?bom('medie','medie'):bom('redusă','mică'));
+  hl.appendChild(confChip);card.appendChild(hl);
+  // ETA hero
+  if(f.eta!=null&&f.etaDate){
+    var etaBox=el('div',{s:'background:var(--bg2);border-radius:9px;padding:9px 11px;margin-bottom:9px'});
+    var etaL=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px'});etaL.textContent=bom('Țintă estimată ('+(+p.targetWeight)+'kg)','Ajungi la '+(+p.targetWeight)+'kg');etaBox.appendChild(etaL);
+    var etaV=el('div',{s:'color:var(--tx1);font-size:15px;font-weight:700'});
+    var dObj=new Date(f.etaDate);var etaStr=dObj.toLocaleDateString('ro-RO',{day:'numeric',month:'long',year:'numeric'});
+    etaV.textContent=etaStr+'  ·  ~'+f.etaWeeks+bom(' săpt',' săpt');etaBox.appendChild(etaV);
+    if(f.etaLo&&f.etaHi&&(f.etaHi-f.etaLo)>=5){var bandTx=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:2px'});var lo=new Date();lo.setDate(lo.getDate()+f.etaLo);var hi=new Date();hi.setDate(hi.getDate()+f.etaHi);bandTx.textContent=bom('Interval probabil: ','Cam între ')+lo.toLocaleDateString('ro-RO',{day:'numeric',month:'short'})+' – '+hi.toLocaleDateString('ro-RO',{day:'numeric',month:'short'});etaBox.appendChild(bandTx);}
+    card.appendChild(etaBox);
+  }else if(f.traj==='plateau'){
+    var plBox=el('div',{s:'background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:9px;padding:9px 11px;margin-bottom:9px;color:#fde68a;font-size:11px;line-height:1.5'});
+    plBox.textContent=bom('Greutatea e blocată de ~2 săptămâni. Strategie: o zi de refeed (+250 kcal), variază cardio-ul, sau scade ținta cu ~150 kcal — vezi recomandarea de mai jos.','Te-ai înțepenit, boss. Bagă o zi de refeed, schimbă cardio-ul sau taie ~150 kcal. Vezi mai jos.');
+    card.appendChild(plBox);
+  }else if(f.traj==='reversed'){
+    var rvBox=el('div',{s:'background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:9px;padding:9px 11px;margin-bottom:9px;color:#fca5a5;font-size:11px;line-height:1.5'});
+    rvBox.textContent=bom('Tendința merge în sens opus obiectivului. Verifică aportul caloric și recomandarea adaptivă de mai jos.','Mergi fix invers, frate. Verifică ce mănânci și aplică ținta de jos.');
+    card.appendChild(rvBox);
+  }
+  // Forecast chart (actual + projected trajectory toward target)
+  if(f.proj&&f.proj.length){
+    var cw=el('div',{s:'position:relative;height:120px;margin-bottom:9px'});var can=el('canvas',{id:'fcch'});cw.appendChild(can);card.appendChild(cw);
+    var actual=S.progress.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).slice(-10);
+    var actLabels=actual.map(function(e){return fmtD(e.date)});
+    var projLabels=f.proj.slice(1).map(function(e){return fmtD(e.date)});
+    var labels=actLabels.concat(projLabels);
+    var nA=actual.length,nP=f.proj.length-1;
+    var dActual=actual.map(function(e){return e.weight}).concat(new Array(nP).fill(null));
+    var lastW=actual.length?actual[actual.length-1].weight:f.proj[0].w;
+    var dFore=new Array(nA-1).fill(null).concat([lastW]).concat(f.proj.slice(1).map(function(e){return e.w}));
+    var dTgt=labels.map(function(){return f.tgt});
+    var fcCol=f.trajColor;
+    setTimeout(function(){var ctx=document.getElementById('fcch');if(!ctx)return;if(CR.fcch){try{CR.fcch.destroy()}catch(e2){}}CR.fcch=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[
+      {label:bom('Real','Real'),data:dActual,borderColor:'#34d399',borderWidth:2,pointRadius:2,fill:false,tension:.3},
+      {label:bom('Prognoză','Prognoză'),data:dFore,borderColor:fcCol,borderWidth:2,borderDash:[5,4],pointRadius:0,fill:false,tension:.3},
+      {label:bom('Țintă','Țintă'),data:f.tgt!=null?dTgt:[],borderColor:'#64748b',borderWidth:1,borderDash:[2,3],pointRadius:0,fill:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:9},boxWidth:10}},tooltip:{backgroundColor:'#1e293b',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#334155',borderWidth:1}},scales:{x:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:8},maxTicksLimit:7}},y:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}}}}})},60);
+  }
+  // Adaptive TDEE + self-correcting calorie recommendation
+  if(f.measuredTDEE){
+    var tdBox=el('div',{s:'border-top:1px solid var(--bd);padding-top:9px'});
+    var tdH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:5px'});var tdHi=el('span',{s:'color:#38bdf8;display:inline-flex'});tdHi.appendChild(ic('flame',11));tdH.appendChild(tdHi);var tdHt=el('span',{s:'color:var(--tx2);font-size:11px;font-weight:600'});tdHt.textContent=bom('Metabolism măsurat','Cât arzi de fapt');tdH.appendChild(tdHt);tdBox.appendChild(tdH);
+    var tdRow=el('div',{s:'display:flex;gap:8px;margin-bottom:7px'});
+    function _mini(l,v,c){var d=el('div',{s:'flex:1;background:var(--bg2);border-radius:7px;padding:6px 8px'});var dl=el('div',{s:'color:var(--tx5);font-size:9px;margin-bottom:1px'});dl.textContent=l;var dv=el('div',{s:'color:'+(c||'var(--tx2b)')+';font-size:13px;font-weight:700;font-family:ui-monospace,monospace'});dv.textContent=v;d.appendChild(dl);d.appendChild(dv);return d;}
+    tdRow.appendChild(_mini(bom('Estimat','Estimat'),(f.tdeeEst||'—')+' kcal','#94a3b8'));
+    tdRow.appendChild(_mini(bom('Măsurat real','Real măsurat'),f.measuredTDEE+' kcal','#38bdf8'));
+    tdBox.appendChild(tdRow);
+    if(f.adaptationPct!=null&&Math.abs(f.adaptationPct)>=4){
+      var adTx=el('div',{s:'color:var(--tx4);font-size:10px;line-height:1.5;margin-bottom:7px'});
+      adTx.textContent=f.adaptationPct<0
+        ? bom('Corpul tău arde cu ~'+Math.abs(f.adaptationPct)+'% mai puțin decât estimarea teoretică (adaptare metabolică sau porții subraportate). Ținta de mai jos corectează asta.','Arzi cu '+Math.abs(f.adaptationPct)+'% mai puțin decât zice teoria, tati. Ținta de jos repară treaba.')
+        : bom('Corpul tău arde cu ~'+f.adaptationPct+'% mai mult decât estimarea — metabolism rapid. Poți mânca puțin mai mult.','Arzi cu '+f.adaptationPct+'% mai mult decât teoria, boss — poți băga ceva în plus.');
+      tdBox.appendChild(adTx);
+    }
+    if(f.recKcal){
+      var effTdee=(m&&m.tdee)||0;
+      var active=!!(p.tdeeOverride);
+      var recRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--ac-glow);border:1px solid var(--ac-glow);border-radius:8px;padding:8px 10px'});
+      var recL=el('div',null);var recLl=el('div',{s:'color:var(--tx5);font-size:9px;margin-bottom:1px'});recLl.textContent=bom('Țintă calorică adaptivă','Cât să mănânci');recL.appendChild(recLl);
+      var recV=el('div',{s:'color:var(--ac-l);font-size:14px;font-weight:700;font-family:ui-monospace,monospace'});recV.textContent=f.recKcal+' kcal/zi';recL.appendChild(recV);
+      if(f.recRate)( function(){var rr=el('div',{s:'color:var(--tx4);font-size:9px;margin-top:1px'});rr.textContent=bom('pentru ','pt ')+(f.recRate>0?'+':'')+f.recRate+bom(' kg/săpt sănătos',' kg/săpt');recL.appendChild(rr);})();
+      recRow.appendChild(recL);
+      if(active){
+        var resetB=el('button',{c:'btn bg',s:'font-size:10px;flex-shrink:0'});resetB.textContent=bom('Resetează','Înapoi');
+        resetB.onclick=function(){delete S.profile.tdeeOverride;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);notify(bom('Țintă resetată','Gata'),bom('Folosim din nou estimarea standard.','Înapoi la calculul normal, boss.'),2500);render();};
+        recRow.appendChild(resetB);
+      }else{
+        var applyB=el('button',{c:'btn bp',s:'font-size:10px;flex-shrink:0'});applyB.textContent=bom('Aplică','Bag-o');
+        applyB.onclick=function(){S.profile.tdeeOverride=f.measuredTDEE;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);addXP(bom('Țintă adaptivă activată','Țintă adaptivă'),15);notify(bom('Țintă adaptivă activă','Făcut, boss!'),bom('Caloriile și macro-urile se recalculează după metabolismul tău real.','Acum totul se calculează după cât arzi tu, nu după teorie.'),3500);render();};
+        recRow.appendChild(applyB);
+      }
+      tdBox.appendChild(recRow);
+      if(p.tdeeOverride){var actNote=el('div',{s:'color:#34d399;font-size:9px;margin-top:5px;display:flex;align-items:center;gap:3px'});var anI=el('span',{s:'display:inline-flex'});anI.appendChild(ic('circle-check',10));actNote.appendChild(anI);actNote.appendChild(document.createTextNode(bom('Țintă adaptivă activă în toată aplicația','Ținta adaptivă merge peste tot acum')));tdBox.appendChild(actNote);}
+    }
+    card.appendChild(tdBox);
+  }else if(f.intakeDays<5){
+    var hint=el('div',{s:'border-top:1px solid var(--bd);padding-top:8px;color:var(--tx5);font-size:10px;line-height:1.5'});
+    hint.textContent=bom('Loghează mâncarea câteva zile (ai '+f.intakeDays+'/5) ca să-ți măsor metabolismul real și să-ți ajustez ținta calorică automat.','Bagă mâncarea în jurnal câteva zile (ai '+f.intakeDays+'/5) și-ți zic exact cât arzi, tati.');
+    card.appendChild(hint);
+  }
+  return card;
+}
 function vProgr(){
   var p=S.profile,m=S.metrics,tab=S.ptab;
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Progres','Evolutia ta');
@@ -2233,6 +2579,7 @@ function vProgr(){
     var wch=+(last-first).toFixed(1);
     var sg=el('div',{c:'g3'});
     [{l:'Ini\u021bial',v:pl.length?fmt(first,1)+'kg':'\u2014',c:'#94a3b8'},{l:'Curent',v:fmt(p.weight,1)+'kg',c:'var(--su)'},{l:'Schimbare',v:(wch>0?'+':'')+fmt(wch,1)+'kg',c:wch<=0&&p.goal!=='mb'?'#34d399':'#94a3b8'}].forEach(function(s2){sg.appendChild(mkStatCard(s2.l,s2.v,s2.c))});
+    var fcCard=mkForecastCard();
     var chartDiv=null;
     if(pl.length>1){
       chartDiv=el('div',{c:'card cp'});var cw=el('div',{s:'position:relative;height:130px'});var can=el('canvas',{id:'wch'});cw.appendChild(can);chartDiv.appendChild(cw);
@@ -2242,10 +2589,10 @@ function vProgr(){
     var g2=el('div',{c:'g2',s:'margin-bottom:6px'});
     var w1=el('div',null);var wL2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});wL2.textContent='Greutate (kg) *';
     var wI=el('input',{id:'wtIn',c:'inp',s:'font-size:11px',type:'number',ph:String(p.weight),step:NUM_CONSTRAINTS.wtIn.step,min:NUM_CONSTRAINTS.wtIn.min,max:NUM_CONSTRAINTS.wtIn.max,val:S.wtIn||'',inp:function(e2){S.wtIn=e2.target.value}});w1.appendChild(wL2);w1.appendChild(wI);
-    try{wI.onblur=function(){S.wtIn=clampToConstraints('wtIn',this.value);render()}}catch(e9){}
+    try{wI.onblur=function(){S.wtIn=clampToConstraints('wtIn',this.value);this.value=S.wtIn}}catch(e9){}
     var b1=el('div',null);var bL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});bL.textContent='Gr\u0103sime %';
     var bI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:fmt(m.bf,1),step:NUM_CONSTRAINTS.bfIn.step,min:NUM_CONSTRAINTS.bfIn.min,max:NUM_CONSTRAINTS.bfIn.max,val:S.bfIn||'',inp:function(e2){S.bfIn=e2.target.value}});b1.appendChild(bL);b1.appendChild(bI);
-    try{bI.onblur=function(){S.bfIn=clampToConstraints('bfIn',this.value);render()}}catch(eX){}
+    try{bI.onblur=function(){S.bfIn=clampToConstraints('bfIn',this.value);this.value=S.bfIn}}catch(eX){}
     g2.appendChild(w1);g2.appendChild(b1);lf.appendChild(g2);
     var nI=el('input',{c:'inp',s:'font-size:11px;margin-bottom:6px',ph:'Noti\u021be (op\u021bional)...',val:S.pnote||'',inp:function(e2){S.pnote=e2.target.value}});lf.appendChild(nI);
     var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.wtIn;svB.textContent=bom('Salveaz\u0103','Bag\u0103 progresul, boss!');svB.prepend(ic('plus',11));
@@ -2265,7 +2612,7 @@ function vProgr(){
       xb4.onmouseenter=function(){this.style.color='#f87171'};xb4.onmouseleave=function(){this.style.color=''};
       rR4.appendChild(rD2);rR4.appendChild(xb4);r.appendChild(rL);r.appendChild(rR4);hl2.appendChild(r);
     });hist.appendChild(hl2);
-    return mkSec(hdr,sg,chartDiv,lf,hist)
+    return mkSec(hdr,sg,fcCard,chartDiv,lf,hist)
   }
   if(tab==='ms'){
     var ml=S.measurements,lastM=ml.length?ml[ml.length-1]:null;
@@ -2357,7 +2704,7 @@ function vSport(){
   var sRow=el('div',{c:'g2',s:'margin-bottom:8px'});
   var durDiv=el('div',null);var durL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});durL.textContent='Durat\u0103 (min) *';
   var durI=el('input',{id:'sportDur',c:'inp',s:'font-size:11px',type:'number',ph:'45',val:S.sportDur||'',min:NUM_CONSTRAINTS.sportDur.min,max:NUM_CONSTRAINTS.sportDur.max,step:NUM_CONSTRAINTS.sportDur.step,inp:function(e2){S.sportDur=e2.target.value}});durDiv.appendChild(durL);durDiv.appendChild(durI);
-  try{durI.onblur=function(){S.sportDur=clampToConstraints('sportDur',this.value);render()}}catch(eZ){}
+  try{durI.onblur=function(){S.sportDur=clampToConstraints('sportDur',this.value);this.value=S.sportDur}}catch(eZ){}
   var intDiv=el('div',null);var intL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});intL.textContent='Intensitate (1-10)';
   var intRow=el('div',{s:'display:flex;align-items:center;gap:7px'});
   var intSlider=el('input',{type:'range',min:'1',max:'10',val:String(S.sportInt),s:'flex:1;accent-color:var(--ac)',inp:function(e2){S.sportInt=+e2.target.value}});
@@ -2406,7 +2753,7 @@ function vChal(){
   var sumN=el('div',{s:'color:#fbbf24;font-size:13px;font-weight:700'});sumN.textContent='\uD83C\uDFC6 '+total2+bom(' provoc\u0103ri completate',' dare-deal-uri bifate, tata');
   var sumXP=el('div',{s:'color:var(--tx4);font-size:11px'});sumXP.textContent=bom('XP din provoc\u0103ri: ','XP c\u00e2\u015ftigat, boss: ')+total2*75;
   sumL.appendChild(sumN);sumL.appendChild(sumXP);
-  var lvl2=getLvl();var sumR=el('div',{s:'font-size:24px'});sumR.textContent=lvl2.e;
+  var lvl2=getLvl();var _lcM2={'Legendă':'crown','Elite':'bolt','Avansat':'flame','Intermediar':'star-filled','Începător':'seedling','Nou':'user'};var sumR=el('div',{s:'width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:'+lvl2.c+'22;color:'+lvl2.c});if(S.mode==='bom'){sumR.style.fontSize='24px';sumR.textContent=lvl2.e;}else{sumR.appendChild(ic(_lcM2[lvl2.n]||'star',22));}
   sumDiv.appendChild(sumL);sumDiv.appendChild(sumR);
   // Award XP for newly completed challenges before building cards (not inside map)
   CHALS.filter(function(c){return c.type===tab}).forEach(function(c){
@@ -2514,7 +2861,7 @@ function vFriends(){
   var lH=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;margin-bottom:10px'});lH.textContent='Prietenii mei ('+(S.fbFriends||[]).length+')';listCard.appendChild(lH);
   if(!(S.fbFriends&&S.fbFriends.length)){
     var emp=el('div',{s:'text-align:center;padding:18px 0'});
-    var empI=el('div',{s:'font-size:32px;margin-bottom:8px'});empI.textContent='👥';
+    var empI=el('div',{s:'color:var(--tx4);margin-bottom:8px;display:flex;justify-content:center'});empI.appendChild(ic('users',32));
     var empT=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:4px'});empT.textContent='Niciun prieten încă';
     var empS=el('div',{s:'color:var(--tx5);font-size:11px'});empS.textContent='Trimite codul tău ('+PCODE+') sau adaugă pe cineva de mai jos.';
     emp.appendChild(empI);emp.appendChild(empT);emp.appendChild(empS);listCard.appendChild(emp);
@@ -2643,7 +2990,9 @@ function vAch(){
   var xp=getXP(),lvl=getLvl();
   var lvlCard=el('div',{c:'card cp'});
   var lvlRow=el('div',{s:'display:flex;align-items:center;gap:11px'});
-  var lvlE=el('span',{s:'font-size:38px'});lvlE.textContent=lvl.e;
+  var _lvlIcMap={'Legendă':'crown','Elite':'bolt','Avansat':'flame','Intermediar':'star-filled','Începător':'seedling','Nou':'user'};
+  var lvlE=el('span',{s:'width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;background:'+lvl.c+'22;color:'+lvl.c+';flex-shrink:0'});
+  if(S.mode==='bom'){lvlE.style.fontSize='28px';lvlE.textContent=lvl.e;}else{lvlE.appendChild(ic(_lvlIcMap[lvl.n]||'star',26));}
   var lvlI=el('div',null);
   var lvlN=el('div',{s:'color:'+lvl.c+';font-size:15px;font-weight:700'});lvlN.textContent=lvl.n;
   var count=ACH_DEF.filter(function(a){return a.cond(S)}).length;
@@ -2774,12 +3123,15 @@ function vTop(){
     RTDB.ref('users').get().then(function(snap){
       if(_renderEpoch!==_topEpoch)return;
       var curWk=weekKey(),curMk=monthKey();
-      var users=[];snap.forEach(function(c){var v=c.val();if(!v)return;
+      var _seen={};snap.forEach(function(c){var v=c.val();if(!v)return;
         if(!v.username)return; // only real accounts (guests don't sync a username)
         if(/^(test|tester|demo|guest|vizitator|fake|asd|qwe|aaa|xxx)/i.test(v.username))return; // skip test accounts
         var val=period==='week'?(v.weekKey===curWk?(v.xpWeek||0):0):period==='month'?(v.monthKey===curMk?(v.xpMonth||0):0):(v.xp||0);
-        if(typeof val==='number'&&(period==='all'?val>0:val>=0))users.push({u:v,val:val});
+        if(typeof val!=='number')return;
+        var uk=v.username.toLowerCase();
+        if(!_seen[uk]||val>_seen[uk].val)_seen[uk]={u:v,val:val};
       });
+      var users=Object.values(_seen).filter(function(x){return period==='all'?x.val>0:x.val>=0});
       if(period!=='all')users=users.filter(function(x){return x.val>0});
       users.sort(function(a,b){return b.val-a.val});
       lH.textContent=(period==='week'?'Top săptămânal · ':period==='month'?'Top lunar · ':'Top global · ')+users.length+(users.length===1?' jucător':' jucători');
@@ -2823,7 +3175,7 @@ function vTop(){
         row.appendChild(rankBadge(i));
         var ri=el('div',{s:'flex:1;min-width:0'});
         var rn=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});rn.textContent=cl.name+(isMyClan?' (al tău)':'');glowName(rn,i);
-        var rl=el('div',{s:'color:var(--tx3);font-size:10px'});rl.textContent=cl.memberCount+' membri · '+cl.avgXP+' XP/membru';
+        var rl=el('div',{s:'color:var(--tx3);font-size:10px'});rl.textContent=cl.memberCount+(cl.memberCount===1?' membru':' membri')+(cl.memberCount>1?' · '+cl.avgXP+' XP/mb':'');
         ri.appendChild(rn);ri.appendChild(rl);
         var rx=el('div',{s:'text-align:right;flex-shrink:0'});
         var rxT=el('div',{s:'color:#fbbf24;font-weight:800;font-size:13px;font-family:ui-monospace,monospace'});rxT.textContent=cl.totalXP+' XP';
@@ -2868,12 +3220,19 @@ function vGang(){
 
     function doJoinClan(code){
       if(!S.gangNick){notify('Porecla lipsa','Introdu o porecla pentru Clan.');return;}
+      var _clanKey=S.authUser||UID;
+      // Leave current clan first to prevent being in multiple clans
+      if(p.gangCode&&p.gangCode!==code){
+        RTDB.ref('sh/gang/'+p.gangCode+'/'+_clanKey).remove().catch(function(){});
+        _cleanupClanIfEmpty(p.gangCode);
+        if(_gangUnsub){_gangUnsub();_gangUnsub=null;}
+      }
       p.gangCode=code;p.gangNick=S.gangNick;
       RTDB.ref('sh/gang/'+code+'/meta').get().then(function(snap){
         var isNew=!snap.exists();var role=isNew?'owner':'member';
         var md={nick:S.gangNick,name:p.name,username:S.authUser||'',xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY,role:role,joined:TODAY};
-        RTDB.ref('sh/gang/'+code+'/'+UID).set(md).catch(function(){});
-        if(isNew)RTDB.ref('sh/gang/'+code+'/meta').set({ownerUid:UID,created:TODAY,name:code,isPublic:S._gangPublic!==false}).catch(function(){});
+        RTDB.ref('sh/gang/'+code+'/'+_clanKey).set(md).catch(function(){});
+        if(isNew)RTDB.ref('sh/gang/'+code+'/meta').set({ownerUid:_clanKey,created:TODAY,name:code,isPublic:S._gangPublic!==false}).catch(function(){});
         DB.save('profile',p);setupGangListener(code);addXP('Alaturat Clan',50);S._gangTab=null;render();
       }).catch(function(){notify('Eroare retea','Nu s-a putut verifica Clanul.');});
     }
@@ -2953,7 +3312,7 @@ function vGang(){
     joinCard.appendChild(tabBar);joinCard.appendChild(content);
     return mkSec(h1,joinCard)
   }
-  var myMember=(S.gangMembers||[]).find(function(m){return m._uid===UID});
+  var _myKey=S.authUser||UID;var myMember=(S.gangMembers||[]).find(function(m){return m._uid===_myKey||(S.authUser&&m.username===S.authUser)});
   var myRole=myMember?myMember.role||'member':'member';
   var meta=S.gangMeta||{};
   var isOwner=myRole==='owner'||(meta.ownerUid&&meta.ownerUid===UID);
@@ -2969,7 +3328,7 @@ function vGang(){
   myHL.appendChild(clanNameRow);var myNickTxt=el('div',{s:'color:var(--tx4);font-size:11px;margin-top:3px'});myNickTxt.textContent='Porecla: '+p.gangNick+' · Cod: '+p.gangCode;myHL.appendChild(myNickTxt);
   var myHR=el('div',{s:'display:flex;gap:5px;flex-shrink:0'});
   var syncB=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});syncB.appendChild(ic('refresh',10));syncB.appendChild(document.createTextNode(' Sync'));
-  syncB.onclick=function(){var md2={nick:p.gangNick,name:p.name,username:S.authUser||'',xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY,role:myRole,joined:myMember?myMember.joined:TODAY};RTDB.ref('sh/gang/'+p.gangCode+'/'+UID).set(md2).catch(function(){});notify('Sync','Statisticile au fost actualizate in Clan.',2500);};
+  syncB.onclick=function(){var _ck=S.authUser||UID;var md2={nick:p.gangNick,name:p.name,username:S.authUser||'',xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY,role:myRole,joined:myMember?myMember.joined:TODAY};RTDB.ref('sh/gang/'+p.gangCode+'/'+_ck).set(md2).catch(function(){});notify('Sync','Statisticile au fost actualizate in Clan.',2500);};
   myHR.appendChild(syncB);
   if(isOwner){
     var renBtn=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});renBtn.appendChild(ic('edit',10));renBtn.onclick=function(){var nn=prompt('Nume nou Clan:',clanName);if(!nn||!nn.trim())return;RTDB.ref('sh/gang/'+p.gangCode+'/meta/name').set(nn.trim()).then(function(){notify('Redenumit','Clanul se numeste acum "'+nn.trim()+'".',3000)}).catch(function(){});};myHR.appendChild(renBtn);
@@ -2986,12 +3345,12 @@ function vGang(){
   var invL=el('div',null);var invLbl=el('div',{s:'color:var(--tx5);font-size:10px'});invLbl.textContent='Cod invitatie';var invCode=el('div',{s:'color:var(--ac-l);font-size:16px;font-weight:700;font-family:ui-monospace,monospace;letter-spacing:3px'});invCode.textContent=p.gangCode;invL.appendChild(invLbl);invL.appendChild(invCode);
   var invCopy=el('button',{c:'btn bg',s:'font-size:10px'});invCopy.textContent='Copiaza';invCopy.onclick=function(){var txt='Alatura-te Clanului "'+clanName+'" pe Dl. Siski! Cod: '+p.gangCode;if(navigator.clipboard)navigator.clipboard.writeText(txt).then(function(){invCopy.textContent='Copiat ✓';setTimeout(function(){invCopy.textContent='Copiaza'},1500)}).catch(function(){});else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);invCopy.textContent='Copiat ✓';setTimeout(function(){invCopy.textContent='Copiaza'},1500);}};
   invRow.appendChild(invL);invRow.appendChild(invCopy);myCard.appendChild(invRow);
-  var leaveB=el('button',{c:'btn bg',s:'font-size:10px;color:var(--er);border-color:rgba(248,113,113,.3)'});leaveB.appendChild(ic('log-out',10));leaveB.appendChild(document.createTextNode(' '+bom('Iesire din Clan','Ma retrag, boss')));leaveB.onclick=function(){if(!confirm(bom('Esti sigur ca vrei sa iesi?','Chiar pleci, boss?')))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+UID).remove().catch(function(){});if(_gangUnsub){_gangUnsub();_gangUnsub=null;}S.gangMembers=[];S.gangMeta=null;p.gangCode='';p.gangNick='';DB.save('profile',p);render();};myCard.appendChild(leaveB);
+  var leaveB=el('button',{c:'btn bg',s:'font-size:10px;color:var(--er);border-color:rgba(248,113,113,.3)'});leaveB.appendChild(ic('log-out',10));leaveB.appendChild(document.createTextNode(' '+bom('Iesire din Clan','Ma retrag, boss')));leaveB.onclick=function(){if(!confirm(bom('Esti sigur ca vrei sa iesi?','Chiar pleci, boss?')))return;var _leavedCode=p.gangCode;var _lk=S.authUser||UID;RTDB.ref('sh/gang/'+_leavedCode+'/'+_lk).remove().then(function(){RTDB.ref('sh/gang/'+_leavedCode).get().then(function(s2){var v2=s2.val()||{};var hasMember=Object.keys(v2).some(function(k){return k!=='meta'});if(!hasMember)RTDB.ref('sh/gang/'+_leavedCode).remove().catch(function(){});}).catch(function(){});}).catch(function(){});if(_gangUnsub){_gangUnsub();_gangUnsub=null;}S.gangMembers=[];S.gangMeta=null;p.gangCode='';p.gangNick='';DB.save('profile',p);render();};myCard.appendChild(leaveB);
   var lbCard=el('div',{c:'card'});
   var lbHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between'});
   var lbTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});lbTitle.textContent=bom('Clasament Clan','Cine trage mai tare?');var lbCount=el('div',{s:'color:var(--tx5);font-size:11px'});lbCount.textContent=members.length+' membri';lbHdr.appendChild(lbTitle);lbHdr.appendChild(lbCount);lbCard.appendChild(lbHdr);
   var sorted=members.slice().sort(function(a,b){return(b.xp||0)-(a.xp||0)});
-  if(sorted.length){sorted.forEach(function(m3,i){var isMe=m3._uid===UID;var mRole=m3.role||'member';var mIsOwn=mRole==='owner'||(meta.ownerUid&&m3._uid===meta.ownerUid);var mIsAdm=mRole==='admin';var r=el('div',{c:'gmember',s:isMe?'background:var(--ac-glow)':''});var rRk=el('div',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:12px;width:24px;flex-shrink:0;text-align:center'});rRk.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);var rAv=el('div',{s:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg3);overflow:hidden'});if(isMe){avatarSelfInto(rAv);}else{rAv.textContent=S.mode==='bom'?(m3.emoji||'👤'):initialOf(m3.nick||m3.name);}var rI=el('div',{s:'flex:1;min-width:0'});var rNRow=el('div',{s:'display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:1px'});var rN2=el('div',{s:'color:'+(isMe?'var(--ac-l)':'var(--tx1)')+';font-size:12px;font-weight:'+(isMe?'700':'500')});rN2.textContent=(m3.nick||m3.name)+(isMe?' (tu)':'');rNRow.appendChild(rN2);if(mIsOwn){var ob2=el('span',{c:'badge badge-owner'});ob2.appendChild(ic('crown',9));ob2.title='Fondator';rNRow.appendChild(ob2);}else if(mIsAdm){var ab2=el('span',{c:'badge badge-admin'});ab2.appendChild(ic('shield',9));ab2.title='Admin';rNRow.appendChild(ab2);}rI.appendChild(rNRow);var rSub=el('div',{s:'color:var(--tx5);font-size:10px'});rSub.textContent=(m3.level||'Nou')+(m3.workouts?' · '+m3.workouts+' antren.':'')+(m3.updated?' · sync '+m3.updated:'');rI.appendChild(rSub);var rXP=el('div',{s:'text-align:right;flex-shrink:0'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:13px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';var rW3=el('div',{s:'color:var(--tx5);font-size:10px'});rW3.textContent=m3.weight?fmt(m3.weight,1)+'kg':'';rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rAv);r.appendChild(rI);r.appendChild(rXP);if(!isMe&&isAdmin&&!mIsOwn){var actDiv=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-left:6px'});if(isOwner){var promBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px'});promBtn.textContent=mIsAdm?'→Mbru':'→Admin';promBtn.onclick=(function(uid,wasA){return function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+uid+'/role').set(wasA?'member':'admin').then(function(){notify('OK','Rolul a fost schimbat.',2000)}).catch(function(){});};})(m3._uid,mIsAdm);actDiv.appendChild(promBtn);}if(isOwner||(!mIsAdm&&isAdmin)){var kickBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px;color:var(--er);border-color:rgba(248,113,113,.3)'});kickBtn.textContent='Kick';kickBtn.onclick=(function(uid,nm){return function(){if(!confirm('Elimini pe '+nm+'?'))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+uid).remove().then(function(){notify('Eliminat',nm+' a fost scos.',2000)}).catch(function(){});};})(m3._uid,m3.nick||m3.name);actDiv.appendChild(kickBtn);}if(actDiv.children.length)r.appendChild(actDiv);}lbCard.appendChild(r);});var topXP=sorted[0]?sorted[0].xp||0:1;var myXPInClan=myMember?myMember.xp||0:xp;if(topXP>0&&!isOwner&&myXPInClan<topXP){var gap=topXP-myXPInClan;var gapDiv=el('div',{s:'padding:8px 13px;border-top:1px solid var(--bg1)'});var gapTxt=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});gapTxt.textContent=bom('Distanta fata de lider: '+gap+' XP','Boss-ul e cu '+gap+' XP mai sus!');var gapBar=el('div',{s:'height:4px;background:var(--bg3);border-radius:99px;overflow:hidden'});var gapFill=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+Math.round(myXPInClan/topXP*100)+'%'});gapBar.appendChild(gapFill);gapDiv.appendChild(gapTxt);gapDiv.appendChild(gapBar);lbCard.appendChild(gapDiv);}}else{var em3=el('div',{s:'text-align:center;padding:28px;color:var(--tx5);font-size:11px'});em3.appendChild(ic('users',32));var em3t=el('div',{s:'margin-top:8px'});em3t.textContent=bom('Esti singurul. Trimite codul: ','Esti singur, boss! Codul: ')+p.gangCode;em3.appendChild(em3t);lbCard.appendChild(em3);}
+  if(sorted.length){sorted.forEach(function(m3,i){var isMe=m3._uid===(S.authUser||UID)||(S.authUser&&m3.username===S.authUser);var mRole=m3.role||'member';var mIsOwn=mRole==='owner'||(meta.ownerUid&&m3._uid===meta.ownerUid);var mIsAdm=mRole==='admin';var r=el('div',{c:'gmember',s:isMe?'background:var(--ac-glow)':''});var rRk=el('div',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:12px;width:24px;flex-shrink:0;text-align:center'});rRk.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);var rAv=el('div',{s:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg3);overflow:hidden'});if(isMe){avatarSelfInto(rAv);}else{rAv.textContent=S.mode==='bom'?(m3.emoji||'👤'):initialOf(m3.nick||m3.name);}var rI=el('div',{s:'flex:1;min-width:0'});var rNRow=el('div',{s:'display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:1px'});var rN2=el('div',{s:'color:'+(isMe?'var(--ac-l)':'var(--tx1)')+';font-size:12px;font-weight:'+(isMe?'700':'500')});rN2.textContent=(m3.nick||m3.name)+(isMe?' (tu)':'');rNRow.appendChild(rN2);if(mIsOwn){var ob2=el('span',{c:'badge badge-owner'});ob2.appendChild(ic('crown',9));ob2.title='Fondator';rNRow.appendChild(ob2);}else if(mIsAdm){var ab2=el('span',{c:'badge badge-admin'});ab2.appendChild(ic('shield',9));ab2.title='Admin';rNRow.appendChild(ab2);}rI.appendChild(rNRow);var rSub=el('div',{s:'color:var(--tx5);font-size:10px'});rSub.textContent=(m3.level||'Nou')+(m3.workouts?' · '+m3.workouts+' antren.':'')+(m3.updated?' · sync '+m3.updated:'');rI.appendChild(rSub);var rXP=el('div',{s:'text-align:right;flex-shrink:0'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:13px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';var rW3=el('div',{s:'color:var(--tx5);font-size:10px'});rW3.textContent=m3.weight?fmt(m3.weight,1)+'kg':'';rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rAv);r.appendChild(rI);r.appendChild(rXP);if(!isMe&&isAdmin&&!mIsOwn){var actDiv=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-left:6px'});if(isOwner){var promBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px'});promBtn.textContent=mIsAdm?'→Mbru':'→Admin';promBtn.onclick=(function(uid,wasA){return function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+uid+'/role').set(wasA?'member':'admin').then(function(){notify('OK','Rolul a fost schimbat.',2000)}).catch(function(){});};})(m3._uid,mIsAdm);actDiv.appendChild(promBtn);}if(isOwner||(!mIsAdm&&isAdmin)){var kickBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px;color:var(--er);border-color:rgba(248,113,113,.3)'});kickBtn.textContent='Kick';kickBtn.onclick=(function(uid,nm){return function(){if(!confirm('Elimini pe '+nm+'?'))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+uid).remove().then(function(){notify('Eliminat',nm+' a fost scos.',2000)}).catch(function(){});};})(m3._uid,m3.nick||m3.name);actDiv.appendChild(kickBtn);}if(actDiv.children.length)r.appendChild(actDiv);}lbCard.appendChild(r);});var topXP=sorted[0]?sorted[0].xp||0:1;var myXPInClan=myMember?myMember.xp||0:xp;if(topXP>0&&!isOwner&&myXPInClan<topXP){var gap=topXP-myXPInClan;var gapDiv=el('div',{s:'padding:8px 13px;border-top:1px solid var(--bg1)'});var gapTxt=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});gapTxt.textContent=bom('Distanta fata de lider: '+gap+' XP','Boss-ul e cu '+gap+' XP mai sus!');var gapBar=el('div',{s:'height:4px;background:var(--bg3);border-radius:99px;overflow:hidden'});var gapFill=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+Math.round(myXPInClan/topXP*100)+'%'});gapBar.appendChild(gapFill);gapDiv.appendChild(gapTxt);gapDiv.appendChild(gapBar);lbCard.appendChild(gapDiv);}}else{var em3=el('div',{s:'text-align:center;padding:28px;color:var(--tx5);font-size:11px'});em3.appendChild(ic('users',32));var em3t=el('div',{s:'margin-top:8px'});em3t.textContent=bom('Esti singurul. Trimite codul: ','Esti singur, boss! Codul: ')+p.gangCode;em3.appendChild(em3t);lbCard.appendChild(em3);}
   return mkSec(h1,myCard,lbCard)
 }
 
@@ -3031,7 +3390,7 @@ function vAI(){
   var wHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px;flex-shrink:0'});
   var wHdrIcon=el('div',{s:'width:30px;height:30px;border-radius:8px;background:var(--ac-glow);border:1px solid var(--ac-glow);display:flex;align-items:center;justify-content:center'});wHdrIcon.appendChild(ic('message-circle',13));
   var wHdrI=el('div',null);var wHdrN=el('div',{s:'color:var(--tx1);font-weight:600;font-size:12px'});wHdrN.textContent=t('ai_title');
-  var wHdrS=el('div',{s:'color:var(--tx4);font-size:10px'});wHdrS.textContent=S.anthropicKey?safe('⚡ Claude AI · '+t('ai_powered')):safe('🤖 Local · '+t('ai_powered'));
+  var wHdrS=el('div',{s:'color:var(--tx4);font-size:10px'});wHdrS.textContent=S.anthropicKey?safe('⚡ Claude AI · '+t('ai_powered')):S.openaiKey?safe('✨ ChatGPT · '+t('ai_powered')):safe('🤖 Local · '+t('ai_powered'));
   wHdrI.appendChild(wHdrN);wHdrI.appendChild(wHdrS);
   wHdr.appendChild(wHdrIcon);wHdr.appendChild(wHdrI);wrap.appendChild(wHdr);
   QUICK=[t('ai_q1'),t('ai_q2'),t('ai_q3'),t('ai_q4'),t('ai_q5'),t('ai_q6'),t('ai_q7')];
@@ -3218,6 +3577,20 @@ function vAI(){
         S.chat.push({role:'assistant',content:aiReply(msg)});
         S.chatLoading=false;DB.save('chat',S.chat);render();
       });
+    }else if(S.openaiKey){
+      var oMsgs=[{role:'system',content:sysP()}].concat(S.chat.slice(-10).map(function(c){return{role:c.role,content:c.content}}));
+      fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+S.openaiKey,'content-type':'application/json'},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:700,messages:oMsgs})})
+      .then(function(r){return r.json()})
+      .then(function(d){
+        var txt=d&&d.choices&&d.choices[0]&&d.choices[0].message?d.choices[0].message.content:null;
+        if(txt){S.chat.push({role:'assistant',content:txt})}
+        else{S.chat.push({role:'assistant',content:aiReply(msg)})}
+        S.chatLoading=false;DB.save('chat',S.chat);render();
+      })
+      .catch(function(){
+        S.chat.push({role:'assistant',content:aiReply(msg)});
+        S.chatLoading=false;DB.save('chat',S.chat);render();
+      });
     }else{
       setTimeout(function(){
         try{S.chat.push({role:'assistant',content:aiReply(msg)})}catch(e){S.chat.push({role:'assistant',content:'Nu am putut procesa. Incearca din nou!'})}
@@ -3259,7 +3632,7 @@ function vProf(){
       var rR=el('div',{s:'display:flex;align-items:center;gap:5px'});
       var rI=el('input',{c:'inp',s:'font-size:11px;width:65px;text-align:right;padding:5px 7px',type:'number',val:String(fv[f.k]||''),id:'prof-'+f.k,min:NUM_CONSTRAINTS[f.k].min,max:NUM_CONSTRAINTS[f.k].max,step:NUM_CONSTRAINTS[f.k].step});
       rI.oninput=(function(fk){return function(){S._editDraft[fk]=this.value}})(f.k);
-      try{rI.onblur=(function(fk){return function(){S._editDraft[fk]=clampToConstraints(fk,this.value);render()}})(f.k)}catch(eZ){}
+      try{rI.onblur=(function(fk){return function(){S._editDraft[fk]=clampToConstraints(fk,this.value);this.value=S._editDraft[fk]}})(f.k)}catch(eZ){}
       var rU=el('span',{s:'color:var(--tx4);font-size:11px'});rU.textContent=f.u;
       rR.appendChild(rI);rR.appendChild(rU);r.appendChild(rL);r.appendChild(rR);pc.appendChild(r);
     });
@@ -3371,6 +3744,24 @@ function vProf(){
   }else{
     var loginHint=el('div',{s:'color:var(--tx4);font-size:11px'});loginHint.textContent='Nu ești autentificat.';ac.appendChild(loginHint);
   }
+  // AI API Keys card
+  var aiKeyCard=el('div',{c:'card cp'});
+  var aiKeyH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});aiKeyH.textContent='AI API Keys';aiKeyCard.appendChild(aiKeyH);
+  // Anthropic key
+  var aKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5);margin-bottom:4px'});aKeyLbl.textContent='Claude (Anthropic)';aiKeyCard.appendChild(aKeyLbl);
+  var aKeyRow=el('div',{s:'display:flex;gap:6px;margin-bottom:10px'});
+  var aKeyInp=el('input',{c:'inp',s:'font-size:11px;flex:1;font-family:ui-monospace,monospace',ph:'sk-ant-...',type:'password'});aKeyInp.value=S.anthropicKey||'';
+  var aKeySave=el('button',{c:'btn bp',s:'font-size:11px;flex-shrink:0'});aKeySave.textContent='Salvează';
+  aKeySave.onclick=function(){var v=aKeyInp.value.trim();S.anthropicKey=v;if(v)DB.save('anthropicKey',v);else DB.del('anthropicKey');render();};
+  aKeyRow.appendChild(aKeyInp);aKeyRow.appendChild(aKeySave);aiKeyCard.appendChild(aKeyRow);
+  // OpenAI key
+  var oKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5);margin-bottom:4px'});oKeyLbl.textContent='ChatGPT (OpenAI)';aiKeyCard.appendChild(oKeyLbl);
+  var oKeyRow=el('div',{s:'display:flex;gap:6px;margin-bottom:4px'});
+  var oKeyInp=el('input',{c:'inp',s:'font-size:11px;flex:1;font-family:ui-monospace,monospace',ph:'sk-...',type:'password'});oKeyInp.value=S.openaiKey||'';
+  var oKeySave=el('button',{c:'btn bp',s:'font-size:11px;flex-shrink:0'});oKeySave.textContent='Salvează';
+  oKeySave.onclick=function(){var v=oKeyInp.value.trim();S.openaiKey=v;if(v)DB.save('openaiKey',v);else DB.del('openaiKey');render();};
+  oKeyRow.appendChild(oKeyInp);oKeyRow.appendChild(oKeySave);aiKeyCard.appendChild(oKeyRow);
+  var aiKeyNote=el('div',{s:'color:var(--tx5);font-size:10px;line-height:1.4;margin-top:4px'});aiKeyNote.textContent='Claude are prioritate dacă ambele chei sunt setate. Fără cheie se folosește AI local.';aiKeyCard.appendChild(aiKeyNote);
   // UI Settings card — accessible on mobile (sidebar not visible on mobile)
   var uiCard=el('div',{c:'card cp'});
   var uiH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});uiH.textContent='Interfață';uiCard.appendChild(uiH);
@@ -3388,42 +3779,23 @@ function vProf(){
     tb2.textContent=opt.l;tb2.onclick=function(){S.theme=opt.v;DB.save('uiTheme',opt.v);render()};
     themeRow2.appendChild(tb2);
   });uiCard.appendChild(themeRow2);
-  return mkSec(hdr,pc,mc,logoCard,uiCard,ac,dc)
+  return mkSec(hdr,pc,mc,logoCard,aiKeyCard,uiCard,ac,dc)
 }
 render();
 (function(){
   var sess=null;try{var raw=_ls.get('dltate:session');if(raw)sess=JSON.parse(raw)}catch(e){}
-  function loadApp(){
-    DB.load('profile').then(function(p){
-      function startApp(prof){
-        S.profile=prof;S.metrics=Calc.getM(prof);
-        Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
-          S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
-          S.view='app';syncUserToFB();if(prof.gangCode)setupGangListener(prof.gangCode);render();
-        }).catch(function(){S.view='app';render()});
-      }
-      if(p){
-        startApp(p);
-      }else if(S.loggedIn&&UID){
-        // localStorage empty — try Firebase fallback
-        RTDB.ref('users/'+UID+'/profile').get().then(function(snap){
-          if(snap.exists()&&snap.val()&&snap.val().name){
-            var fbProf=snap.val();
-            DB.save('profile',fbProf);
-            startApp(fbProf);
-          }else{S.view='onboarding';render();}
-        }).catch(function(){S.view='onboarding';render()});
-      }else{S.view='onboarding';render();}
-    }).catch(function(){S.view='onboarding';render()});
-  }
   if(sess&&sess.username&&sess.pwHash){
     var key=_safeKey(sess.username);
     RTDB.ref('accounts/'+key).get().then(function(snap){
       if(snap.exists()&&snap.val().pwHash===sess.pwHash){
         S.loggedIn=true;S.authUser=sess.username;S.loginRemember=true;
-        loadApp();
+        // Always reconnect to the canonical (original) cloud profile.
+        bootAccount();
       }else{_ls.rm('dltate:session');S.view='login';render();}
-    }).catch(function(){S.view='login';render()});
+    }).catch(function(){
+      // Offline: trust the cached session and open with local data.
+      S.loggedIn=true;S.authUser=sess.username;S.loginRemember=true;bootAccount();
+    });
   }else{
     S.view='login';render();
   }
