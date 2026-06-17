@@ -2854,7 +2854,7 @@ function vTop(){
         row.appendChild(rankBadge(i));
         var ri=el('div',{s:'flex:1;min-width:0'});
         var rn=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});rn.textContent=cl.name+(isMyClan?' (al tău)':'');glowName(rn,i);
-        var rl=el('div',{s:'color:var(--tx3);font-size:10px'});rl.textContent=cl.memberCount+' membri · '+cl.avgXP+' XP/membru';
+        var rl=el('div',{s:'color:var(--tx3);font-size:10px'});rl.textContent=cl.memberCount+(cl.memberCount===1?' membru':' membri')+(cl.memberCount>1?' · '+cl.avgXP+' XP/mb':'');
         ri.appendChild(rn);ri.appendChild(rl);
         var rx=el('div',{s:'text-align:right;flex-shrink:0'});
         var rxT=el('div',{s:'color:#fbbf24;font-weight:800;font-size:13px;font-family:ui-monospace,monospace'});rxT.textContent=cl.totalXP+' XP';
@@ -2897,12 +2897,26 @@ function vGang(){
     var nickI=el('input',{c:'inp',s:'font-size:12px',ph:'Ex: BigBoss',val:S.gangNick||'',inp:function(e2){S.gangNick=e2.target.value}});
     nickRow.appendChild(nickLbl);nickRow.appendChild(nickI);
 
+    function _cleanupClanIfEmpty(clanCode){
+      if(!clanCode)return;
+      RTDB.ref('sh/gang/'+clanCode).get().then(function(s2){
+        var v2=s2.val()||{};
+        var hasMember=Object.keys(v2).some(function(k){return k!=='meta'});
+        if(!hasMember)RTDB.ref('sh/gang/'+clanCode).remove().catch(function(){});
+      }).catch(function(){});
+    }
     function doJoinClan(code){
       if(!S.gangNick){notify('Porecla lipsa','Introdu o porecla pentru Clan.');return;}
+      var _clanKey=S.authUser||UID;
+      // Leave current clan first to prevent being in multiple clans
+      if(p.gangCode&&p.gangCode!==code){
+        RTDB.ref('sh/gang/'+p.gangCode+'/'+_clanKey).remove().catch(function(){});
+        _cleanupClanIfEmpty(p.gangCode);
+        if(_gangUnsub){_gangUnsub();_gangUnsub=null;}
+      }
       p.gangCode=code;p.gangNick=S.gangNick;
       RTDB.ref('sh/gang/'+code+'/meta').get().then(function(snap){
         var isNew=!snap.exists();var role=isNew?'owner':'member';
-        var _clanKey=S.authUser||UID;
         var md={nick:S.gangNick,name:p.name,username:S.authUser||'',xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY,role:role,joined:TODAY};
         RTDB.ref('sh/gang/'+code+'/'+_clanKey).set(md).catch(function(){});
         if(isNew)RTDB.ref('sh/gang/'+code+'/meta').set({ownerUid:_clanKey,created:TODAY,name:code,isPublic:S._gangPublic!==false}).catch(function(){});
@@ -3018,7 +3032,7 @@ function vGang(){
   var invL=el('div',null);var invLbl=el('div',{s:'color:var(--tx5);font-size:10px'});invLbl.textContent='Cod invitatie';var invCode=el('div',{s:'color:var(--ac-l);font-size:16px;font-weight:700;font-family:ui-monospace,monospace;letter-spacing:3px'});invCode.textContent=p.gangCode;invL.appendChild(invLbl);invL.appendChild(invCode);
   var invCopy=el('button',{c:'btn bg',s:'font-size:10px'});invCopy.textContent='Copiaza';invCopy.onclick=function(){var txt='Alatura-te Clanului "'+clanName+'" pe Dl. Siski! Cod: '+p.gangCode;if(navigator.clipboard)navigator.clipboard.writeText(txt).then(function(){invCopy.textContent='Copiat ✓';setTimeout(function(){invCopy.textContent='Copiaza'},1500)}).catch(function(){});else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);invCopy.textContent='Copiat ✓';setTimeout(function(){invCopy.textContent='Copiaza'},1500);}};
   invRow.appendChild(invL);invRow.appendChild(invCopy);myCard.appendChild(invRow);
-  var leaveB=el('button',{c:'btn bg',s:'font-size:10px;color:var(--er);border-color:rgba(248,113,113,.3)'});leaveB.appendChild(ic('log-out',10));leaveB.appendChild(document.createTextNode(' '+bom('Iesire din Clan','Ma retrag, boss')));leaveB.onclick=function(){if(!confirm(bom('Esti sigur ca vrei sa iesi?','Chiar pleci, boss?')))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+(S.authUser||UID)).remove().catch(function(){});if(_gangUnsub){_gangUnsub();_gangUnsub=null;}S.gangMembers=[];S.gangMeta=null;p.gangCode='';p.gangNick='';DB.save('profile',p);render();};myCard.appendChild(leaveB);
+  var leaveB=el('button',{c:'btn bg',s:'font-size:10px;color:var(--er);border-color:rgba(248,113,113,.3)'});leaveB.appendChild(ic('log-out',10));leaveB.appendChild(document.createTextNode(' '+bom('Iesire din Clan','Ma retrag, boss')));leaveB.onclick=function(){if(!confirm(bom('Esti sigur ca vrei sa iesi?','Chiar pleci, boss?')))return;var _leavedCode=p.gangCode;var _lk=S.authUser||UID;RTDB.ref('sh/gang/'+_leavedCode+'/'+_lk).remove().then(function(){RTDB.ref('sh/gang/'+_leavedCode).get().then(function(s2){var v2=s2.val()||{};var hasMember=Object.keys(v2).some(function(k){return k!=='meta'});if(!hasMember)RTDB.ref('sh/gang/'+_leavedCode).remove().catch(function(){});}).catch(function(){});}).catch(function(){});if(_gangUnsub){_gangUnsub();_gangUnsub=null;}S.gangMembers=[];S.gangMeta=null;p.gangCode='';p.gangNick='';DB.save('profile',p);render();};myCard.appendChild(leaveB);
   var lbCard=el('div',{c:'card'});
   var lbHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between'});
   var lbTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});lbTitle.textContent=bom('Clasament Clan','Cine trage mai tare?');var lbCount=el('div',{s:'color:var(--tx5);font-size:11px'});lbCount.textContent=members.length+' membri';lbHdr.appendChild(lbTitle);lbHdr.appendChild(lbCount);lbCard.appendChild(lbHdr);
