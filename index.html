@@ -1806,9 +1806,9 @@ function vDash(){
     if(/forț/i.test(goalBase)&&spPref2.indexOf('Sala (forta)')<0&&spPref2.indexOf('Powerlifting')<0&&spPref2.indexOf('CrossFit')<0&&spPref2.indexOf('Streetworkout')<0)suggestedSports.push('Sala (forta)');
     if(/cardio/i.test(goalBase)&&spPref2.indexOf('Alergare')<0&&spPref2.indexOf('Ciclism')<0&&spPref2.indexOf('Inot')<0&&spPref2.indexOf('HIIT')<0)suggestedSports.push('Alergare / Ciclism');
     if(suggestedSports.length){
-      recItems.push({ic:'plus-circle',col:'var(--ac-l)',txt:bom(
-        'Sugestie suplimentară (neselecționată): '+suggestedSports.join(', ')+' — recomandate pentru "'+goalBase+'". Adaugă-le din Profil → Editează dacă ești interesat.',
-        'Sugestie opțională, boss: '+suggestedSports.join(', ')+' ar da rezultate maxime pentru obiectivul tău. Dacă vrei, adaugă-le din Profil!'
+      recItems.push({ic:'plus-circle',col:'var(--ac-l)',nav:'prof',navLabel:bom('Adaugă în Profil →','Adaugă în Profil →'),txt:bom(
+        suggestedSports.join(', ')+' — recomandate pentru "'+goalBase+'".',
+        suggestedSports.join(', ')+' ar da rezultate maxime pentru obiectivul tău, boss.'
       )});
     }
   }else{
@@ -1828,13 +1828,15 @@ function vDash(){
   }
   // Evidence-based supplement suggestions (top 2)
   var _suppRecs=recommendSupps(p,_ins).slice(0,2);
-  _suppRecs.forEach(function(r){recItems.push({ic:'pill',col:'#34d399',txt:bom(r.s.n+' ('+SUPP_EV_LABEL[r.s.ev].toLowerCase()+'): '+r.s.dose+', '+r.s.timing+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'. Adaugă-l din Nutriție → Jurnal.',r.s.n+': '+r.s.dose+', '+r.s.timing+'. '+r.reason+', tati. Îl bifezi din Jurnal.')});});
+  _suppRecs.forEach(function(r){recItems.push({ic:'pill',col:'#34d399',nav:'nutr',navLabel:bom('Vezi în Nutriție →','Bifează în Jurnal →'),txt:bom(r.s.n+': '+r.s.dose+', '+r.s.timing+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.',r.s.n+': '+r.s.dose+'. '+r.reason+', tati.')});});
   recItems.forEach(function(r){
     var row=el('div',{s:'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bd)'});
     var ico=el('div',{s:'width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px'});
     ico.appendChild(ic(r.ic,11));
-    var txt=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});txt.textContent=r.txt;
-    row.appendChild(ico);row.appendChild(txt);recCard.appendChild(row);
+    var txWrap=el('div',{s:'flex:1;min-width:0'});
+    var txt=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});txt.textContent=r.txt;txWrap.appendChild(txt);
+    if(r.nav){var navBtn=el('button',{s:'margin-top:5px;background:none;border:none;padding:0;cursor:pointer;color:var(--ac-l);font-size:10px;font-weight:600;font-family:inherit;display:inline-flex;align-items:center;gap:2px'});navBtn.textContent=r.navLabel||'→';navBtn.onclick=function(){S.nav=r.nav;render()};txWrap.appendChild(navBtn);}
+    row.appendChild(ico);row.appendChild(txWrap);recCard.appendChild(row);
   });
   var ps=getProgressStats(),progCard=null;
   if(ps){
