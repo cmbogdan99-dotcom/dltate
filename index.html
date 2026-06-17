@@ -1524,7 +1524,7 @@ function vMain(){
       achBox.appendChild(achBoxLbl);
       recentAchs.forEach(function(e){
         var achRow=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:3px'});
-        var achIco=el('span',{s:'color:#fbbf24;font-size:13px'});achIco.textContent='🏆';
+        var achIco=el('span',{s:'color:#fbbf24;display:inline-flex'});achIco.appendChild(ic('trophy',13));
         var achTxt=el('span',{s:'color:var(--tx2);font-size:11px;flex:1'});achTxt.textContent=e.reason.replace('Realizare: ','');
         var achXP=el('span',{s:'color:#fbbf24;font-size:10px;font-family:ui-monospace,monospace'});achXP.textContent='+'+e.amt+' XP';
         achRow.appendChild(achIco);achRow.appendChild(achTxt);achRow.appendChild(achXP);achBox.appendChild(achRow);
@@ -1852,7 +1852,7 @@ function vDash(){
     });progCard.appendChild(pgGrid);
     if(ps.plateau){
       var platDiv=el('div',{s:'background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:7px;padding:8px 10px;font-size:11px;color:#fde68a'});
-      platDiv.textContent='⚠️ Platou detectat — greutatea n-a variat semnificativ în ultimele 14 zile. Încearcă: zi de refeed (+200 kcal), schimbă tipul de cardio, sau verifică somnul.';
+      var platW=el('span',{s:'color:#fde68a;display:inline-flex;align-items:center;vertical-align:middle;margin-right:4px'});platW.appendChild(ic('alert-triangle',12));platDiv.appendChild(platW);platDiv.appendChild(document.createTextNode('Platou detectat — greutatea n-a variat semnificativ în ultimele 14 zile. Încearcă: zi de refeed (+200 kcal), schimbă tipul de cardio, sau verifică somnul.'));
       progCard.appendChild(platDiv);
     }
   }
@@ -1860,7 +1860,7 @@ function vDash(){
   var highInt=last5wk.filter(function(w){return w.int>=8});
   var overtrain=highInt.length>=4;
   var overCard=overtrain?el('div',{c:'card cp',s:'border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.04)'}):null;
-  if(overCard){var ocH=el('div',{s:'color:#fde68a;font-size:12px;font-weight:600;margin-bottom:5px'});ocH.textContent='⚠️ Risc supraantrenament';var ocT=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});ocT.textContent=highInt.length+' antrenamente la intensitate ≥8 în ultimele 5 zile. Recomandare: zi de odihnă activă sau antrenament ușor (intensitate ≤5).';overCard.appendChild(ocH);overCard.appendChild(ocT);}
+  if(overCard){var ocH=el('div',{s:'color:#fde68a;font-size:12px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:4px'});var ocW=el('span',{s:'display:inline-flex'});ocW.appendChild(ic('alert-triangle',12));ocH.appendChild(ocW);ocH.appendChild(document.createTextNode('Risc supraantrenament'));var ocT=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});ocT.textContent=highInt.length+' antrenamente la intensitate ≥8 în ultimele 5 zile. Recomandare: zi de odihnă activă sau antrenament ușor (intensitate ≤5).';overCard.appendChild(ocH);overCard.appendChild(ocT);}
   // Daily Readiness Score card
   var rdy=getDailyReadiness();
   var rdyCard=el('div',{c:'card cp'});
@@ -1896,7 +1896,7 @@ function vDash(){
   var strTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});strTitle.textContent=bom('Activitate ultimele 4 săptămâni','Cât ai mișcat, boss?');
   var streak=0;var todayD=new Date();
   for(var si=0;si<30;si++){var sd2=new Date(todayD);sd2.setDate(todayD.getDate()-si);var sds=sd2.toISOString().split('T')[0];if(S.workouts.some(function(w){return w.date===sds})){streak++}else if(si>0){break;}}
-  var strBadge=el('div',{s:'color:#fbbf24;font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px'});strBadge.textContent='🔥 '+streak+'z';
+  var strBadge=el('div',{s:'color:#fbbf24;font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px'});if(S.mode==='bom'){strBadge.textContent='🔥 '+streak+'z';}else{strBadge.appendChild(ic('flame',11));strBadge.appendChild(document.createTextNode(' '+streak+'z'));}
   strHdr.appendChild(strTitle);strHdr.appendChild(strBadge);strCard.appendChild(strHdr);
   strCard.appendChild(mkStreakCalendar());
   var strLeg=el('div',{s:'display:flex;align-items:center;gap:8px;margin-top:7px'});
@@ -2121,7 +2121,7 @@ function rbFL(){
     var qRow=el('div',{s:'display:flex;gap:7px;align-items:flex-end;margin-bottom:7px'});
     var qD=el('div',null);var qL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});qL.textContent='Cantitate ('+sf.u+')';qD.appendChild(qL);
     var qi=el('input',{id:'foodQty',c:'inp',s:'font-size:11px;width:90px',type:'number',ph:String(sf.s),val:S.fqty||String(sf.s),min:NUM_CONSTRAINTS.foodQty.min,max:NUM_CONSTRAINTS.foodQty.max,step:NUM_CONSTRAINTS.foodQty.step,inp:function(e2){S.fqty=e2.target.value;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal'}});
-    try{qi.onblur=function(){S.fqty=clampToConstraints('foodQty',this.value);var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal';render()}}catch(e5){}
+    try{qi.onblur=function(){S.fqty=clampToConstraints('foodQty',this.value);this.value=S.fqty;var pv=document.getElementById('fl-pv');var val=Number(S.fqty)||sf.s;if(pv)pv.textContent=Math.round(sf.c*(val/sf.s))+' kcal'}}catch(e5){}
     qD.appendChild(qi);
     var pvDiv=el('div',{id:'fl-pv',s:'font-size:13px;font-weight:700;font-family:ui-monospace,monospace;color:var(--ac-l);flex-shrink:0'});
     pvDiv.textContent=Math.round(sf.c*((+(S.fqty||sf.s))/sf.s))+' kcal';
@@ -2165,7 +2165,7 @@ function vStat(){
     [150,250,350,500,750].forEach(function(ml){var b=el('button',{c:'wqb',click:function(){S.waterLog.push({id:String(Date.now()),date:TODAY,amt:ml});DB.save('waterLog',S.waterLog);render()}});b.textContent=ml+'ml';qRow.appendChild(b)});wc.appendChild(qRow);
     var cRow=el('div',{s:'display:flex;gap:6px'});
     var ci=el('input',{id:'waterQty',c:'inp',s:'flex:1;font-size:11px',type:'number',ph:'Cantitate (ml)',val:S.wIn||'',min:NUM_CONSTRAINTS.waterQty.min,max:NUM_CONSTRAINTS.waterQty.max,step:NUM_CONSTRAINTS.waterQty.step,inp:function(e2){S.wIn=e2.target.value}});
-    try{ci.onblur=function(){S.wIn=clampToConstraints('waterQty',this.value);render()}}catch(e6){}
+    try{ci.onblur=function(){S.wIn=clampToConstraints('waterQty',this.value);this.value=S.wIn}}catch(e6){}
     var cb=el('button',{c:'btn bp',s:'font-size:11px'});cb.disabled=!S.wIn;cb.textContent='Add';cb.prepend(ic('plus',11));
     cb.onclick=function(){if(!S.wIn)return;S.waterLog.push({id:String(Date.now()),date:TODAY,amt:+S.wIn});S.wIn='';DB.save('waterLog',S.waterLog);render()};
     cRow.appendChild(ci);cRow.appendChild(cb);wc.appendChild(cRow);
@@ -2188,10 +2188,10 @@ function vStat(){
     var sRow=el('div',{c:'g2',s:'margin-bottom:9px'});
     var hD=el('div',null);var hL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});hL.textContent='Ore de somn *';
     var hIw=el('div',{c:'iw'});var hI=el('input',{id:'sleepHours',c:'inp',s:'font-size:11px',type:'number',ph:'7.5',step:NUM_CONSTRAINTS.sleepHours.step,val:S.slH||'',min:NUM_CONSTRAINTS.sleepHours.min,max:NUM_CONSTRAINTS.sleepHours.max,inp:function(e2){S.slH=e2.target.value}});var hIu=el('span',{c:'iu'});hIu.textContent='h';hIw.appendChild(hI);hIw.appendChild(hIu);hD.appendChild(hL);hD.appendChild(hIw);
-    try{hI.onblur=function(){S.slH=clampToConstraints('sleepHours',this.value);render()}}catch(e7){}
+    try{hI.onblur=function(){S.slH=clampToConstraints('sleepHours',this.value);this.value=S.slH}}catch(e7){}
     var dD=el('div',null);var dL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});dL.textContent='Somn profund (opt.)';
     var dIw=el('div',{c:'iw'});var dI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:'20',val:S.slD||'',min:NUM_CONSTRAINTS.slD.min,max:NUM_CONSTRAINTS.slD.max,step:NUM_CONSTRAINTS.slD.step,inp:function(e2){S.slD=e2.target.value}});var dIu=el('span',{c:'iu'});dIu.textContent='%';dIw.appendChild(dI);dIw.appendChild(dIu);dD.appendChild(dL);dD.appendChild(dIw);
-    try{dI.onblur=function(){S.slD=clampToConstraints('slD',this.value);render()}}catch(e8){}
+    try{dI.onblur=function(){S.slD=clampToConstraints('slD',this.value);this.value=S.slD}}catch(e8){}
     sRow.appendChild(hD);sRow.appendChild(dD);sf.appendChild(sRow);
     var qualDiv=el('div',{s:'margin-bottom:9px'});
     var qL2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:5px'});qL2.textContent='Calitate somn';qualDiv.appendChild(qL2);
@@ -2269,10 +2269,10 @@ function vProgr(){
     var g2=el('div',{c:'g2',s:'margin-bottom:6px'});
     var w1=el('div',null);var wL2=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});wL2.textContent='Greutate (kg) *';
     var wI=el('input',{id:'wtIn',c:'inp',s:'font-size:11px',type:'number',ph:String(p.weight),step:NUM_CONSTRAINTS.wtIn.step,min:NUM_CONSTRAINTS.wtIn.min,max:NUM_CONSTRAINTS.wtIn.max,val:S.wtIn||'',inp:function(e2){S.wtIn=e2.target.value}});w1.appendChild(wL2);w1.appendChild(wI);
-    try{wI.onblur=function(){S.wtIn=clampToConstraints('wtIn',this.value);render()}}catch(e9){}
+    try{wI.onblur=function(){S.wtIn=clampToConstraints('wtIn',this.value);this.value=S.wtIn}}catch(e9){}
     var b1=el('div',null);var bL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});bL.textContent='Gr\u0103sime %';
     var bI=el('input',{c:'inp',s:'font-size:11px',type:'number',ph:fmt(m.bf,1),step:NUM_CONSTRAINTS.bfIn.step,min:NUM_CONSTRAINTS.bfIn.min,max:NUM_CONSTRAINTS.bfIn.max,val:S.bfIn||'',inp:function(e2){S.bfIn=e2.target.value}});b1.appendChild(bL);b1.appendChild(bI);
-    try{bI.onblur=function(){S.bfIn=clampToConstraints('bfIn',this.value);render()}}catch(eX){}
+    try{bI.onblur=function(){S.bfIn=clampToConstraints('bfIn',this.value);this.value=S.bfIn}}catch(eX){}
     g2.appendChild(w1);g2.appendChild(b1);lf.appendChild(g2);
     var nI=el('input',{c:'inp',s:'font-size:11px;margin-bottom:6px',ph:'Noti\u021be (op\u021bional)...',val:S.pnote||'',inp:function(e2){S.pnote=e2.target.value}});lf.appendChild(nI);
     var svB=el('button',{c:'btn bp bw',s:'font-size:11px'});svB.disabled=!S.wtIn;svB.textContent=bom('Salveaz\u0103','Bag\u0103 progresul, boss!');svB.prepend(ic('plus',11));
@@ -2384,7 +2384,7 @@ function vSport(){
   var sRow=el('div',{c:'g2',s:'margin-bottom:8px'});
   var durDiv=el('div',null);var durL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});durL.textContent='Durat\u0103 (min) *';
   var durI=el('input',{id:'sportDur',c:'inp',s:'font-size:11px',type:'number',ph:'45',val:S.sportDur||'',min:NUM_CONSTRAINTS.sportDur.min,max:NUM_CONSTRAINTS.sportDur.max,step:NUM_CONSTRAINTS.sportDur.step,inp:function(e2){S.sportDur=e2.target.value}});durDiv.appendChild(durL);durDiv.appendChild(durI);
-  try{durI.onblur=function(){S.sportDur=clampToConstraints('sportDur',this.value);render()}}catch(eZ){}
+  try{durI.onblur=function(){S.sportDur=clampToConstraints('sportDur',this.value);this.value=S.sportDur}}catch(eZ){}
   var intDiv=el('div',null);var intL=el('label',{s:'display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx4);margin-bottom:2px'});intL.textContent='Intensitate (1-10)';
   var intRow=el('div',{s:'display:flex;align-items:center;gap:7px'});
   var intSlider=el('input',{type:'range',min:'1',max:'10',val:String(S.sportInt),s:'flex:1;accent-color:var(--ac)',inp:function(e2){S.sportInt=+e2.target.value}});
@@ -2541,7 +2541,7 @@ function vFriends(){
   var lH=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;margin-bottom:10px'});lH.textContent='Prietenii mei ('+(S.fbFriends||[]).length+')';listCard.appendChild(lH);
   if(!(S.fbFriends&&S.fbFriends.length)){
     var emp=el('div',{s:'text-align:center;padding:18px 0'});
-    var empI=el('div',{s:'font-size:32px;margin-bottom:8px'});empI.textContent='👥';
+    var empI=el('div',{s:'color:var(--tx4);margin-bottom:8px;display:flex;justify-content:center'});empI.appendChild(ic('users',32));
     var empT=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:4px'});empT.textContent='Niciun prieten încă';
     var empS=el('div',{s:'color:var(--tx5);font-size:11px'});empS.textContent='Trimite codul tău ('+PCODE+') sau adaugă pe cineva de mai jos.';
     emp.appendChild(empI);emp.appendChild(empT);emp.appendChild(empS);listCard.appendChild(emp);
@@ -3320,7 +3320,7 @@ function vProf(){
       var rR=el('div',{s:'display:flex;align-items:center;gap:5px'});
       var rI=el('input',{c:'inp',s:'font-size:11px;width:65px;text-align:right;padding:5px 7px',type:'number',val:String(fv[f.k]||''),id:'prof-'+f.k,min:NUM_CONSTRAINTS[f.k].min,max:NUM_CONSTRAINTS[f.k].max,step:NUM_CONSTRAINTS[f.k].step});
       rI.oninput=(function(fk){return function(){S._editDraft[fk]=this.value}})(f.k);
-      try{rI.onblur=(function(fk){return function(){S._editDraft[fk]=clampToConstraints(fk,this.value);render()}})(f.k)}catch(eZ){}
+      try{rI.onblur=(function(fk){return function(){S._editDraft[fk]=clampToConstraints(fk,this.value);this.value=S._editDraft[fk]}})(f.k)}catch(eZ){}
       var rU=el('span',{s:'color:var(--tx4);font-size:11px'});rU.textContent=f.u;
       rR.appendChild(rI);rR.appendChild(rU);r.appendChild(rL);r.appendChild(rR);pc.appendChild(r);
     });
