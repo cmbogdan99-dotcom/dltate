@@ -281,6 +281,95 @@ var FOODS=[
 {id:145,n:'Ceai verde',cat:'Bauturi',s:240,c:2,p:0,f:0,h:0.5,u:'ml'},{id:146,n:'Kombucha',cat:'Bauturi',s:240,c:30,p:0.3,f:0,h:7,u:'ml'},{id:147,n:'Suc mere natural',cat:'Bauturi',s:240,c:114,p:0.2,f:0.3,h:28,u:'ml'},{id:148,n:'Smoothie proteic',cat:'Bauturi',s:350,c:280,p:30,f:5,h:28,u:'ml'},{id:149,n:'Lapte de ovaz',cat:'Bauturi',s:240,c:120,p:3,f:5,h:16,u:'ml'},
 {id:150,n:'Granola bar',cat:'Gustari',s:35,c:140,p:3,f:5,h:22,u:'g'},{id:151,n:'Rice cakes (2 buc)',cat:'Gustari',s:18,c:70,p:1.5,f:0.3,h:15,u:'g'},{id:152,n:'Dark choco 70%',cat:'Gustari',s:30,c:165,p:2.4,f:12,h:15,u:'g'},{id:153,n:'Mix de nuci',cat:'Gustari',s:30,c:185,p:5,f:17,h:6,u:'g'},{id:154,n:'Biscuiti ovaz',cat:'Gustari',s:30,c:125,p:2.5,f:4,h:20,u:'g'}
 ];
+// \u2500\u2500 Evidence-based supplement knowledge base \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// Sources: ISSN position stands, Examine.com, EFSA, NIH Office of Dietary
+// Supplements, Cochrane reviews. No anecdotal/forum sourcing. Evidence tiers:
+//   A = strong (meta-analyses / multiple RCTs)  B = moderate  C = emerging/limited
+var SUPPS=[
+  {id:'creatine',n:'Creatin\u0103 monohidrat',cat:'Performan\u021B\u0103',ev:'A',dose:'3\u20135 g/zi',timing:'oric\u00E2nd, zilnic (constant)',benefit:'Cel mai studiat supliment pentru for\u021B\u0103, putere \u0219i mas\u0103 muscular\u0103. Cre\u0219te rezervele de fosfocreatin\u0103.',tags:['forta','masa','recompozitie','energie','vegan','vegetarian'],note:'Sigur pe termen lung. Nu necesit\u0103 faz\u0103 de \u00EEnc\u0103rcare. Bea ap\u0103 suficient\u0103.'},
+  {id:'whey',n:'Protein\u0103 din zer (whey)',cat:'Performan\u021B\u0103',ev:'A',dose:'20\u201340 g/por\u021Bie',timing:'post-antrenament sau \u00EEntre mese',benefit:'Surs\u0103 rapid\u0103, complet\u0103, bogat\u0103 \u00EEn leucin\u0103. Ajut\u0103 atingerea \u021Bintei zilnice de protein\u0103 \u0219i sinteza muscular\u0103.',tags:['forta','masa','slabit','recompozitie','proteina'],macro:true,note:'Un instrument de convenien\u021B\u0103, nu obligatoriu dac\u0103 atingi proteina din alimente.'},
+  {id:'casein',n:'Cazein\u0103',cat:'Performan\u021B\u0103',ev:'B',dose:'20\u201340 g',timing:'seara, \u00EEnainte de culcare',benefit:'Digestie lent\u0103 \u2014 eliberare sus\u021Binut\u0103 de aminoacizi peste noapte pentru recuperare.',tags:['masa','recuperare','proteina'],macro:true,note:'Util dac\u0103 pauza dintre cin\u0103 \u0219i mic dejun e lung\u0103.'},
+  {id:'vitd',n:'Vitamina D3',cat:'Vitamine',ev:'A',dose:'1000\u20134000 UI/zi',timing:'cu o mas\u0103 ce con\u021Bine gr\u0103simi',benefit:'S\u0103n\u0103tate osoas\u0103, imunitate, func\u021Bie muscular\u0103. Deficitul e frecvent (iarn\u0103, expunere redus\u0103 la soare).',tags:['general','imunitate','oase','iarna'],note:'Ideal dozat dup\u0103 analiza 25-OH vitamina D. Consult\u0103 medicul pentru doze mari.'},
+  {id:'omega3',n:'Omega-3 (EPA/DHA)',cat:'S\u0103n\u0103tate',ev:'A',dose:'1\u20133 g EPA+DHA/zi',timing:'cu o mas\u0103',benefit:'Antiinflamator, s\u0103n\u0103tate cardiovascular\u0103 \u0219i cerebral\u0103, sus\u021Bine recuperarea.',tags:['general','cardio','recuperare','articulatii','vegetarian','vegan'],note:'Vegani: variant\u0103 din alge. Caut\u0103 con\u021Binut real de EPA+DHA pe etichet\u0103.'},
+  {id:'b12',n:'Vitamina B12',cat:'Vitamine',ev:'A',dose:'25\u2013100 mcg/zi',timing:'oric\u00E2nd',benefit:'Esen\u021Bial\u0103 pentru energie, sistem nervos \u0219i formarea globulelor ro\u0219ii. Lipse\u0219te din dieta strict vegetal\u0103.',tags:['vegan','vegetarian','energie'],note:'Obligatorie pentru vegani. Deficitul se instaleaz\u0103 lent dar e serios.'},
+  {id:'magnesium',n:'Magneziu (glicinat/citrat)',cat:'Minerale',ev:'B',dose:'200\u2013400 mg',timing:'seara',benefit:'Func\u021Bie muscular\u0103 \u0219i nervoas\u0103, calitatea somnului, reduce crampele. Aport adesea sub optim.',tags:['somn','recuperare','general','crampe'],note:'Glicinatul e bl\u00E2nd pe stomac; citratul poate avea efect laxativ.'},
+  {id:'caffeine',n:'Cofein\u0103',cat:'Performan\u021B\u0103',ev:'A',dose:'3\u20136 mg/kg corp',timing:'30\u201360 min pre-antrenament',benefit:'Cre\u0219te performan\u021Ba, vigilen\u021Ba \u0219i reduce percep\u021Bia efortului. Ergogenic dovedit.',tags:['energie','cardio','forta','slabit'],note:'Evit\u0103 seara (afecteaz\u0103 somnul). Aten\u021Bie la sensibilitate \u0219i tensiune.'},
+  {id:'multivit',n:'Multivitamine',cat:'Vitamine',ev:'C',dose:'1 por\u021Bie/zi',timing:'cu o mas\u0103',benefit:'\u201EPlas\u0103 de siguran\u021B\u0103" nutri\u021Bional\u0103 la diete restrictive sau variate s\u0103rac. Nu \u00EEnlocuie\u0219te m\u00E2ncarea real\u0103.',tags:['general','slabit','vegan','vegetarian'],note:'Prioritizeaz\u0103 o diet\u0103 divers\u0103; suplimentul acoper\u0103 lipsurile ocazionale.'},
+  {id:'betaalanine',n:'Beta-alanin\u0103',cat:'Performan\u021B\u0103',ev:'B',dose:'3\u20135 g/zi',timing:'zilnic, oric\u00E2nd',benefit:'Tamponeaz\u0103 aciditatea muscular\u0103 \u2014 \u00EEmbun\u0103t\u0103\u021Be\u0219te efortul de anduran\u021B\u0103 de 1\u20134 minute.',tags:['forta','cardio','anduranta'],note:'Senza\u021Bia de furnic\u0103turi e normal\u0103 \u0219i inofensiv\u0103; \u00EEmparte doza dac\u0103 deranjeaz\u0103.'},
+  {id:'citrulline',n:'Citrulin\u0103 malat',cat:'Performan\u021B\u0103',ev:'B',dose:'6\u20138 g',timing:'30\u201360 min pre-antrenament',benefit:'Cre\u0219te produc\u021Bia de oxid nitric \u2014 \u201Epomp\u0103" muscular\u0103, anduran\u021B\u0103 \u0219i reduce oboseala.',tags:['forta','masa','anduranta'],note:'Sinergic cu antrenamentul de volum.'},
+  {id:'vitc',n:'Vitamina C',cat:'Vitamine',ev:'B',dose:'200\u20131000 mg/zi',timing:'oric\u00E2nd',benefit:'Antioxidant, sus\u021Bine imunitatea \u0219i sinteza de colagen. Util \u00EEn perioade de stres/efort intens.',tags:['imunitate','articulatii','general'],note:'Aportul din legume/fructe e de regul\u0103 suficient.'},
+  {id:'electrolytes',n:'Electroli\u021Bi (Na/K/Mg)',cat:'S\u0103n\u0103tate',ev:'B',dose:'dup\u0103 transpira\u021Bie',timing:'\u00EEn/dup\u0103 efort lung sau pe c\u0103ldur\u0103',benefit:'\u00CEnlocuiesc s\u0103rurile pierdute prin transpira\u021Bie \u2014 previn crampele \u0219i sus\u021Bin hidratarea.',tags:['cardio','anduranta','hidratare'],note:'Relevan\u021Bi la efort peste 60 min sau transpira\u021Bie abundent\u0103.'},
+  {id:'iron',n:'Fier',cat:'Minerale',ev:'A',dose:'doar la deficit',timing:'pe stomacul gol cu vitamina C',benefit:'Combate oboseala cauzat\u0103 de anemie feripriv\u0103. Risc mai mare la femei \u0219i vegani.',tags:['femei','vegan','energie'],note:'NU suplimenta f\u0103r\u0103 analize (feritin\u0103). Excesul e toxic.'},
+  {id:'zinc',n:'Zinc',cat:'Minerale',ev:'B',dose:'8\u201311 mg/zi',timing:'cu o mas\u0103',benefit:'Imunitate, vindecare, sintez\u0103 proteic\u0103 \u0219i hormonal\u0103. Util la deficit (transpira\u021Bie, diet\u0103 vegetal\u0103).',tags:['imunitate','barbati','vegan'],note:'Nu dep\u0103\u0219i 40 mg/zi cronic \u2014 interfereaz\u0103 cu absorb\u021Bia cuprului.'},
+  {id:'collagen',n:'Colagen + Vitamina C',cat:'S\u0103n\u0103tate',ev:'B',dose:'10\u201315 g',timing:'30\u201360 min \u00EEnainte de efort articular',benefit:'Dovezi emergente pentru s\u0103n\u0103tatea tendoanelor, ligamentelor \u0219i articula\u021Biilor.',tags:['articulatii','recuperare'],note:'Luat cu vitamina C pentru sinteza de colagen.'},
+  {id:'ashwagandha',n:'Ashwagandha (KSM-66)',cat:'S\u0103n\u0103tate',ev:'B',dose:'300\u2013600 mg/zi',timing:'seara sau diminea\u021Ba',benefit:'Adaptogen \u2014 reduce cortizolul \u0219i stresul perceput, poate \u00EEmbun\u0103t\u0103\u021Bi somnul \u0219i recuperarea.',tags:['somn','recuperare','stres'],note:'Evit\u0103 la afec\u021Biuni tiroidiene f\u0103r\u0103 aviz medical.'},
+  {id:'melatonin',n:'Melatonin\u0103',cat:'Somn',ev:'A',dose:'0.5\u20133 mg',timing:'30\u201360 min \u00EEnainte de culcare',benefit:'Reduce laten\u021Ba de adormire; util la jet-lag \u0219i program de somn dereglat.',tags:['somn'],note:'\u00CEncepe cu doza mic\u0103. Pe termen scurt.'},
+  {id:'probiotics',n:'Probiotice',cat:'S\u0103n\u0103tate',ev:'B',dose:'1\u201310 miliarde UFC',timing:'zilnic, cu o mas\u0103',benefit:'Sus\u021Bin s\u0103n\u0103tatea digestiv\u0103 \u0219i microbiomul, mai ales dup\u0103 antibiotice sau disconfort intestinal.',tags:['digestie','general'],note:'Tulpinile conteaz\u0103 \u2014 alege produse documentate.'},
+  {id:'calcium',n:'Calciu',cat:'Minerale',ev:'A',dose:'500\u20131000 mg (din supliment)',timing:'cu mesele, divizat',benefit:'S\u0103n\u0103tate osoas\u0103 \u2014 relevant la aport sc\u0103zut de lactate sau diet\u0103 vegan\u0103.',tags:['oase','vegan','femei'],note:'Combin\u0103 cu vitamina D pentru absorb\u021Bie. Nu lua odat\u0103 cu fierul.'}
+];
+// Adaptive layer \u2014 learns from the user's logged nutrition, training and sleep.
+function getNutritionInsights(s){
+  s=s||S;var p=s.profile,m=s.metrics;var days=14;
+  var cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);var cIso=cutoff.toISOString().split('T')[0];
+  var recent=(s.food||[]).filter(function(e){return e.date>=cIso});
+  var byDay={};recent.forEach(function(e){(byDay[e.date]=byDay[e.date]||{c:0,p:0,f:0,h:0});byDay[e.date].c+=e.c||0;byDay[e.date].p+=e.p||0;byDay[e.date].f+=e.f||0;byDay[e.date].h+=e.h||0;});
+  var loggedDays=Object.keys(byDay),nDays=loggedDays.length;
+  var sum=loggedDays.reduce(function(a,d){a.c+=byDay[d].c;a.p+=byDay[d].p;a.h+=byDay[d].h;a.f+=byDay[d].f;return a;},{c:0,p:0,h:0,f:0});
+  var avgKcal=nDays?Math.round(sum.c/nDays):0,avgProtein=nDays?Math.round(sum.p/nDays):0;
+  var targetProtein=m&&m.macros?m.macros.prot:Math.round((p?p.weight:70)*1.8);
+  var proteinGap=Math.max(0,targetProtein-avgProtein);
+  var recentWk=(s.workouts||[]).filter(function(w){return w.date>=cIso});
+  var wkPerWeek=+((recentWk.length/(days/7)).toFixed(1));
+  var recentSleep=(s.sleepLog||[]).filter(function(e){return e.date>=cIso});
+  var avgSleep=recentSleep.length?+(recentSleep.reduce(function(a,e){return a+(e.hours||0)},0)/recentSleep.length).toFixed(1):null;
+  var poorSleep=avgSleep!==null&&avgSleep<6.5;
+  var foodCount={};recent.forEach(function(e){foodCount[e.n]=(foodCount[e.n]||0)+1;});
+  var topFoods=Object.keys(foodCount).sort(function(a,b){return foodCount[b]-foodCount[a]}).slice(0,5);
+  var vegCount=recent.filter(function(e){return /salat|brocoli|broccoli|spanac|legum|varz|morcov|ardei|rosii|ro\u0219ii|castrav|conopid|fruct|mere|banan|afine|capsun/i.test(e.n)}).length;
+  var lowVeg=nDays>=3&&(vegCount/Math.max(nDays,1))<1;
+  return {days:days,loggedDays:nDays,avgKcal:avgKcal,avgProtein:avgProtein,targetProtein:targetProtein,proteinGap:proteinGap,wkPerWeek:wkPerWeek,avgSleep:avgSleep,poorSleep:poorSleep,topFoods:topFoods,lowVeg:lowVeg,logConsistency:Math.round(nDays/days*100),targetKcal:m?m.kcal:null};
+}
+var SUPP_EV_LABEL={A:'Dovezi solide',B:'Dovezi moderate',C:'Dovezi emergente'};
+var SUPP_EV_COLOR={A:'#34d399',B:'#fbbf24',C:'#94a3b8'};
+function getSupp(id){return SUPPS.filter(function(s){return s.id===id})[0]||null}
+function suppTakenToday(id){return (S.suppLog||[]).some(function(e){return e.id===id&&e.date===TODAY})}
+function toggleSuppToday(id){
+  S.suppLog=S.suppLog||[];
+  if(suppTakenToday(id)){S.suppLog=S.suppLog.filter(function(e){return !(e.id===id&&e.date===TODAY)});}
+  else{S.suppLog.push({date:TODAY,id:id});addXP('Supliment logat',5);}
+  if(S.suppLog.length>1500)S.suppLog=S.suppLog.slice(-1500);
+  DB.save('suppLog',S.suppLog);
+}
+function toggleSuppStack(id){
+  if(!S.profile)return;
+  var st=S.profile.suppStack||[];var i=st.indexOf(id);
+  if(i>-1)st.splice(i,1);else st.push(id);
+  S.profile.suppStack=st;DB.save('profile',S.profile);
+}
+function recommendSupps(p,ins){
+  if(!p)return[];
+  var scored=[];
+  var diet=p.diet||'omnivor',goal=p.goal||'p',sex=p.sex,freq=+p.trainingFrequency||3;
+  SUPPS.forEach(function(s){
+    var score=0,reasons=[];
+    if(s.id==='vitd'){score+=3;reasons.push('deficit frecvent, sus\u021Bine imunitatea \u0219i oasele');}
+    if(s.id==='omega3'){score+=2;reasons.push('s\u0103n\u0103tate cardiovascular\u0103 \u0219i recuperare');}
+    if(diet==='vegan'){if(s.id==='b12'){score+=6;reasons.push('esen\u021Bial \u00EEn dieta vegan\u0103');}if(s.id==='iron'){score+=2;reasons.push('risc crescut de deficit');}if(s.id==='calcium'){score+=2;reasons.push('aport redus de lactate');}if(s.id==='creatine'){score+=2;reasons.push('rezerve mai mici la vegani');}}
+    if(diet==='vegetarian'&&s.id==='b12'){score+=3;reasons.push('aport limitat din diet\u0103');}
+    if((goal==='mb'||goal==='mc'||goal==='r')&&s.id==='creatine'){score+=4;reasons.push('cel mai eficient pentru mas\u0103/for\u021B\u0103');}
+    if((goal==='mb'||goal==='mc')&&s.id==='whey'){score+=2;reasons.push('ajut\u0103 surplusul proteic');}
+    if((goal==='p'||goal==='pA')&&s.id==='whey'){score+=3;reasons.push('sa\u021Bietate \u0219i men\u021Binerea masei \u00EEn deficit');}
+    if((goal==='p'||goal==='pA')&&s.id==='caffeine'){score+=2;reasons.push('energie \u0219i performan\u021B\u0103 \u00EEn deficit caloric');}
+    if(freq>=4){if(s.id==='creatine'){score+=2;}if(s.id==='omega3'){score+=1;}if(s.id==='electrolytes'){score+=1;reasons.push('antrenezi des \u2014 pierderi prin transpira\u021Bie');}}
+    if((p.preferredSports||[]).some(function(x){return /alergare|ciclism|inot|\u00EEnot|hiit|crossfit/i.test(x)})&&s.id==='betaalanine'){score+=1;reasons.push('anduran\u021B\u0103 muscular\u0103');}
+    if(sex==='F'&&s.id==='iron'){score+=2;reasons.push('necesar crescut la femei');}
+    if(ins&&ins.proteinGap>20&&(s.id==='whey')){score+=3;reasons.push('mediezi '+ins.avgProtein+'g protein\u0103 vs \u021Binta '+ins.targetProtein+'g');}
+    if(ins&&ins.poorSleep&&(s.id==='magnesium'||s.id==='melatonin')){score+=2;reasons.push('somn sub optim recent');}
+    if(score>0)scored.push({s:s,score:score,reason:reasons[0]||s.benefit});
+  });
+  scored.sort(function(a,b){var ev={A:3,B:2,C:1};return (b.score-a.score)||(ev[b.s.ev]-ev[a.s.ev])});
+  return scored;
+}
 var ACH_DEF=[
   {id:'ff',icon:'\uD83C\uDF4E',title:'Prima masa',desc:'Prima inregistrare de aliment',xp:50,cond:function(s){return s.food.length>=1}},
   {id:'f10',icon:'\uD83C\uDF7D\uFE0F',title:'Mancatorul constient',desc:'10 inregistrari aliment',xp:100,cond:function(s){return s.food.length>=10}},
@@ -462,7 +551,7 @@ function authDelete(cb){
   var key=_safeKey(S.authUser);
   RTDB.ref('accounts/'+key).remove().then(function(){
     _ls.rm('dltate:session');
-    ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].forEach(function(k){DB.del(k)});
+    ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog','suppLog'].forEach(function(k){DB.del(k)});
     S.loggedIn=false;S.authUser=null;S.profile=null;S.view='login';
     render();
     if(cb)cb(null);
@@ -475,6 +564,7 @@ DB.load('uiMode').then(function(v){if(v){S.mode=v;try{render()}catch(e){}}});
 DB.load('uiTheme').then(function(v){if(v){S.theme=v;document.documentElement.setAttribute('data-theme',v);try{render()}catch(e){}}});
 DB.load('anthropicKey').then(function(k){if(k){S.anthropicKey=k}});
 DB.load('xpPeriods').then(function(v){if(v)S.xpPeriods=v});
+DB.load('suppLog').then(function(v){if(v)S.suppLog=v});
 function bom(n,b){return S.mode==='bom'?b:n}
 // Debounced render helper to avoid re-rendering on every keystroke
 var __rtd=null;
@@ -485,7 +575,7 @@ var NUM_CONSTRAINTS={age:{min:0,max:120,step:1},height:{min:0,max:260,step:1},we
 function roundToStep(n,step){if(!step)return Math.round(n);var inv=1/step;return Math.round(n*inv)/inv}
 function clampToConstraints(key,val){var c=NUM_CONSTRAINTS[key];if(!c)return val; if(val===''||val==null) return '';var n=Number(val);if(isNaN(n))return'';n=Math.max(c.min,Math.min(c.max,roundToStep(n,c.step||1)));var digits=(String(c.step).indexOf('.')>-1)?String(c.step).split('.')[1].length:0;return digits? n.toFixed(digits):String(Math.round(n))}
 function fmt(n,d){if(n==null||isNaN(n))return'\u2014';return(+n).toFixed(d===undefined?1:d)}
-function stripEmoji(s){return(s||'').replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu,'').replace(/\s{2,}/g,' ').trim()}
+function stripEmoji(s){return(s||'').replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu,'').replace(/[^\S\n]{2,}/g,' ').trim()}
 function safe(s){return S.mode==='bom'?s:stripEmoji(s)}
 // Surgically strips astral-plane emoji (🌍🔒🏆🥇 etc.) from rendered text in normal
 // mode, while preserving BMP glyphs like ★ ✓ → › that the UI relies on.
@@ -495,7 +585,7 @@ function stripEmojiTree(root){
   try{
     var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var pt=n.parentNode&&n.parentNode.nodeName;if(pt==='SCRIPT'||pt==='STYLE')return NodeFilter.FILTER_REJECT;_EMOJI_RE.lastIndex=0;return _EMOJI_RE.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
     var nodes=[],cur;while(cur=w.nextNode())nodes.push(cur);
-    nodes.forEach(function(n){var v=n.nodeValue.replace(_EMOJI_RE,'').replace(/\s{2,}/g,' ');if(v!==n.nodeValue)n.nodeValue=v.trim().length?v.trim():'';});
+    nodes.forEach(function(n){var v=n.nodeValue.replace(_EMOJI_RE,'').replace(/[^\S\n]{2,}/g,' ');if(v!==n.nodeValue)n.nodeValue=v.trim().length?v.trim():'';});
   }catch(e){}
 }
 function notify(title,body,ttl,action,type){ttl=ttl||4200;try{var c=document.getElementById('pq4-toasts');if(!c){c=document.createElement('div');c.id='pq4-toasts';c.style.cssText='position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column-reverse;gap:8px;z-index:9999';document.body.appendChild(c)}var t=document.createElement('div');var accentColor=type==='ach'?'#fbbf24':type==='done'?'var(--su)':'var(--bg3)';t.style.cssText='background:var(--bg2);border:1px solid var(--bg3);border-left:3px solid '+accentColor+';padding:10px 13px;border-radius:9px;color:var(--tx1);min-width:230px;max-width:290px;box-shadow:0 8px 32px rgba(2,6,23,.7);opacity:0;transform:translateY(8px);transition:all .22s;cursor:'+(action?'pointer':'default')+';';var h=document.createElement('div');h.style.cssText='font-weight:700;font-size:12px;margin-bottom:3px;display:flex;align-items:center;gap:5px';if(type==='ach'){var star=document.createElement('span');star.style.cssText='color:#fbbf24;font-size:13px';star.textContent='★';h.appendChild(star)}else if(type==='done'){var chk=document.createElement('span');chk.style.cssText='color:var(--su);font-size:12px';chk.textContent='✓';h.appendChild(chk);}var ht=document.createElement('span');ht.textContent=title||'';h.appendChild(ht);var b=document.createElement('div');b.style.cssText='font-size:11px;color:var(--tx3);line-height:1.4';b.textContent=body||'';t.appendChild(h);t.appendChild(b);if(action){var hint=document.createElement('div');hint.style.cssText='font-size:10px;color:var(--ac);margin-top:5px;font-weight:500';hint.textContent='Apasă pentru detalii →';t.appendChild(hint);t.onclick=function(){try{if(typeof action==='function')action();else if(typeof action==='string'){S.nav=action;}render()}catch(e){}}}c.appendChild(t);setTimeout(function(){t.style.opacity='1';t.style.transform='translateY(0)'},10);S.notifs=S.notifs||[];S.notifs.push({id:String(Date.now()),title:title,body:body,ts:new Date().toISOString(),read:false});if(S.notifs.length>100)S.notifs=S.notifs.slice(-100);DB.save('notifs',S.notifs);setTimeout(function(){t.style.opacity='0';t.style.transform='translateY(10px)';setTimeout(function(){try{t.parentNode&&t.parentNode.removeChild(t)}catch(e){}},240)},ttl)}catch(e){}
@@ -731,7 +821,7 @@ function genChals(p){
 function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).indexOf('ach:'+a.id)<0){(S.doneChals=S.doneChals||[]).push('ach:'+a.id);DB.save('doneChals',S.doneChals);addXP('Realizare: '+a.title,a.xp);try{notify('Realizare deblocată: '+a.title,a.desc+' · +'+a.xp+' XP',5500,'ach','ach')}catch(e){}}})}
 var S={
   view:'loading',nav:'dash',profile:null,metrics:null,
-  progress:[],food:[],workouts:[],waterLog:[],sleepLog:[],measurements:[],photos:[],doneChals:[],chat:[],
+  progress:[],food:[],workouts:[],waterLog:[],sleepLog:[],measurements:[],photos:[],doneChals:[],chat:[],suppLog:[],
   friends:[],notifs:[],gangMembers:[],gangMeta:null,fbFriends:[],fbFriendReqs:[],fbNotifs:[],
   obStep:0,
   ob:{name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:'',sportHoursWeek:'3',cookTimeDay:'30',workHoursDay:'8',mealContext:'acasa',allergies:[],avoidedFoods:'',preferredSports:[]},
@@ -1596,6 +1686,16 @@ function vDash(){
   // Body fat specific
   if(m.bf&&p.sex==='M'&&m.bf>20)recItems.push({ic:'activity',col:'#f87171',txt:bom('Grasime corporala ~'+fmt(m.bf,1)+'%: adauga 2 sesiuni HIIT/sapt si creste NEAT (pasi zilnici >8000).','Cu '+fmt(m.bf,1)+'% grasime ai de lucru, boss! Baga 2 sesiuni HIIT pe sapt si fa minim 8000 de pasi pe zi.')});
   if(m.bf&&p.sex==='F'&&m.bf>28)recItems.push({ic:'activity',col:'#f87171',txt:bom('Grasime corporala ~'+fmt(m.bf,1)+'%: cardio moderat 3x/sapt si deficit caloric de 300-400 kcal/zi.','Cu '+fmt(m.bf,1)+'% grasime ai de lucru! Cardio moderat 3x/sapt si deficit de 300-400 kcal/zi — nu dispera, merge!')});
+  // Adaptive insights — learns from the user's actual logged data
+  var _ins=getNutritionInsights(S);
+  if(_ins.loggedDays>=3){
+    if(_ins.proteinGap>20){recItems.push({ic:'trending-up',col:'#38bdf8',txt:bom('Adaptiv: în ultimele '+_ins.days+' zile ai mediat '+_ins.avgProtein+'g proteină vs ținta '+_ins.targetProtein+'g (lipsă ~'+_ins.proteinGap+'g/zi). O porție de whey (~24g) sau +120g piept de pui acoperă diferența.','Adaptiv, boss: mediezi '+_ins.avgProtein+'g proteină din '+_ins.targetProtein+'g — lipsesc '+_ins.proteinGap+'g/zi! Bagă un shake de whey sau încă o porție de carne.')});}
+    if(_ins.lowVeg)recItems.push({ic:'leaf',col:'var(--su)',txt:bom('Adaptiv: aport scăzut de legume/fructe în jurnalul recent. Adaugă 1-2 porții/zi pentru fibre, micronutrienți și sațietate.','Adaptiv: cam puține legume în jurnal, tati. Bagă fibre — sațietate mai bună și digestie ca lumea.')});
+    if(_ins.targetKcal&&_ins.avgKcal>0){var dlt=_ins.avgKcal-_ins.targetKcal;if(Math.abs(dlt)>250)recItems.push({ic:'flame',col:dlt>0?'#f87171':'#fbbf24',txt:bom('Adaptiv: mediezi '+_ins.avgKcal+' kcal/zi vs ținta '+_ins.targetKcal+' kcal ('+(dlt>0?'+':'')+dlt+'). '+(dlt>0?'Ajustează porțiile pentru a respecta deficitul.':'Mănânci sub țintă — riști pierdere de masă musculară și metabolism încetinit.'),'Adaptiv: '+_ins.avgKcal+' kcal/zi vs '+_ins.targetKcal+' țintă ('+(dlt>0?'+':'')+dlt+'). '+(dlt>0?'Mai taie din porții, boss.':'Mănânci prea puțin — nu te înfometa că pierzi mușchi!'))});}
+  }
+  // Evidence-based supplement suggestions (top 2)
+  var _suppRecs=recommendSupps(p,_ins).slice(0,2);
+  _suppRecs.forEach(function(r){recItems.push({ic:'pill',col:'#34d399',txt:bom(r.s.n+' ('+SUPP_EV_LABEL[r.s.ev].toLowerCase()+'): '+r.s.dose+', '+r.s.timing+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'. Adaugă-l din Nutriție → Jurnal.',r.s.n+': '+r.s.dose+', '+r.s.timing+'. '+r.reason+', tati. Îl bifezi din Jurnal.')});});
   recItems.forEach(function(r){
     var row=el('div',{s:'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bd)'});
     var ico=el('div',{s:'width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px'});
@@ -1819,7 +1919,59 @@ function vNutr(){
     });return mc3;
   }).filter(Boolean);
   var args=[hdr,calCard,sumRow,addCard];sections.forEach(function(s2){args.push(s2)});
+  args.push(mkSuppSection());
   return mkSec.apply(null,args)
+}
+// Supplement tracker + evidence-based suggestions, shown in the nutrition journal.
+function mkSuppSection(){
+  var p=S.profile;if(!p)return null;
+  var ins=getNutritionInsights(S);
+  var stack=p.suppStack||[];
+  var card=el('div',{c:'card cp'});
+  var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:3px'});
+  hd.appendChild(ic('pill',13));
+  var hdT=el('span',{s:'color:var(--tx1);font-size:12px;font-weight:600'});hdT.textContent=bom('Suplimente','Suplimentele tale, boss');hd.appendChild(hdT);
+  var takenCount=stack.filter(suppTakenToday).length;
+  if(stack.length){var cnt=el('span',{s:'margin-left:auto;color:var(--tx4);font-size:10px;font-family:ui-monospace,monospace'});cnt.textContent=takenCount+'/'+stack.length+' azi';hd.appendChild(cnt);}
+  card.appendChild(hd);
+  var sub=el('div',{s:'color:var(--tx4);font-size:10px;margin-bottom:9px;line-height:1.5'});sub.textContent=bom('Recomandări bazate pe dovezi medicale, adaptate profilului tău. Bifează ce ai luat azi.','Pe bază de dovezi, nu vrăjeli de pe net. Bifează ce-ai băgat azi, tati.');card.appendChild(sub);
+  function evBadge(ev){var c=SUPP_EV_COLOR[ev];var b=el('span',{s:'font-size:8px;font-weight:700;letter-spacing:.03em;padding:1px 5px;border-radius:4px;flex-shrink:0;color:'+c+';background:'+c+'1f;border:1px solid '+c+'55'});b.textContent=SUPP_EV_LABEL[ev];b.title=SUPP_EV_LABEL[ev];return b;}
+  function evDot(ev){var b=el('span',{s:'font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;flex-shrink:0;color:#0a1020;background:'+SUPP_EV_COLOR[ev]});b.textContent=ev;b.title=SUPP_EV_LABEL[ev];return b;}
+  if(stack.length){
+    var stackWrap=el('div',{s:'margin-bottom:10px'});
+    stack.forEach(function(id){
+      var s=getSupp(id);if(!s)return;
+      var taken=suppTakenToday(id);
+      var row=el('div',{s:'display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;margin-bottom:4px;cursor:pointer;border:1px solid '+(taken?'rgba(52,211,153,.4)':'var(--bd)')+';background:'+(taken?'rgba(52,211,153,.07)':'var(--bg2)'),click:function(){toggleSuppToday(id);render();}});
+      var box=el('div',{s:'width:18px;height:18px;border-radius:5px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid '+(taken?'var(--su)':'var(--tx4)')+';background:'+(taken?'var(--su)':'transparent')});
+      if(taken){var ck=ic('check',11);ck.style.color='#06231a';box.appendChild(ck);}
+      var info=el('div',{s:'flex:1;min-width:0'});
+      var nm=el('div',{s:'color:'+(taken?'var(--tx1)':'var(--tx2b)')+';font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px'});nm.appendChild(document.createTextNode(s.n));nm.appendChild(evDot(s.ev));
+      var meta=el('div',{s:'color:var(--tx4);font-size:10px'});meta.textContent=s.dose+' · '+s.timing;
+      info.appendChild(nm);info.appendChild(meta);
+      var rm=el('button',{s:'background:none;border:none;color:var(--tx5);font-size:13px;cursor:pointer;flex-shrink:0',click:function(ev){ev.stopPropagation();toggleSuppStack(id);render();}});rm.textContent='×';rm.title='Scoate din stack';
+      row.appendChild(box);row.appendChild(info);row.appendChild(rm);stackWrap.appendChild(row);
+    });
+    card.appendChild(stackWrap);
+  }
+  var recs=recommendSupps(p,ins).filter(function(r){return stack.indexOf(r.s.id)<0}).slice(0,4);
+  if(recs.length){
+    var recLbl=el('div',{s:'color:var(--tx3);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});recLbl.textContent=bom('Recomandate pentru tine','Ce-ți trebuie ție, tati');card.appendChild(recLbl);
+    recs.forEach(function(r){
+      var s=r.s;
+      var row=el('div',{s:'display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-top:1px solid var(--bg1)'});
+      var info=el('div',{s:'flex:1;min-width:0'});
+      var top=el('div',{s:'display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px'});
+      var nm=el('span',{s:'color:var(--tx1);font-size:11.5px;font-weight:600'});nm.textContent=s.n;top.appendChild(nm);top.appendChild(evBadge(s.ev));
+      var why=el('div',{s:'color:var(--tx3);font-size:10px;line-height:1.45'});why.textContent=r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.';
+      var dose=el('div',{s:'color:var(--tx4);font-size:9.5px;margin-top:2px;font-family:ui-monospace,monospace'});dose.textContent=s.dose+' · '+s.timing;
+      info.appendChild(top);info.appendChild(why);info.appendChild(dose);
+      var add=el('button',{c:'btn bg',s:'font-size:10px;padding:5px 9px;flex-shrink:0;align-self:center',click:function(){toggleSuppStack(s.id);render();}});add.appendChild(ic('plus',11));
+      row.appendChild(info);row.appendChild(add);card.appendChild(row);
+    });
+  }
+  var disc=el('div',{s:'color:var(--tx5);font-size:9px;margin-top:9px;padding-top:7px;border-top:1px solid var(--bg1);line-height:1.5'});disc.textContent='Suplimentele completează, nu înlocuiesc o dietă echilibrată. Consultă un medic înainte de a începe orice supliment, mai ales dacă ai afecțiuni sau iei medicație.';card.appendChild(disc);
+  return card;
 }
 function rbFL(){
   var r=document.getElementById('fl-r');if(!r)return;
@@ -2728,7 +2880,13 @@ function vAI(){
     var tw=watToday(S),wg=Calc.wGoal(p),ls=S.sleepLog.length?S.sleepLog[S.sleepLog.length-1]:null;
     var tl=S.food.filter(function(e){return e.date===TODAY}),tc=tl.reduce(function(a,e){return a+e.c},0);
     var bomPersona=S.mode==='bom'?'\n\nMOD BOMBARDIER ACTIV: Vorbe\u0219ti exact ca un cocalar autentic din cartierele Bucure\u0219tiului \u2014 stilul Roby Roberto, Florin Salam-fan, manele & sal\u0103. Folose\u0219ti: "tati", "boss", "coco\u0219", "frate", "bre", "m\u0103 b\u0103iete", "p\u0103 bune", "zi-i", "d\u0103-i drumul", "las\' c\u0103 merge", "n-ai de ce", "e ok tati", "stai p\u0103 loc", "bag seam\u0103", "ce \u0219mecher", "hai sictir" (surpriz\u0103). Dai informa\u021bii corecte DAR \u00een ton cartier \u2014 casual, direct, cu personalitate. Nu exagera \u2014 un "tati" din 3 \u00een 3 propozi\u021bii e suficient. NU folosi limbaj vulgar gros.':'';
-    return 'E\u0219ti antrenorul personal din "Dl. Siski". R\u0103spunde MEREU \u00een rom\u00e2n\u0103. Fii direct, cald, bazat pe dovezi.'+bomPersona+'\n\n\nPROFIL:\n'+p.name+', '+p.age+' ani, '+(p.sex==='M'?'masculin':'feminin')+', '+p.height+'cm, '+p.weight+'kg \u2192 \u021Aint\u0103: '+p.targetWeight+'kg\nGr\u0103sime: ~'+fmt(m.bf,1)+'% | Mas\u0103 slab\u0103: '+fmt(m.lbm,1)+'kg | FFMI: '+(m.ffmi?fmt(m.ffmi):'N/A')+'\n\n\u021AINTE:\nBMR: '+m.bmr+' kcal | TDEE: '+m.tdee+' kcal | \u021Aint\u0103: '+m.kcal+' kcal\nProteine: '+(m.macros?m.macros.prot:'-')+'g | Gr\u0103simi: '+(m.macros?m.macros.fat:'-')+'g | Carbo: '+(m.macros?m.macros.carbs:'-')+'g\nObiectiv: '+(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label+'\n\nPREFERIN\u021aE:\nDiet\u0103: '+(p.diet||'omnivor')+(p.allergies&&p.allergies.length?'\nAlergii/intoleran\u021be: '+p.allergies.join(', '):'')+((p.avoidedFoods&&p.avoidedFoods.trim())?'\nAlimente evitate: '+p.avoidedFoods:'')+(p.preferredSports&&p.preferredSports.length?'\nSporturi preferate: '+p.preferredSports.join(', '):'')+'\n\nPROGRAM:\nOre sport/s\u0103pt: '+(p.sportHoursWeek||3)+'h | Ore lucru/zi: '+(p.workHoursDay||8)+'h | G\u0103tit/zi: '+(p.cookTimeDay||30)+'min | Context mese: '+({'acasa':'acas\u0103','restaurant':'restaurant','mixt':'mixt','mealprep':'meal prep'}[p.mealContext||'acasa']||'acas\u0103')+'\n\nSTARE AZI:\nAp\u0103: '+(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L\nSomn: '+(ls?ls.hours+'h, calitate '+ls.q+'/5':'ne\u00eenregistrat')+'\nCalorii: '+tc+' kcal\nAntrenamente total: '+S.workouts.length+'\nXP: '+getXP()+' ('+getLvl().n+')\n\nREGULI ESEN\u021aIALE:\n- R\u0103spunde DETALIAT \u0219i PERSONALIZAT \u2014 folose\u0219te datele concrete din profil \u00een fiecare r\u0103spuns\n- Citeaz\u0103 MEREU cifre reale (kg, kcal, g, %, minute) din profilul utilizatorului\n- Structureaz\u0103 r\u0103spunsul clar: explica\u021bie \u2192 cifre concrete \u2192 ac\u021biuni practice\n- La final ofer\u0103 \u00ceNTOTDEAUNA 2-3 \u00eentreb\u0103ri de follow-up pe care utilizatorul le poate pune pentru a aprofunda subiectul (format: "Vrei s\u0103 aflii mai mult despre: X, Y sau Z?")\n- Adapteaz\u0103 recomand\u0103rile la sporturile preferate ale utilizatorului c\u00e2nd e relevant\n- Nu diagnostica. Nu recomanda sub '+(p.sex==='M'?1400:1200)+' kcal/zi. Max 400 cuvinte.'
+    var _ins=getNutritionInsights(S);
+    var _suppRecs=recommendSupps(p,_ins).slice(0,5);
+    var _suppRef=_suppRecs.map(function(r){return '• '+r.s.n+' — '+r.s.dose+', '+r.s.timing+' ('+SUPP_EV_LABEL[r.s.ev]+'): '+r.s.benefit;}).join('\n');
+    var _stack=(p.suppStack||[]);
+    var _stackStr=_stack.length?_stack.map(function(id){var s=getSupp(id);return s?s.n+(suppTakenToday(id)?' (luat azi)':' (neluat azi)'):'';}).filter(Boolean).join(', '):'niciunul selectat';
+    var _adaptiv='\n\nADAPTIV (ultimele '+_ins.days+' zile, '+_ins.loggedDays+' cu loguri):\nMedie calorii: '+_ins.avgKcal+' kcal/zi'+(_ins.targetKcal?' (țintă '+_ins.targetKcal+')':'')+'\nMedie proteină: '+_ins.avgProtein+'g/zi (țintă '+_ins.targetProtein+'g'+(_ins.proteinGap>0?', lipsă '+_ins.proteinGap+'g/zi':'')+')\nAntrenamente: ~'+_ins.wkPerWeek+'/săptămână'+(_ins.avgSleep!==null?'\nSomn mediu: '+_ins.avgSleep+'h':'')+(_ins.topFoods.length?'\nAlimente frecvente: '+_ins.topFoods.slice(0,4).join(', '):'')+(_ins.lowVeg?'\nSemnal: aport scăzut de legume/fructe':'');
+    return 'E\u0219ti antrenorul personal din "Dl. Siski". R\u0103spunde MEREU \u00een rom\u00e2n\u0103. Fii direct, cald, profesionist. Acționezi ca o echipă de nutriționiști sportivi și antrenori certificați, cu recomandări bazate EXCLUSIV pe dovezi medicale verificate (studii, meta-analize, poziții ISSN/EFSA, consens medical) — niciodată mituri, „bro-science" sau surse de forum/anecdotice.'+bomPersona+'\n\n\nPROFIL:\n'+p.name+', '+p.age+' ani, '+(p.sex==='M'?'masculin':'feminin')+', '+p.height+'cm, '+p.weight+'kg \u2192 \u021Aint\u0103: '+p.targetWeight+'kg\nGr\u0103sime: ~'+fmt(m.bf,1)+'% | Mas\u0103 slab\u0103: '+fmt(m.lbm,1)+'kg | FFMI: '+(m.ffmi?fmt(m.ffmi):'N/A')+'\n\n\u021AINTE:\nBMR: '+m.bmr+' kcal | TDEE: '+m.tdee+' kcal | \u021Aint\u0103: '+m.kcal+' kcal\nProteine: '+(m.macros?m.macros.prot:'-')+'g | Gr\u0103simi: '+(m.macros?m.macros.fat:'-')+'g | Carbo: '+(m.macros?m.macros.carbs:'-')+'g\nObiectiv: '+(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label+'\n\nPREFERIN\u021aE:\nDiet\u0103: '+(p.diet||'omnivor')+(p.allergies&&p.allergies.length?'\nAlergii/intoleran\u021be: '+p.allergies.join(', '):'')+((p.avoidedFoods&&p.avoidedFoods.trim())?'\nAlimente evitate: '+p.avoidedFoods:'')+(p.preferredSports&&p.preferredSports.length?'\nSporturi preferate: '+p.preferredSports.join(', '):'')+'\n\nPROGRAM:\nOre sport/s\u0103pt: '+(p.sportHoursWeek||3)+'h | Ore lucru/zi: '+(p.workHoursDay||8)+'h | G\u0103tit/zi: '+(p.cookTimeDay||30)+'min | Context mese: '+({'acasa':'acas\u0103','restaurant':'restaurant','mixt':'mixt','mealprep':'meal prep'}[p.mealContext||'acasa']||'acas\u0103')+'\n\nSTARE AZI:\nAp\u0103: '+(tw/1000).toFixed(2)+'L / '+(wg/1000).toFixed(1)+'L\nSomn: '+(ls?ls.hours+'h, calitate '+ls.q+'/5':'ne\u00eenregistrat')+'\nCalorii: '+tc+' kcal\nAntrenamente total: '+S.workouts.length+'\nXP: '+getXP()+' ('+getLvl().n+')\n\nREGULI ESEN\u021aIALE:\n- R\u0103spunde DETALIAT \u0219i PERSONALIZAT \u2014 folose\u0219te datele concrete din profil \u00een fiecare r\u0103spuns\n- Citeaz\u0103 MEREU cifre reale (kg, kcal, g, %, minute) din profilul utilizatorului\n- Structureaz\u0103 r\u0103spunsul clar: explica\u021bie \u2192 cifre concrete \u2192 ac\u021biuni practice\n- La final ofer\u0103 \u00ceNTOTDEAUNA 2-3 \u00eentreb\u0103ri de follow-up pe care utilizatorul le poate pune pentru a aprofunda subiectul (format: "Vrei s\u0103 aflii mai mult despre: X, Y sau Z?")\n- Adapteaz\u0103 recomand\u0103rile la sporturile preferate ale utilizatorului c\u00e2nd e relevant\n- Nu diagnostica. Nu recomanda sub '+(p.sex==='M'?1400:1200)+' kcal/zi. Max 450 cuvinte.'+_adaptiv+'\n\nSUPLIMENTE RELEVANTE (selectate pe baza profilului, doar cu dovezi):\n'+(_suppRef||'—')+'\nStack curent al utilizatorului: '+_stackStr+'\n\nREGULI SUPLIMENTE:\n- Recomandă doar suplimente cu dovezi, cu doză și moment, menționând nivelul de dovezi (solide/moderate/emergente).\n- Sfătuiește consultarea unui medic înainte de orice supliment nou sau dacă există afecțiuni/medicație. Nu recomanda megadoze.\n- Folosește secțiunea ADAPTIV ca să observi tendințe reale (proteină, calorii, antrenamente, somn) și să ajustezi planul în timp.\n- Bazează-te exclusiv pe surse verificate medical; dacă lipsesc dovezile, spune-o clar — fără mituri sau forum.'
   }
   var QUICK=['De ce nu scade greutatea mea?','Ce m\u0103n\u00e2nc \u00eenainte de antrenament?','C\u00e2t\u0103 ap\u0103 trebuie s\u0103 beau?','Cum m\u00eembun\u0103t\u0103\u021besc somnul profund?','Ce sport e bun pentru obiectivul meu?','Explic\u0103-mi scorul FFMI','De c\u00e2te proteine am nevoie zilnic?'];
   var wrap=el('div',{s:'display:flex;flex-direction:column;height:100%'});
@@ -2872,6 +3030,22 @@ function vAI(){
       if(m.bf&&((p.sex==='M'&&m.bf>25)||(p.sex==='F'&&m.bf>32)))issues.push('grăsime corporală: '+fmt(m.bf,1)+'%');
       var ps3=getProgressStats();
       return '📊 Sumar '+p.name+' — '+new Date().toLocaleDateString('ro-RO')+':\n\n• Calorii: '+tc+'/'+m.kcal+' kcal\n• Apă: '+tw.toFixed(2)+'L/'+wg.toFixed(1)+'L\n• Antrenamente săpt: '+wks+'/'+p.trainingFrequency+'\n• Grăsime: '+(m.bf?fmt(m.bf,1)+'%':'nemăsurată')+'\n• Obiectiv: '+goalObj.label+(ps3?'\n• Streak antrenamente: '+ps3.streak+'z\n• Progres spre țintă: '+(ps3.goalPct!==null?ps3.goalPct+'%':'—'):'')+'\n\n'+(issues.length?'De îmbunătățit:\n'+issues.map(function(i){return '• '+i}).join('\n'):'✅ Totul arată bine azi!')+fu+' ce ar trebui să prioritizez azi, cum arată săptămâna ideală sau ce pot îmbunătăți cel mai rapid?';
+    }
+    if(lc.match(/supliment|supplement|vitamin|creatin|bcaa|omega|magnez|whey|zinc|multivit|cofein|caffeine|melatonin|colagen|probiotic|ashwagand|beta.?alanin|citrulin|electrolit|cazein|proteina (din zer|pudra|praf)/)){
+      var _ins3=getNutritionInsights(S);
+      var _sMap=[['creatin','creatine'],['whey|proteina din zer|proteina pudra|proteina praf','whey'],['cazein','casein'],['vitamina d3|vitamina d|vit d|d3','vitd'],['omega|fish oil|ulei de peste','omega3'],['b12','b12'],['magnez','magnesium'],['cofein|caffeine','caffeine'],['multivit','multivit'],['beta alanin|beta-alanin|betaalanin','betaalanine'],['citrulin','citrulline'],['vitamina c|vit c','vitc'],['electrolit','electrolytes'],['fier|iron','iron'],['zinc','zinc'],['colagen','collagen'],['ashwagand','ashwagandha'],['melatonin','melatonin'],['probiotic','probiotics'],['calciu','calcium']];
+      var _found=null;for(var _si2=0;_si2<_sMap.length;_si2++){if(new RegExp(_sMap[_si2][0]).test(lc)){_found=getSupp(_sMap[_si2][1]);break;}}
+      if(_found){
+        var _rel=recommendSupps(p,_ins3).filter(function(r){return r.s.id===_found.id})[0];
+        var _fit=_rel?'Pentru profilul tău: '+_rel.reason+'.':'Util în general, dar nu e prioritar pentru profilul tău acum.';
+        var _body=_found.n+' — '+SUPP_EV_LABEL[_found.ev]+'\n\n• Doză: '+_found.dose+'\n• Moment: '+_found.timing+'\n• Beneficiu: '+_found.benefit+'\n• De reținut: '+_found.note+'\n\n'+_fit+'\n\n⚕️ Consultă un medic înainte de a începe orice supliment nou, mai ales dacă ai afecțiuni sau iei medicație.';
+        return _body+fu+' cum se combină cu alte suplimente, ce surse naturale din alimentație acoperă același rol sau cum știu dacă chiar am nevoie de el?';
+      }
+      var _rs=recommendSupps(p,_ins3).slice(0,5);
+      var _list=_rs.map(function(r,i){return (i+1)+'. '+r.s.n+' ('+SUPP_EV_LABEL[r.s.ev]+') — '+r.s.dose+', '+r.s.timing+'\n   '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.';}).join('\n\n');
+      var _dietNote=p.diet==='vegan'?'\n\nNotă vegan: B12 e obligatoriu; fierul, calciul și omega-3 (din alge) merită atenție.':(p.diet==='vegetarian'?'\n\nNotă vegetarian: atenție la B12 și fier.':'');
+      if(bom2)return 'Suplimentele tale, tati — doar ce are dovezi, nu vrăjeli de pe net:\n\n'+_list+_dietNote+'\n\nBaza, boss: întâi mâncarea și somnul, abia apoi pudrele. ⚕️ Întreabă un medic înainte de orice supliment nou.'+fu+' cum bag fiecare supliment în zi, ce iau înainte de antrenament sau ce-mi trebuie musai pe dieta mea?';
+      return 'Recomandări de suplimente pentru tine (strict pe bază de dovezi):\n\n'+_list+_dietNote+'\n\nPrincipiu: suplimentele completează o dietă și un somn bune, nu le înlocuiesc. ⚕️ Consultă un medic înainte de orice supliment nou sau dacă ai afecțiuni/medicație.'+fu+' cum programez suplimentele pe parcursul zilei, ce iau pre-antrenament sau care sunt esențiale pentru dieta mea?';
     }
     // Check if question is too short or vague
     var isVague=msg.trim().length<8||lc.match(/^(da|nu|ok|hai|asta|ce|cum|de ce|ajutor|help|buna|salut|hey)$/i);
@@ -3018,8 +3192,8 @@ function vProf(){
   var delB=el('button',{s:'background:none;border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:11px;padding:5px 11px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px'});
   delB.appendChild(ic('trash',11));var delT=document.createTextNode(bom('Resetare date locale','Sterge tot local'));delB.appendChild(delT);
   delB.onclick=function(){
-    ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.del(k)});
-    S.view='onboarding';S.nav='dash';S.profile=null;S.metrics=null;S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];S.obStep=0;S.ob={name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:'',sportHoursWeek:'3',cookTimeDay:'30',workHoursDay:'8',mealContext:'acasa',allergies:[],avoidedFoods:'',preferredSports:[]};S.editing=false;S._editDraft=null;S.wtIn='';S.bfIn='';S.pnote='';S.sportDur='';S.sportNote='';S.sportInt=5;S.slH='';S.slQ=0;S.slD='';S.mIn={piept:'',sold:'',pulpa:'',biceps:''};S.photoNote='';S.wIn='';S.gangCode='';S.gangNick='';S._gangTab=null;S._gangSearch='';S._gangResults=null;S._gangSort='xp';S._clanBrowse=null;S._gangPublic=true;S._topTab=null;S._topPeriod='all';S.chatIn='';S.chatLoading=false;S.wellTab='a';S.chTab='d';S.showManual=false;S.manF={name:'',c:'',p:'',f:'',h:''};S.fsel=null;S.fsearch='';S.fqty='';
+    ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','suppLog','xpLog'].forEach(function(k){DB.del(k)});
+    S.view='onboarding';S.nav='dash';S.profile=null;S.metrics=null;S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];S.suppLog=[];S.obStep=0;S.ob={name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:'',sportHoursWeek:'3',cookTimeDay:'30',workHoursDay:'8',mealContext:'acasa',allergies:[],avoidedFoods:'',preferredSports:[]};S.editing=false;S._editDraft=null;S.wtIn='';S.bfIn='';S.pnote='';S.sportDur='';S.sportNote='';S.sportInt=5;S.slH='';S.slQ=0;S.slD='';S.mIn={piept:'',sold:'',pulpa:'',biceps:''};S.photoNote='';S.wIn='';S.gangCode='';S.gangNick='';S._gangTab=null;S._gangSearch='';S._gangResults=null;S._gangSort='xp';S._clanBrowse=null;S._gangPublic=true;S._topTab=null;S._topPeriod='all';S.chatIn='';S.chatLoading=false;S.wellTab='a';S.chTab='d';S.showManual=false;S.manF={name:'',c:'',p:'',f:'',h:''};S.fsel=null;S.fsearch='';S.fqty='';
     render();
   };
   dc.appendChild(delB);
