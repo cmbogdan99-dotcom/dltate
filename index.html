@@ -2800,12 +2800,15 @@ function vTop(){
     RTDB.ref('users').get().then(function(snap){
       if(_renderEpoch!==_topEpoch)return;
       var curWk=weekKey(),curMk=monthKey();
-      var users=[];snap.forEach(function(c){var v=c.val();if(!v)return;
+      var _seen={};snap.forEach(function(c){var v=c.val();if(!v)return;
         if(!v.username)return; // only real accounts (guests don't sync a username)
         if(/^(test|tester|demo|guest|vizitator|fake|asd|qwe|aaa|xxx)/i.test(v.username))return; // skip test accounts
         var val=period==='week'?(v.weekKey===curWk?(v.xpWeek||0):0):period==='month'?(v.monthKey===curMk?(v.xpMonth||0):0):(v.xp||0);
-        if(typeof val==='number'&&(period==='all'?val>0:val>=0))users.push({u:v,val:val});
+        if(typeof val!=='number')return;
+        var uk=v.username.toLowerCase();
+        if(!_seen[uk]||val>_seen[uk].val)_seen[uk]={u:v,val:val};
       });
+      var users=Object.values(_seen).filter(function(x){return period==='all'?x.val>0:x.val>=0});
       if(period!=='all')users=users.filter(function(x){return x.val>0});
       users.sort(function(a,b){return b.val-a.val});
       lH.textContent=(period==='week'?'Top săptămânal · ':period==='month'?'Top lunar · ':'Top global · ')+users.length+(users.length===1?' jucător':' jucători');
