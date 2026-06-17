@@ -503,7 +503,7 @@ if(!_lsOk){
 }
 var DB={
   load:function(k){return new Promise(function(res){try{var v=_ls.get('dltate:'+k);res(v!=null?JSON.parse(v):null)}catch(e){res(null)}})},
-  save:function(k,v){try{_ls.set('dltate:'+k,JSON.stringify(v))}catch(e){}},
+  save:function(k,v){try{_ls.set('dltate:'+k,JSON.stringify(v))}catch(e){} if(k==='profile'&&!S._suppressCloudSync){try{cloudProfileSync()}catch(e){}}},
   del:function(k){try{_ls.rm('dltate:'+k)}catch(e){}},
   ldSh:function(k){return new Promise(function(res){RTDB.ref('sh/'+k.replace(/:/g,'/')).get().then(function(s){res(s.exists()?s.val():null)}).catch(function(){res(null)})})},
   svSh:function(k,v){RTDB.ref('sh/'+k.replace(/:/g,'/')).set(v).catch(function(){})},
@@ -578,22 +578,37 @@ function authForgot(user,cb){
   }).catch(function(e){cb(e.message)});
 }
 function authChangeCredentials(newUser,newPw,cb){
-  var oldKey=_safeKey(S.authUser);
-  RTDB.ref('accounts/'+oldKey).get().then(function(snap){
-    if(!snap.exists()){cb('Cont negăsit.');return;}
-    var rec=snap.val();
-    var newKey=_safeKey(newUser);
-    var updates={};
-    if(newUser!==S.authUser){
-      updates['accounts/'+newKey]=Object.assign({},rec,{username:newUser,pwHash:_hashPw(newUser,newPw)});
-      updates['accounts/'+oldKey]=null;
-    }else{
-      updates['accounts/'+oldKey+'/pwHash']=_hashPw(newUser,newPw);
-    }
-    RTDB.ref().update(updates).then(function(){
-      S.authUser=newUser;
+  var oldKey=_safeKey(S.authUser);var newKey=_safeKey(newUser);
+  if(newUser===S.authUser){
+    // password-only change
+    RTDB.ref('accounts/'+oldKey+'/pwHash').set(_hashPw(newUser,newPw)).then(function(){
       if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:newUser,pwHash:_hashPw(newUser,newPw)}));
       cb(null);
+    }).catch(function(e){cb(e.message)});
+    return;
+  }
+  RTDB.ref('accounts/'+newKey).get().then(function(exSnap){
+    if(exSnap.exists()){cb('Numele de utilizator este deja folosit.');return;}
+    // Read account + canonical user subtree so the identity migrates intact.
+    Promise.all([RTDB.ref('accounts/'+oldKey).get(),RTDB.ref('users/'+oldKey).get()]).then(function(res){
+      if(!res[0].exists()){cb('Cont negăsit.');return;}
+      var rec=res[0].val();var userNode=res[1].val();
+      var updates={};
+      updates['accounts/'+newKey]=Object.assign({},rec,{username:newUser,pwHash:_hashPw(newUser,newPw)});
+      updates['accounts/'+oldKey]=null;
+      if(userNode){updates['users/'+newKey]=Object.assign({},userNode,{username:newUser});updates['users/'+oldKey]=null;}
+      RTDB.ref().update(updates).then(function(){
+        // Move clan membership to the new key (display name is unchanged).
+        if(S.profile&&S.profile.gangCode){
+          var gc=S.profile.gangCode;
+          RTDB.ref('sh/gang/'+gc+'/'+oldKey).get().then(function(gs){
+            if(gs.exists()){RTDB.ref('sh/gang/'+gc+'/'+newKey).set(gs.val()).then(function(){RTDB.ref('sh/gang/'+gc+'/'+oldKey).remove().catch(function(){})}).catch(function(){});}
+          }).catch(function(){});
+        }
+        S.authUser=newUser;
+        if(S.loginRemember)_ls.set('dltate:session',JSON.stringify({username:newUser,pwHash:_hashPw(newUser,newPw)}));
+        cb(null);
+      }).catch(function(e){cb(e.message)});
     }).catch(function(e){cb(e.message)});
   }).catch(function(e){cb(e.message)});
 }
@@ -605,10 +620,14 @@ function authLogout(){
 }
 function authDelete(cb){
   var key=_safeKey(S.authUser);
-  RTDB.ref('accounts/'+key).remove().then(function(){
+  var gc=S.profile&&S.profile.gangCode;
+  var ups={};ups['accounts/'+key]=null;ups['users/'+key]=null;
+  if(gc)ups['sh/gang/'+gc+'/'+key]=null;
+  RTDB.ref().update(ups).then(function(){
+    if(gc)_cleanupClanIfEmpty(gc);
     _ls.rm('dltate:session');
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog','suppLog'].forEach(function(k){DB.del(k)});
-    S.loggedIn=false;S.authUser=null;S.profile=null;S.view='login';
+    S.loggedIn=false;S.authUser=null;S.profile=null;S._canonName=null;S.view='login';
     render();
     if(cb)cb(null);
   }).catch(function(e){if(cb)cb(e.message)});
@@ -781,9 +800,66 @@ function publishXP(){
   if(!S.profile||S.guest||!S.authUser)return;
   var pe=getPeriodXP(),lvl=getLvl();
   // Key by username (not UID) so one account = one leaderboard entry regardless of device/session
-  var fbKey='users/'+S.authUser;
-  RTDB.ref(fbKey).update({name:S.profile.name,username:S.authUser,code:PCODE,uid:UID,xp:pe.total,xpWeek:pe.week,xpMonth:pe.month,weekKey:pe.wk,monthKey:pe.mk,level:lvl.n,lastSeen:TODAY}).catch(function(){});
+  var fbKey='users/'+_userKey();
+  RTDB.ref(fbKey).update({name:S._canonName||S.profile.name,username:S.authUser,code:PCODE,uid:UID,xp:pe.total,xpWeek:pe.week,xpMonth:pe.month,weekKey:pe.wk,monthKey:pe.mk,level:lvl.n,lastSeen:TODAY}).catch(function(){});
   if(S.profile.gangCode)RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+S.authUser+'/xp').set(pe.total).catch(function(){});
+}
+// ── Canonical account identity ────────────────────────────────────────────
+// One username == one permanent profile (name). The cloud copy at
+// users/{key}/profile is the single source of truth; logging in anywhere always
+// reconnects to the ORIGINAL identity. The name is locked after first creation.
+function _userKey(u){return _safeKey((u||S.authUser||'').toLowerCase())}
+function _cleanupClanIfEmpty(clanCode){
+  if(!clanCode)return;
+  RTDB.ref('sh/gang/'+clanCode).get().then(function(s2){
+    var v2=s2.val()||{};
+    var hasMember=Object.keys(v2).some(function(k){return k!=='meta'});
+    if(!hasMember)RTDB.ref('sh/gang/'+clanCode).remove().catch(function(){});
+  }).catch(function(){});
+}
+function cloudProfileSync(){
+  if(!S.profile||S.guest||!S.authUser||S._suppressCloudSync)return;
+  var key=_userKey();
+  // The canonical name can never be reassigned once set for an account.
+  var name=S._canonName||S.profile.name;
+  if(S._canonName&&S.profile.name!==S._canonName){S.profile.name=S._canonName;}
+  var toSave=Object.assign({},S.profile,{name:name});
+  RTDB.ref('users/'+key+'/profile').set(toSave).catch(function(){});
+}
+function _enterApp(prof){
+  S.profile=prof;S.metrics=Calc.getM(prof);S._canonName=prof.name;
+  Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
+    S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
+    S.view='app';syncUserToFB();cloudProfileSync();if(prof.gangCode)setupGangListener(prof.gangCode);render();
+  }).catch(function(){S.view='app';render()});
+}
+// Resolve the logged-in account to its canonical identity, then open the app.
+// Cloud profile (the original) always wins. If a different account's data is
+// cached locally on this device, its activity log is cleared so identities
+// never bleed together.
+function bootAccount(){
+  if(!S.authUser){S.view='login';render();return;}
+  var key=_userKey();
+  RTDB.ref('users/'+key+'/profile').get().then(function(snap){
+    var cloudProf=(snap.exists()&&snap.val()&&snap.val().name)?snap.val():null;
+    DB.load('profile').then(function(localProf){
+      if(cloudProf){
+        if(localProf&&localProf.name&&localProf.name!==cloudProf.name){
+          ['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].forEach(function(k){DB.del(k)});
+        }
+        S._suppressCloudSync=true;try{DB.save('profile',cloudProf)}finally{S._suppressCloudSync=false;}
+        _enterApp(cloudProf);
+      }else if(localProf&&localProf.name){
+        // Account exists but never finished onboarding — adopt local as canonical.
+        S._canonName=localProf.name;_enterApp(localProf);
+      }else{
+        S.view='onboarding';S.obStep=0;render();
+      }
+    });
+  }).catch(function(){
+    // Offline — fall back to local profile so the app still opens.
+    DB.load('profile').then(function(p){if(p&&p.name){S._canonName=p.name;_enterApp(p)}else{S.view='onboarding';render()}});
+  });
 }
 function getBully(p,m){
   var taunts=[];
@@ -1079,19 +1155,18 @@ function vLogin(){
     if(!pw||pw.length<4){S.loginErr='Parola trebuie să aibă minim 4 caractere.';render();return}
     if(S.loginTab==='register'&&pw!==S.loginPass2){S.loginErr='Parolele nu coincid.';render();return}
     S.loginLoading=true;S.loginErr='';render();
-    var fn=S.loginTab==='login'?authLogin:authRegister;
+    var isReg=S.loginTab==='register';
+    var fn=isReg?authRegister:authLogin;
     fn(u,pw,function(err){
       S.loginLoading=false;
       if(err){S.loginErr=err;render();return}
-      DB.load('profile').then(function(p){
-        if(p){
-          S.profile=p;S.metrics=Calc.getM(p);
-          Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','xpLog'].map(function(k){return DB.load(k)})).then(function(r2){
-            S.progress=r2[0]||[];S.food=r2[1]||[];S.workouts=r2[2]||[];S.waterLog=r2[3]||[];S.sleepLog=r2[4]||[];S.measurements=r2[5]||[];S.photos=r2[6]||[];S.doneChals=r2[7]||[];S.chat=r2[8]||[];S.xpLog=r2[9]||[];
-            S.view='app';syncUserToFB();if(p.gangCode)setupGangListener(p.gangCode);render();
-          }).catch(function(){S.view='app';render()});
-        }else{S.view='onboarding';render()}
-      }).catch(function(){S.view='onboarding';render()});
+      if(isReg){
+        // Brand-new account → onboarding sets the canonical identity once.
+        S.profile=null;S.metrics=null;S.obStep=0;S.view='onboarding';render();
+      }else{
+        // Login → always reconnect to the original cloud-stored profile.
+        bootAccount();
+      }
     });
   };
   card.appendChild(mainBtn);
@@ -1377,10 +1452,11 @@ function vOB(){
   function finish(){
     var D2=S.ob;
     var p={name:D2.name,age:+D2.age,sex:D2.sex,height:Calc.nH(D2.height),weight:+D2.weight,neck:+D2.neck,waist:+D2.waist,hip:D2.hip?+D2.hip:null,bodyFat:D2.bodyFat?+D2.bodyFat:null,bmi:(D2.bmi?+D2.bmi:null),activityLevel:D2.activityLevel,trainingFrequency:+D2.trainingFrequency||3,sleepHours:+D2.sleepHours||7,goal:D2.goal,targetWeight:+D2.targetWeight,diet:D2.diet,bloodGlucose:D2.bloodGlucose?+D2.bloodGlucose:null,sportHoursWeek:+D2.sportHoursWeek||3,cookTimeDay:+D2.cookTimeDay||30,workHoursDay:+D2.workHoursDay||8,mealContext:D2.mealContext||'acasa',allergies:D2.allergies||[],avoidedFoods:D2.avoidedFoods||'',preferredSports:D2.preferredSports||[],gangCode:'',gangNick:'',createdAt:new Date().toISOString()};
-    S.profile=p;S.metrics=Calc.getM(p);
+    S.profile=p;S.metrics=Calc.getM(p);S._canonName=p.name;
     S.progress=[];S.food=[];S.workouts=[];S.waterLog=[];S.sleepLog=[];S.measurements=[];S.photos=[];S.doneChals=[];S.chat=[];
     S.view='app';S.nav='dash';
     ['profile','progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat'].forEach(function(k){DB.save(k,S[k])});
+    if(S.authUser&&!S.guest){cloudProfileSync();syncUserToFB();}
     render();
   }
   var prog=el('div',{c:'opr'});
@@ -2900,14 +2976,6 @@ function vGang(){
     var nickI=el('input',{c:'inp',s:'font-size:12px',ph:'Ex: BigBoss',val:S.gangNick||'',inp:function(e2){S.gangNick=e2.target.value}});
     nickRow.appendChild(nickLbl);nickRow.appendChild(nickI);
 
-    function _cleanupClanIfEmpty(clanCode){
-      if(!clanCode)return;
-      RTDB.ref('sh/gang/'+clanCode).get().then(function(s2){
-        var v2=s2.val()||{};
-        var hasMember=Object.keys(v2).some(function(k){return k!=='meta'});
-        if(!hasMember)RTDB.ref('sh/gang/'+clanCode).remove().catch(function(){});
-      }).catch(function(){});
-    }
     function doJoinClan(code){
       if(!S.gangNick){notify('Porecla lipsa','Introdu o porecla pentru Clan.');return;}
       var _clanKey=S.authUser||UID;
@@ -3474,37 +3542,18 @@ function vProf(){
 render();
 (function(){
   var sess=null;try{var raw=_ls.get('dltate:session');if(raw)sess=JSON.parse(raw)}catch(e){}
-  function loadApp(){
-    DB.load('profile').then(function(p){
-      function startApp(prof){
-        S.profile=prof;S.metrics=Calc.getM(prof);
-        Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
-          S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
-          S.view='app';syncUserToFB();if(prof.gangCode)setupGangListener(prof.gangCode);render();
-        }).catch(function(){S.view='app';render()});
-      }
-      if(p){
-        startApp(p);
-      }else if(S.loggedIn&&UID){
-        // localStorage empty — try Firebase fallback
-        RTDB.ref('users/'+UID+'/profile').get().then(function(snap){
-          if(snap.exists()&&snap.val()&&snap.val().name){
-            var fbProf=snap.val();
-            DB.save('profile',fbProf);
-            startApp(fbProf);
-          }else{S.view='onboarding';render();}
-        }).catch(function(){S.view='onboarding';render()});
-      }else{S.view='onboarding';render();}
-    }).catch(function(){S.view='onboarding';render()});
-  }
   if(sess&&sess.username&&sess.pwHash){
     var key=_safeKey(sess.username);
     RTDB.ref('accounts/'+key).get().then(function(snap){
       if(snap.exists()&&snap.val().pwHash===sess.pwHash){
         S.loggedIn=true;S.authUser=sess.username;S.loginRemember=true;
-        loadApp();
+        // Always reconnect to the canonical (original) cloud profile.
+        bootAccount();
       }else{_ls.rm('dltate:session');S.view='login';render();}
-    }).catch(function(){S.view='login';render()});
+    }).catch(function(){
+      // Offline: trust the cached session and open with local data.
+      S.loggedIn=true;S.authUser=sess.username;S.loginRemember=true;bootAccount();
+    });
   }else{
     S.view='login';render();
   }
