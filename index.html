@@ -482,10 +482,16 @@ var Calc={
     var bfDeur=bmi&&p.age?+(1.2*bmi+0.23*p.age-10.8*(p.sex==='M'?1:0)-5.4).toFixed(1):null;
     if(bfDeur&&(bfDeur<3||bfDeur>65))bfDeur=null;
     var bmr=Calc.bmr(Object.assign({},p,{height:h,bodyFat:bf}));
-    var tdee=Calc.tdee(bmr,p.activityLevel),raw=Calc.calTgt(tdee,p.goal);
+    var tdeeEst=Calc.tdee(bmr,p.activityLevel);
+    // Adaptive TDEE: when the forecast engine has measured real maintenance from
+    // weight response vs intake, it stores it on the profile and the whole macro
+    // chain self-corrects to reality.
+    var tdeeAdaptive=!!(p.tdeeOverride&&+p.tdeeOverride>800&&+p.tdeeOverride<6000);
+    var tdee=tdeeAdaptive?Math.round(+p.tdeeOverride):tdeeEst;
+    var raw=Calc.calTgt(tdee,p.goal);
     var floor=p.sex==='M'?1400:1200,kcal=Math.max(raw,floor);
     var macros=lbm?Calc.macros(kcal,lbm,p.goal,p.diet):null;
-    return{bf:bf,bfDeur:bfDeur,bmi:bmi,lbm:lbm,ffmi:ffmi,bmr:bmr,tdee:tdee,kcal:kcal,macros:macros,warn:raw<floor}
+    return{bf:bf,bfDeur:bfDeur,bmi:bmi,lbm:lbm,ffmi:ffmi,bmr:bmr,tdee:tdee,tdeeEst:tdeeEst,tdeeAdaptive:tdeeAdaptive,kcal:kcal,macros:macros,warn:raw<floor}
   }
 };
 // Safe localStorage wrapper — falls back to in-memory store when localStorage
@@ -1688,6 +1694,128 @@ function getProgressStats(){
   var goalPct=tgtW&&startW!==tgtW?Math.min(100,Math.max(0,Math.round(Math.abs(startW-curW)/Math.abs(startW-tgtW)*100))):null;
   return{totalChange:totalChange,weeklyRate:weeklyRate,plateau:plateau,streak:streak,goalPct:goalPct,entries:prog.length};
 }
+// ── Adaptive prediction & insight engine ──────────────────────────────────
+// Learns from the user's REAL weight response (least-squares trend on a recency
+// window) and their REAL intake to: (1) forecast ETA-to-goal with a confidence
+// band, (2) measure true maintenance calories (adaptive TDEE), (3) recommend a
+// self-correcting calorie target, (4) classify the trajectory. Everything
+// re-derives from data on each call, so it adapts continuously to progress.
+var KCAL_PER_KG=7700; // mixed-tissue energy density
+function _linReg(pts){ // pts:[{x,y}] → {slope,intercept,r2,n,se}
+  var n=pts.length;if(n<2)return null;
+  var sx=0,sy=0,sxx=0,sxy=0,syy=0;
+  pts.forEach(function(p){sx+=p.x;sy+=p.y;sxx+=p.x*p.x;sxy+=p.x*p.y;syy+=p.y*p.y;});
+  var d=n*sxx-sx*sx;if(d===0)return null;
+  var slope=(n*sxy-sx*sy)/d,intercept=(sy-slope*sx)/n;
+  var ssTot=syy-sy*sy/n,ssRes=0;
+  pts.forEach(function(p){var pr=slope*p.x+intercept;ssRes+=(p.y-pr)*(p.y-pr);});
+  var r2=ssTot>0?Math.max(0,1-ssRes/ssTot):(ssRes<1e-9?1:0);
+  // standard error of the slope
+  var se=null;if(n>2){var resVar=ssRes/(n-2);se=Math.sqrt(resVar/(sxx-sx*sx/n));}
+  return{slope:slope,intercept:intercept,r2:r2,n:n,se:se};
+}
+function getForecast(s){
+  s=s||S;var p=s.profile,m=s.metrics;
+  if(!p)return{ready:false,reason:'no_profile'};
+  var prog=(s.progress||[]).slice().filter(function(e){return e&&e.weight}).sort(function(a,b){return a.date.localeCompare(b.date)});
+  var goal=p.goal||'p';
+  var goalDir=(goal==='mb'||goal==='mc')?1:(goal==='mn'?0:-1); // -1 lose, +1 gain, 0 maintain
+  var tgt=+p.targetWeight||null;
+  if(prog.length<3)return{ready:false,reason:'need_data',have:prog.length,need:3,goalDir:goalDir};
+  // day index = days since first entry
+  var t0=new Date(prog[0].date).getTime();
+  var pts=prog.map(function(e){return{x:Math.round((new Date(e.date).getTime()-t0)/86400000),y:e.weight,date:e.date};});
+  var spanDays=pts[pts.length-1].x-pts[0].x;
+  if(spanDays<6)return{ready:false,reason:'need_span',spanDays:spanDays,goalDir:goalDir};
+  // Adaptive recency window: last 35 days of entries (≥3), else all.
+  var lastX=pts[pts.length-1].x,winStart=lastX-35;
+  var win=pts.filter(function(q){return q.x>=winStart});
+  if(win.length<3)win=pts.slice(-Math.min(pts.length,6));
+  var reg=_linReg(win);
+  if(!reg)return{ready:false,reason:'degenerate',goalDir:goalDir};
+  var ratePerDay=reg.slope,ratePerWeek=+(ratePerDay*7).toFixed(2);
+  var smoothedCurrent=+(reg.slope*lastX+reg.intercept).toFixed(2);
+  var rawCurrent=pts[pts.length-1].y;
+  // Confidence from fit quality + sample size + span
+  var conf=reg.r2*Math.min(1,reg.n/6)*Math.min(1,(lastX-win[0].x)/21);
+  var confLabel=conf>=0.55?'high':conf>=0.25?'medium':'low';
+  // ── Trajectory classification ──
+  var nearGoal=tgt!=null&&Math.abs(smoothedCurrent-tgt)<=0.3;
+  var moving=Math.abs(ratePerWeek)>=0.05; // ≥50 g/week is a real trend
+  var rightDir=goalDir===0?!moving:(Math.sign(ratePerDay)===goalDir);
+  // healthy pace band (kg/week, absolute)
+  var bwPct=smoothedCurrent*0.01; // 1% bodyweight
+  var paceBand=goalDir<0?{lo:0.35,hi:Math.max(0.9,bwPct)}:goalDir>0?{lo:0.12,hi:0.5}:{lo:0,hi:0.15};
+  var absRate=Math.abs(ratePerWeek);
+  var traj,trajColor;
+  if(nearGoal){traj='reached';trajColor='#34d399';}
+  else if(goalDir!==0&&!moving){traj='plateau';trajColor='#fbbf24';}
+  else if(goalDir!==0&&!rightDir){traj='reversed';trajColor='#f87171';}
+  else if(goalDir!==0&&absRate>paceBand.hi*1.15){traj='fast';trajColor='#fb923c';}
+  else if(goalDir!==0&&absRate<paceBand.lo){traj='slow';trajColor='#fbbf24';}
+  else{traj='ontrack';trajColor='#34d399';}
+  // ── ETA to goal ──
+  var eta=null,etaDate=null,etaLo=null,etaHi=null,etaWeeks=null;
+  if(tgt!=null&&!nearGoal&&rightDir&&moving){
+    var remaining=tgt-smoothedCurrent;
+    var days=remaining/ratePerDay;
+    if(days>0&&days<3650){
+      eta=Math.round(days);etaWeeks=+(days/7).toFixed(1);
+      var ed=new Date();ed.setDate(ed.getDate()+eta);etaDate=ed.toISOString().split('T')[0];
+      // band from slope standard error
+      if(reg.se&&reg.se>0){
+        var rLo=ratePerDay-reg.se,rHi=ratePerDay+reg.se;
+        // keep same sign as trend
+        if(Math.sign(rLo)===Math.sign(ratePerDay)&&Math.abs(rLo)>1e-5){var dHi=remaining/rLo;if(dHi>0&&dHi<3650)etaHi=Math.round(dHi);}
+        if(Math.sign(rHi)===Math.sign(ratePerDay)&&Math.abs(rHi)>1e-5){var dLo=remaining/rHi;if(dLo>0)etaLo=Math.round(dLo);}
+      }
+    }
+  }
+  // ── Measured (adaptive) TDEE from intake vs realized rate ──
+  var measuredTDEE=null,intakeDays=0,avgIntake=null,adaptationPct=null;
+  var cutoff=new Date();cutoff.setDate(cutoff.getDate()-Math.min(35,Math.max(14,spanDays)));
+  var cIso=cutoff.toISOString().split('T')[0];
+  var fByDay={};(s.food||[]).filter(function(e){return e.date>=cIso}).forEach(function(e){fByDay[e.date]=(fByDay[e.date]||0)+(e.c||0);});
+  var fDays=Object.keys(fByDay);intakeDays=fDays.length;
+  if(intakeDays>=5){
+    avgIntake=Math.round(fDays.reduce(function(a,d){return a+fByDay[d]},0)/intakeDays);
+    // energy balance: rate*7700 = intake - TDEE  ⇒  TDEE = intake - rate*7700
+    measuredTDEE=Math.round(avgIntake-ratePerDay*KCAL_PER_KG);
+    if(measuredTDEE<800||measuredTDEE>6000)measuredTDEE=null;
+    if(measuredTDEE&&m&&m.tdeeEst)adaptationPct=Math.round((measuredTDEE-m.tdeeEst)/m.tdeeEst*100);
+  }
+  // ── Self-correcting calorie recommendation ──
+  var recKcal=null,recRate=null;
+  var baseTDEE=measuredTDEE||(m&&m.tdee)||null;
+  if(baseTDEE&&goalDir!==0&&tgt!=null&&!nearGoal){
+    // aim for the middle of the healthy pace band, in the goal direction
+    recRate=goalDir*((paceBand.lo+Math.min(paceBand.hi,goalDir<0?0.7:0.4))/2);
+    recKcal=Math.round(baseTDEE+(recRate/7)*KCAL_PER_KG); // recRate kg/week → kcal/day
+    var fl=p.sex==='M'?1400:1200;if(recKcal<fl)recKcal=fl;
+  }else if(baseTDEE&&goalDir===0){recKcal=baseTDEE;recRate=0;}
+  // ── Forward projection series (for chart overlay) ──
+  var proj=[];
+  if(rightDir||goalDir===0){
+    var horizon=eta?Math.min(eta+14,365):84;
+    for(var dd=0;dd<=horizon;dd+=7){
+      var w=reg.slope*(lastX+dd)+reg.intercept;
+      var bandW=reg.se?reg.se*dd*1.0:Math.max(0.3,Math.abs(reg.slope)*dd*0.3);
+      var ld=new Date();ld.setDate(ld.getDate()+dd);
+      proj.push({date:ld.toISOString().split('T')[0],w:+w.toFixed(2),lo:+(w-bandW).toFixed(2),hi:+(w+bandW).toFixed(2)});
+    }
+  }
+  // ── Lean-mass guard: are we losing weight too fast / losing muscle? ──
+  var muscleRisk=goalDir<0&&absRate>Math.max(1.0,bwPct*1.1);
+  return{
+    ready:true,goalDir:goalDir,tgt:tgt,
+    ratePerWeek:ratePerWeek,smoothedCurrent:smoothedCurrent,rawCurrent:rawCurrent,
+    r2:+reg.r2.toFixed(2),conf:+conf.toFixed(2),confLabel:confLabel,n:reg.n,spanDays:spanDays,
+    traj:traj,trajColor:trajColor,paceBand:paceBand,
+    eta:eta,etaDate:etaDate,etaWeeks:etaWeeks,etaLo:etaLo,etaHi:etaHi,
+    measuredTDEE:measuredTDEE,tdeeEst:(m&&m.tdeeEst)||null,avgIntake:avgIntake,intakeDays:intakeDays,adaptationPct:adaptationPct,
+    recKcal:recKcal,recRate:recRate&&+recRate.toFixed(2),muscleRisk:muscleRisk,proj:proj
+  };
+}
 function mkRec(tips){
   if(!tips||!tips.length)return null;
   var card=el('div',{c:'card cp',s:'border-left:3px solid var(--ac)'});
@@ -2327,6 +2455,119 @@ function vStat(){
   });
   return mkSec(hdr,getRec('stat'),rc)
 }
+function mkForecastCard(){
+  var f=getForecast();if(!f)return null;
+  var p=S.profile,m=S.metrics;
+  var card=el('div',{c:'card cp'});
+  var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:8px'});
+  var hIc=el('span',{s:'color:var(--ac-l);display:inline-flex'});hIc.appendChild(ic('chart-line',13));
+  var hT=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});hT.textContent=bom('Predicție adaptivă','Unde ajungi, boss?');
+  hd.appendChild(hIc);hd.appendChild(hT);card.appendChild(hd);
+  if(!f.ready){
+    var msg;
+    if(f.reason==='need_data')msg=bom('Mai cântărește-te de câteva ori — predicția pornește după 3 înregistrări (ai '+(f.have||0)+'/3).','Mai urcă pe cântar, tati — am nevoie de 3 cântăriri ca să-ți zic unde ajungi.');
+    else if(f.reason==='need_span')msg=bom('Predicția se activează după ~1 săptămână de cântăriri (ai '+f.spanDays+' zile).','Încă vreo zile de cântăriri și-ți fac harta, boss.');
+    else msg=bom('Adaugă greutatea ta în secțiunea de mai jos pentru predicții personalizate.','Bagă greutatea jos și-ți fac calculul, tati.');
+    var mb=el('div',{s:'color:var(--tx4);font-size:11px;line-height:1.5'});mb.textContent=msg;card.appendChild(mb);
+    return card;
+  }
+  var trajLabels={reached:bom('Țintă atinsă!','Ai reușit, boss!'),ontrack:bom('Pe traiectorie bună','Mergi ca trenul'),fast:bom('Ritm prea agresiv','Prea repede, tati'),slow:bom('Ritm prea lent','Cam moale, boss'),plateau:bom('Platou','Te-ai blocat'),reversed:bom('Direcție greșită','Mergi invers, frate')};
+  // Headline row
+  var hl=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px'});
+  var hlL=el('div',null);
+  var badge=el('div',{s:'display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:'+f.trajColor});
+  var bi={reached:'circle-check',ontrack:'trending-up',fast:'flame',slow:'hourglass',plateau:'minus',reversed:'alert-triangle'}[f.traj]||'activity';
+  var bIc=el('span',{s:'display:inline-flex'});bIc.appendChild(ic(bi,13));badge.appendChild(bIc);
+  var bTx=el('span');bTx.textContent=trajLabels[f.traj];badge.appendChild(bTx);
+  hlL.appendChild(badge);
+  var rateTx=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:2px'});
+  rateTx.textContent=(f.ratePerWeek>0?'+':'')+f.ratePerWeek+bom(' kg/săpt · tendință reală',' kg/săpt măsurat');
+  hlL.appendChild(rateTx);
+  hl.appendChild(hlL);
+  var confChip=el('div',{s:'font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap;color:'+(f.confLabel==='high'?'#34d399':f.confLabel==='medium'?'#fbbf24':'#94a3b8')+';background:'+(f.confLabel==='high'?'rgba(52,211,153,.12)':f.confLabel==='medium'?'rgba(251,191,36,.12)':'rgba(148,163,184,.12)')});
+  confChip.textContent=bom('încredere ','enc. ')+(f.confLabel==='high'?bom('mare','mare'):f.confLabel==='medium'?bom('medie','medie'):bom('redusă','mică'));
+  hl.appendChild(confChip);card.appendChild(hl);
+  // ETA hero
+  if(f.eta!=null&&f.etaDate){
+    var etaBox=el('div',{s:'background:var(--bg2);border-radius:9px;padding:9px 11px;margin-bottom:9px'});
+    var etaL=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px'});etaL.textContent=bom('Țintă estimată ('+(+p.targetWeight)+'kg)','Ajungi la '+(+p.targetWeight)+'kg');etaBox.appendChild(etaL);
+    var etaV=el('div',{s:'color:var(--tx1);font-size:15px;font-weight:700'});
+    var dObj=new Date(f.etaDate);var etaStr=dObj.toLocaleDateString('ro-RO',{day:'numeric',month:'long',year:'numeric'});
+    etaV.textContent=etaStr+'  ·  ~'+f.etaWeeks+bom(' săpt',' săpt');etaBox.appendChild(etaV);
+    if(f.etaLo&&f.etaHi&&(f.etaHi-f.etaLo)>=5){var bandTx=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:2px'});var lo=new Date();lo.setDate(lo.getDate()+f.etaLo);var hi=new Date();hi.setDate(hi.getDate()+f.etaHi);bandTx.textContent=bom('Interval probabil: ','Cam între ')+lo.toLocaleDateString('ro-RO',{day:'numeric',month:'short'})+' – '+hi.toLocaleDateString('ro-RO',{day:'numeric',month:'short'});etaBox.appendChild(bandTx);}
+    card.appendChild(etaBox);
+  }else if(f.traj==='plateau'){
+    var plBox=el('div',{s:'background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:9px;padding:9px 11px;margin-bottom:9px;color:#fde68a;font-size:11px;line-height:1.5'});
+    plBox.textContent=bom('Greutatea e blocată de ~2 săptămâni. Strategie: o zi de refeed (+250 kcal), variază cardio-ul, sau scade ținta cu ~150 kcal — vezi recomandarea de mai jos.','Te-ai înțepenit, boss. Bagă o zi de refeed, schimbă cardio-ul sau taie ~150 kcal. Vezi mai jos.');
+    card.appendChild(plBox);
+  }else if(f.traj==='reversed'){
+    var rvBox=el('div',{s:'background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:9px;padding:9px 11px;margin-bottom:9px;color:#fca5a5;font-size:11px;line-height:1.5'});
+    rvBox.textContent=bom('Tendința merge în sens opus obiectivului. Verifică aportul caloric și recomandarea adaptivă de mai jos.','Mergi fix invers, frate. Verifică ce mănânci și aplică ținta de jos.');
+    card.appendChild(rvBox);
+  }
+  // Forecast chart (actual + projected trajectory toward target)
+  if(f.proj&&f.proj.length){
+    var cw=el('div',{s:'position:relative;height:120px;margin-bottom:9px'});var can=el('canvas',{id:'fcch'});cw.appendChild(can);card.appendChild(cw);
+    var actual=S.progress.slice().sort(function(a,b){return a.date.localeCompare(b.date)}).slice(-10);
+    var actLabels=actual.map(function(e){return fmtD(e.date)});
+    var projLabels=f.proj.slice(1).map(function(e){return fmtD(e.date)});
+    var labels=actLabels.concat(projLabels);
+    var nA=actual.length,nP=f.proj.length-1;
+    var dActual=actual.map(function(e){return e.weight}).concat(new Array(nP).fill(null));
+    var lastW=actual.length?actual[actual.length-1].weight:f.proj[0].w;
+    var dFore=new Array(nA-1).fill(null).concat([lastW]).concat(f.proj.slice(1).map(function(e){return e.w}));
+    var dTgt=labels.map(function(){return f.tgt});
+    var fcCol=f.trajColor;
+    setTimeout(function(){var ctx=document.getElementById('fcch');if(!ctx)return;if(CR.fcch){try{CR.fcch.destroy()}catch(e2){}}CR.fcch=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[
+      {label:bom('Real','Real'),data:dActual,borderColor:'#34d399',borderWidth:2,pointRadius:2,fill:false,tension:.3},
+      {label:bom('Prognoză','Prognoză'),data:dFore,borderColor:fcCol,borderWidth:2,borderDash:[5,4],pointRadius:0,fill:false,tension:.3},
+      {label:bom('Țintă','Țintă'),data:f.tgt!=null?dTgt:[],borderColor:'#64748b',borderWidth:1,borderDash:[2,3],pointRadius:0,fill:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:9},boxWidth:10}},tooltip:{backgroundColor:'#1e293b',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#334155',borderWidth:1}},scales:{x:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:8},maxTicksLimit:7}},y:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}}}}})},60);
+  }
+  // Adaptive TDEE + self-correcting calorie recommendation
+  if(f.measuredTDEE){
+    var tdBox=el('div',{s:'border-top:1px solid var(--bd);padding-top:9px'});
+    var tdH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:5px'});var tdHi=el('span',{s:'color:#38bdf8;display:inline-flex'});tdHi.appendChild(ic('flame',11));tdH.appendChild(tdHi);var tdHt=el('span',{s:'color:var(--tx2);font-size:11px;font-weight:600'});tdHt.textContent=bom('Metabolism măsurat','Cât arzi de fapt');tdH.appendChild(tdHt);tdBox.appendChild(tdH);
+    var tdRow=el('div',{s:'display:flex;gap:8px;margin-bottom:7px'});
+    function _mini(l,v,c){var d=el('div',{s:'flex:1;background:var(--bg2);border-radius:7px;padding:6px 8px'});var dl=el('div',{s:'color:var(--tx5);font-size:9px;margin-bottom:1px'});dl.textContent=l;var dv=el('div',{s:'color:'+(c||'var(--tx2b)')+';font-size:13px;font-weight:700;font-family:ui-monospace,monospace'});dv.textContent=v;d.appendChild(dl);d.appendChild(dv);return d;}
+    tdRow.appendChild(_mini(bom('Estimat','Estimat'),(f.tdeeEst||'—')+' kcal','#94a3b8'));
+    tdRow.appendChild(_mini(bom('Măsurat real','Real măsurat'),f.measuredTDEE+' kcal','#38bdf8'));
+    tdBox.appendChild(tdRow);
+    if(f.adaptationPct!=null&&Math.abs(f.adaptationPct)>=4){
+      var adTx=el('div',{s:'color:var(--tx4);font-size:10px;line-height:1.5;margin-bottom:7px'});
+      adTx.textContent=f.adaptationPct<0
+        ? bom('Corpul tău arde cu ~'+Math.abs(f.adaptationPct)+'% mai puțin decât estimarea teoretică (adaptare metabolică sau porții subraportate). Ținta de mai jos corectează asta.','Arzi cu '+Math.abs(f.adaptationPct)+'% mai puțin decât zice teoria, tati. Ținta de jos repară treaba.')
+        : bom('Corpul tău arde cu ~'+f.adaptationPct+'% mai mult decât estimarea — metabolism rapid. Poți mânca puțin mai mult.','Arzi cu '+f.adaptationPct+'% mai mult decât teoria, boss — poți băga ceva în plus.');
+      tdBox.appendChild(adTx);
+    }
+    if(f.recKcal){
+      var effTdee=(m&&m.tdee)||0;
+      var active=!!(p.tdeeOverride);
+      var recRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--ac-glow);border:1px solid var(--ac-glow);border-radius:8px;padding:8px 10px'});
+      var recL=el('div',null);var recLl=el('div',{s:'color:var(--tx5);font-size:9px;margin-bottom:1px'});recLl.textContent=bom('Țintă calorică adaptivă','Cât să mănânci');recL.appendChild(recLl);
+      var recV=el('div',{s:'color:var(--ac-l);font-size:14px;font-weight:700;font-family:ui-monospace,monospace'});recV.textContent=f.recKcal+' kcal/zi';recL.appendChild(recV);
+      if(f.recRate)( function(){var rr=el('div',{s:'color:var(--tx4);font-size:9px;margin-top:1px'});rr.textContent=bom('pentru ','pt ')+(f.recRate>0?'+':'')+f.recRate+bom(' kg/săpt sănătos',' kg/săpt');recL.appendChild(rr);})();
+      recRow.appendChild(recL);
+      if(active){
+        var resetB=el('button',{c:'btn bg',s:'font-size:10px;flex-shrink:0'});resetB.textContent=bom('Resetează','Înapoi');
+        resetB.onclick=function(){delete S.profile.tdeeOverride;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);notify(bom('Țintă resetată','Gata'),bom('Folosim din nou estimarea standard.','Înapoi la calculul normal, boss.'),2500);render();};
+        recRow.appendChild(resetB);
+      }else{
+        var applyB=el('button',{c:'btn bp',s:'font-size:10px;flex-shrink:0'});applyB.textContent=bom('Aplică','Bag-o');
+        applyB.onclick=function(){S.profile.tdeeOverride=f.measuredTDEE;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);addXP(bom('Țintă adaptivă activată','Țintă adaptivă'),15);notify(bom('Țintă adaptivă activă','Făcut, boss!'),bom('Caloriile și macro-urile se recalculează după metabolismul tău real.','Acum totul se calculează după cât arzi tu, nu după teorie.'),3500);render();};
+        recRow.appendChild(applyB);
+      }
+      tdBox.appendChild(recRow);
+      if(p.tdeeOverride){var actNote=el('div',{s:'color:#34d399;font-size:9px;margin-top:5px;display:flex;align-items:center;gap:3px'});var anI=el('span',{s:'display:inline-flex'});anI.appendChild(ic('circle-check',10));actNote.appendChild(anI);actNote.appendChild(document.createTextNode(bom('Țintă adaptivă activă în toată aplicația','Ținta adaptivă merge peste tot acum')));tdBox.appendChild(actNote);}
+    }
+    card.appendChild(tdBox);
+  }else if(f.intakeDays<5){
+    var hint=el('div',{s:'border-top:1px solid var(--bd);padding-top:8px;color:var(--tx5);font-size:10px;line-height:1.5'});
+    hint.textContent=bom('Loghează mâncarea câteva zile (ai '+f.intakeDays+'/5) ca să-ți măsor metabolismul real și să-ți ajustez ținta calorică automat.','Bagă mâncarea în jurnal câteva zile (ai '+f.intakeDays+'/5) și-ți zic exact cât arzi, tati.');
+    card.appendChild(hint);
+  }
+  return card;
+}
 function vProgr(){
   var p=S.profile,m=S.metrics,tab=S.ptab;
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Progres','Evolutia ta');
@@ -2338,6 +2579,7 @@ function vProgr(){
     var wch=+(last-first).toFixed(1);
     var sg=el('div',{c:'g3'});
     [{l:'Ini\u021bial',v:pl.length?fmt(first,1)+'kg':'\u2014',c:'#94a3b8'},{l:'Curent',v:fmt(p.weight,1)+'kg',c:'var(--su)'},{l:'Schimbare',v:(wch>0?'+':'')+fmt(wch,1)+'kg',c:wch<=0&&p.goal!=='mb'?'#34d399':'#94a3b8'}].forEach(function(s2){sg.appendChild(mkStatCard(s2.l,s2.v,s2.c))});
+    var fcCard=mkForecastCard();
     var chartDiv=null;
     if(pl.length>1){
       chartDiv=el('div',{c:'card cp'});var cw=el('div',{s:'position:relative;height:130px'});var can=el('canvas',{id:'wch'});cw.appendChild(can);chartDiv.appendChild(cw);
@@ -2370,7 +2612,7 @@ function vProgr(){
       xb4.onmouseenter=function(){this.style.color='#f87171'};xb4.onmouseleave=function(){this.style.color=''};
       rR4.appendChild(rD2);rR4.appendChild(xb4);r.appendChild(rL);r.appendChild(rR4);hl2.appendChild(r);
     });hist.appendChild(hl2);
-    return mkSec(hdr,sg,chartDiv,lf,hist)
+    return mkSec(hdr,sg,fcCard,chartDiv,lf,hist)
   }
   if(tab==='ms'){
     var ml=S.measurements,lastM=ml.length?ml[ml.length-1]:null;
