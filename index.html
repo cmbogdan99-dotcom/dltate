@@ -618,6 +618,7 @@ DB.load('uiLang').then(function(v){if(v){S.lang=v;try{render()}catch(e){}}});
 DB.load('uiMode').then(function(v){if(v){S.mode=v;try{render()}catch(e){}}});
 DB.load('uiTheme').then(function(v){if(v){S.theme=v;document.documentElement.setAttribute('data-theme',v);try{render()}catch(e){}}});
 DB.load('anthropicKey').then(function(k){if(k){S.anthropicKey=k}});
+DB.load('openaiKey').then(function(k){if(k){S.openaiKey=k}});
 DB.load('xpPeriods').then(function(v){if(v)S.xpPeriods=v});
 DB.load('suppLog').then(function(v){if(v)S.suppLog=v});
 function bom(n,b){return S.mode==='bom'?b:n}
@@ -885,7 +886,7 @@ function openScreenshotScanner(mode){
   closeBtn.onclick=function(){overlay.parentNode&&overlay.parentNode.removeChild(overlay);};
   fi.onchange=function(){
     if(!fi.files||!fi.files[0])return;
-    var key=S.apiKey||(S.profile&&S.profile.apiKey)||'';
+    var key=S.anthropicKey||'';
     if(!key){hint.textContent='Adauga o cheie API Anthropic in Profil > AI pentru scanare automata.';return;}
     hint.textContent='Se analizeaza imaginea...';uploadBtn.disabled=true;
     resizeForAI(fi.files[0],function(b64){
@@ -3077,7 +3078,7 @@ function vAI(){
   var wHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px;flex-shrink:0'});
   var wHdrIcon=el('div',{s:'width:30px;height:30px;border-radius:8px;background:var(--ac-glow);border:1px solid var(--ac-glow);display:flex;align-items:center;justify-content:center'});wHdrIcon.appendChild(ic('message-circle',13));
   var wHdrI=el('div',null);var wHdrN=el('div',{s:'color:var(--tx1);font-weight:600;font-size:12px'});wHdrN.textContent=t('ai_title');
-  var wHdrS=el('div',{s:'color:var(--tx4);font-size:10px'});wHdrS.textContent=S.anthropicKey?safe('⚡ Claude AI · '+t('ai_powered')):safe('🤖 Local · '+t('ai_powered'));
+  var wHdrS=el('div',{s:'color:var(--tx4);font-size:10px'});wHdrS.textContent=S.anthropicKey?safe('⚡ Claude AI · '+t('ai_powered')):S.openaiKey?safe('✨ ChatGPT · '+t('ai_powered')):safe('🤖 Local · '+t('ai_powered'));
   wHdrI.appendChild(wHdrN);wHdrI.appendChild(wHdrS);
   wHdr.appendChild(wHdrIcon);wHdr.appendChild(wHdrI);wrap.appendChild(wHdr);
   QUICK=[t('ai_q1'),t('ai_q2'),t('ai_q3'),t('ai_q4'),t('ai_q5'),t('ai_q6'),t('ai_q7')];
@@ -3264,6 +3265,20 @@ function vAI(){
         S.chat.push({role:'assistant',content:aiReply(msg)});
         S.chatLoading=false;DB.save('chat',S.chat);render();
       });
+    }else if(S.openaiKey){
+      var oMsgs=[{role:'system',content:sysP()}].concat(S.chat.slice(-10).map(function(c){return{role:c.role,content:c.content}}));
+      fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+S.openaiKey,'content-type':'application/json'},body:JSON.stringify({model:'gpt-4o-mini',max_tokens:700,messages:oMsgs})})
+      .then(function(r){return r.json()})
+      .then(function(d){
+        var txt=d&&d.choices&&d.choices[0]&&d.choices[0].message?d.choices[0].message.content:null;
+        if(txt){S.chat.push({role:'assistant',content:txt})}
+        else{S.chat.push({role:'assistant',content:aiReply(msg)})}
+        S.chatLoading=false;DB.save('chat',S.chat);render();
+      })
+      .catch(function(){
+        S.chat.push({role:'assistant',content:aiReply(msg)});
+        S.chatLoading=false;DB.save('chat',S.chat);render();
+      });
     }else{
       setTimeout(function(){
         try{S.chat.push({role:'assistant',content:aiReply(msg)})}catch(e){S.chat.push({role:'assistant',content:'Nu am putut procesa. Incearca din nou!'})}
@@ -3417,6 +3432,24 @@ function vProf(){
   }else{
     var loginHint=el('div',{s:'color:var(--tx4);font-size:11px'});loginHint.textContent='Nu ești autentificat.';ac.appendChild(loginHint);
   }
+  // AI API Keys card
+  var aiKeyCard=el('div',{c:'card cp'});
+  var aiKeyH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});aiKeyH.textContent='AI API Keys';aiKeyCard.appendChild(aiKeyH);
+  // Anthropic key
+  var aKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5);margin-bottom:4px'});aKeyLbl.textContent='Claude (Anthropic)';aiKeyCard.appendChild(aKeyLbl);
+  var aKeyRow=el('div',{s:'display:flex;gap:6px;margin-bottom:10px'});
+  var aKeyInp=el('input',{c:'inp',s:'font-size:11px;flex:1;font-family:ui-monospace,monospace',ph:'sk-ant-...',type:'password'});aKeyInp.value=S.anthropicKey||'';
+  var aKeySave=el('button',{c:'btn bp',s:'font-size:11px;flex-shrink:0'});aKeySave.textContent='Salvează';
+  aKeySave.onclick=function(){var v=aKeyInp.value.trim();S.anthropicKey=v;if(v)DB.save('anthropicKey',v);else DB.del('anthropicKey');render();};
+  aKeyRow.appendChild(aKeyInp);aKeyRow.appendChild(aKeySave);aiKeyCard.appendChild(aKeyRow);
+  // OpenAI key
+  var oKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5);margin-bottom:4px'});oKeyLbl.textContent='ChatGPT (OpenAI)';aiKeyCard.appendChild(oKeyLbl);
+  var oKeyRow=el('div',{s:'display:flex;gap:6px;margin-bottom:4px'});
+  var oKeyInp=el('input',{c:'inp',s:'font-size:11px;flex:1;font-family:ui-monospace,monospace',ph:'sk-...',type:'password'});oKeyInp.value=S.openaiKey||'';
+  var oKeySave=el('button',{c:'btn bp',s:'font-size:11px;flex-shrink:0'});oKeySave.textContent='Salvează';
+  oKeySave.onclick=function(){var v=oKeyInp.value.trim();S.openaiKey=v;if(v)DB.save('openaiKey',v);else DB.del('openaiKey');render();};
+  oKeyRow.appendChild(oKeyInp);oKeyRow.appendChild(oKeySave);aiKeyCard.appendChild(oKeyRow);
+  var aiKeyNote=el('div',{s:'color:var(--tx5);font-size:10px;line-height:1.4;margin-top:4px'});aiKeyNote.textContent='Claude are prioritate dacă ambele chei sunt setate. Fără cheie se folosește AI local.';aiKeyCard.appendChild(aiKeyNote);
   // UI Settings card — accessible on mobile (sidebar not visible on mobile)
   var uiCard=el('div',{c:'card cp'});
   var uiH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});uiH.textContent='Interfață';uiCard.appendChild(uiH);
@@ -3434,7 +3467,7 @@ function vProf(){
     tb2.textContent=opt.l;tb2.onclick=function(){S.theme=opt.v;DB.save('uiTheme',opt.v);render()};
     themeRow2.appendChild(tb2);
   });uiCard.appendChild(themeRow2);
-  return mkSec(hdr,pc,mc,logoCard,uiCard,ac,dc)
+  return mkSec(hdr,pc,mc,logoCard,aiKeyCard,uiCard,ac,dc)
 }
 render();
 (function(){
