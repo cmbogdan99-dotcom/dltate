@@ -426,6 +426,120 @@ function recommendSupps(p,ins){
   scored.sort(function(a,b){var ev={A:3,B:2,C:1};return (b.score-a.score)||(ev[b.s.ev]-ev[a.s.ev])});
   return scored;
 }
+// ── Generative nutrition engine ───────────────────────────────────────────
+// Builds full-day meal plans (or a single meal for the macros you have left)
+// from the food DB, fitting the user's ADAPTIVE calorie/macro targets while
+// honoring diet, allergies and avoided foods. Re-seeds for endless variety.
+function _foodTags(f){
+  var n=(f.n||'').toLowerCase(),cat=f.cat||'';
+  var fish=/somon|ton|macrou|sardine|cod\b|tilapia|pastrav|creveti|peste|peşte|hering/.test(n);
+  var plantProt=/tofu|tempeh|linte|fasole|naut|naut|edamame|proteina|whey|zer|caseina|mazare/.test(n);
+  var animalMeat=(/pui|curcan|vita|porc|carne|mici|cabanos|drob|ciolan|rata|raţa|sunca|salam|crenvur|gulas|tochitura|sarmale/.test(n))||(cat==='Proteine'&&!plantProt&&!fish);
+  var dairy=cat==='Lactate'||/lapte|iaurt|branza|brânza|telemea|mozzarella|chefir|smantana|cascaval|cottage|cas\b/.test(n);
+  if(/lapte de soia|lapte de migdale|lapte de ovaz|lapte vegetal/.test(n))dairy=false;
+  var egg=/\bou\b|oua|ouă|albus|albuş|omleta|omletă/.test(n);
+  var gluten=/paine|pâine|paste|covrig|cozonac|biscuit|placinta|plăcinta|granola|grau|grâu|bulgur|couscous|cuscus|tortilla|musli|fulgi|ovaz|ovăz|secara|secară/.test(n);
+  var nuts=/nuci|nucă|migdale|caju|fistic|arahide|alune/.test(n);
+  var soy=/tofu|tempeh|edamame|soia/.test(n);
+  return {fish:fish,plantProt:plantProt,animalMeat:animalMeat,dairy:dairy,egg:egg,gluten:gluten,nuts:nuts,soy:soy};
+}
+function _dietOk(f,diet){var t=_foodTags(f);
+  if(diet==='vegan')return !(t.animalMeat||t.fish||t.dairy||t.egg);
+  if(diet==='vegetarian')return !(t.animalMeat||t.fish);
+  return true;
+}
+function _allergyOk(f,allergies){
+  if(!allergies||!allergies.length)return true;var t=_foodTags(f);
+  for(var i=0;i<allergies.length;i++){var a=allergies[i];
+    if(a==='lactoza'&&t.dairy)return false;
+    if(a==='gluten'&&t.gluten)return false;
+    if(a==='nuci'&&t.nuts)return false;
+    if((a==='oua'||a==='ouă')&&t.egg)return false;
+    if((a==='peste'||a==='peşte')&&t.fish)return false;
+    if(a==='soia'&&t.soy)return false;
+  }
+  return true;
+}
+function foodPool(p){
+  var avoided=(p.avoidedFoods||'').toLowerCase().split(/[,;]+/).map(function(x){return x.trim()}).filter(function(x){return x.length>=3});
+  return FOODS.filter(function(f){
+    if(/Fast Food|Bauturi/.test(f.cat))return false;
+    if(!_dietOk(f,p.diet))return false;
+    if(!_allergyOk(f,p.allergies))return false;
+    if(avoided.some(function(a){return f.n.toLowerCase().indexOf(a)>-1}))return false;
+    return true;
+  });
+}
+var MEAL_SPLIT={md:0.25,pr:0.35,cn:0.30,gs:0.10};
+function _pick(arr,seed){return arr.length?arr[((seed%arr.length)+arr.length)%arr.length]:null;}
+function buildMeal(slot,kcalT,protT,pool,seed,lowCarb){
+  var items=[];
+  function mk(f,grams){var r=grams/f.s;return {ref:f,n:f.n,grams:Math.round(grams),c:Math.round(f.c*r),p:+(f.p*r).toFixed(1),fa:+(f.f*r).toFixed(1),h:+(f.h*r).toFixed(1)};}
+  function sumC(){return items.reduce(function(a,i){return a+i.c},0);}
+  function fatKcal(){return items.reduce(function(a,i){return a+i.fa*9},0);}
+  // 1) protein anchor — covers ~60% of the meal's protein
+  var prots=pool.filter(function(f){return f.p>=7&&(f.p/Math.max(f.c,1))>=0.05;});
+  if(slot==='md'){var pm=prots.filter(function(f){var t=_foodTags(f);return !t.animalMeat&&!t.fish;});if(pm.length>=2)prots=pm;}
+  if(!prots.length)prots=pool.filter(function(f){return f.p>=6});
+  prots.sort(function(a,b){return (b.p/b.c)-(a.p/a.c)});
+  var protF=_pick(prots.slice(0,8),seed);
+  if(protF){var pPerG=protF.p/protF.s;items.push(mk(protF,Math.min(360,Math.max(40,(protT*(lowCarb?0.78:0.6))/Math.max(pPerG,0.001)))));}
+  // 2) veg for savory meals (volume, micronutrients)
+  if(slot==='pr'||slot==='cn'){var veg=pool.filter(function(f){return f.cat==='Legume'});var vegF=_pick(veg,seed*7+2);if(vegF)items.push(mk(vegF,vegF.s));}
+  // 3) fat component — calorie density + satiety (bigger share on low-carb)
+  var fatShare=lowCarb?0.5:0.2;
+  if(fatKcal()<kcalT*fatShare*0.8){
+    var fats=pool.filter(function(f){return /Grasimi/.test(f.cat)||(f.f>=7&&/Lactate|Gustari|Prot\.veg\./.test(f.cat))});
+    fats.sort(function(a,b){return (b.f/Math.max(b.c,1))-(a.f/Math.max(a.c,1))});
+    var fatF=_pick(fats.slice(0,8),seed*5+3);
+    if(fatF){var addK=kcalT*fatShare-fatKcal();var fpg=fatF.c/fatF.s;items.push(mk(fatF,Math.min(lowCarb?90:45,Math.max(6,addK/Math.max(fpg,0.1)))));}
+  }
+  // 4) carb filler closes the remaining calories (skip for low-carb → extra veg)
+  if(!lowCarb){
+    var carbs=pool.filter(function(f){return f.h>=12&&f.c>=40&&/Carbo|Fructe|Prot\.veg\./.test(f.cat)});
+    if(slot==='md'){var bf=pool.filter(function(f){return /ovaz|ovăz|fulgi|paine|pâine|banana|fruct|mere|miere/i.test(f.n)});if(bf.length)carbs=bf;}
+    if(slot==='gs'){var sn=pool.filter(function(f){return /Fructe|Gustari/.test(f.cat)||/iaurt|nuc|migdal/i.test(f.n)});if(sn.length)carbs=sn;}
+    carbs.sort(function(a,b){return b.h-a.h});
+    var carbF=_pick(carbs.slice(0,10),seed*3+1);
+    if(carbF){var rem=Math.max(0,kcalT-sumC());var cpg=carbF.c/carbF.s;items.push(mk(carbF,Math.min(450,Math.max(20,rem/Math.max(cpg,0.1)))));}
+  }else{
+    var lv=pool.filter(function(f){return f.cat==='Legume'});var lvF=_pick(lv,seed+9);if(lvF)items.push(mk(lvF,lvF.s*1.5));
+  }
+  // 5) closing pass — scale the calorie filler to land within ~8% of target
+  if(sumC()<kcalT*0.92&&items.length){
+    var idx=-1,best=0;for(var i=0;i<items.length;i++){var c=items[i].ref.cat;if(/Carbo|Grasimi|Fructe/.test(c)&&items[i].c>best){best=items[i].c;idx=i;}}
+    if(idx<0)idx=items.length-1;
+    var it=items[idx],f=it.ref,deficit=kcalT-sumC(),addG=deficit/(f.c/f.s),newG=it.grams+addG;
+    if(newG/f.s<=6&&newG>0)items[idx]=mk(f,newG);
+  }
+  var tot=items.reduce(function(a,i){return {c:a.c+i.c,p:a.p+i.p,fa:a.fa+i.fa,h:a.h+i.h}},{c:0,p:0,fa:0,h:0});
+  return {slot:slot,items:items.map(function(i){return {n:i.n,grams:i.grams,c:i.c,p:i.p,f:i.fa,h:i.h}}),tot:{c:Math.round(tot.c),p:Math.round(tot.p),f:Math.round(tot.fa),h:Math.round(tot.h)}};
+}
+function genMealPlan(p,m,seed){
+  seed=seed||0;
+  var pool=foodPool(p);
+  if(pool.length<6)return null;
+  var lowCarb=p.diet==='keto'||p.diet==='lowCarb';
+  var dayKcal=m.kcal,dayProt=m.macros?m.macros.prot:Math.round(p.weight*1.8);
+  var plan=[],si=0;
+  MEALS.forEach(function(ml){
+    var split=MEAL_SPLIT[ml.id]||0.25;
+    var meal=buildMeal(ml.id,Math.round(dayKcal*split),Math.round(dayProt*split),pool,seed+si*17,lowCarb);
+    meal.label=ml.label;meal.id=ml.id;plan.push(meal);si++;
+  });
+  var tot=plan.reduce(function(a,me){return {c:a.c+me.tot.c,p:a.p+me.tot.p,f:a.f+me.tot.f,h:a.h+me.tot.h}},{c:0,p:0,f:0,h:0});
+  return {meals:plan,tot:{c:Math.round(tot.c),p:Math.round(tot.p),f:Math.round(tot.f),h:Math.round(tot.h)},target:{c:dayKcal,p:dayProt}};
+}
+// Single meal sized to the macros still left today, mapped to the next slot.
+function genFitMeal(p,m,remKcal,remProt,seed){
+  var pool=foodPool(p);if(pool.length<4||remKcal<120)return null;
+  var lowCarb=p.diet==='keto'||p.diet==='lowCarb';
+  var hr=new Date().getHours();
+  var slot=hr<11?'md':hr<16?'pr':hr<21?'cn':'gs';
+  var meal=buildMeal(slot,Math.round(remKcal),Math.round(Math.max(remProt,15)),pool,(seed||0)+hr,lowCarb);
+  var ml=MEALS.filter(function(x){return x.id===slot})[0];meal.label=ml?ml.label:'';meal.id=slot;
+  return meal;
+}
 var ACH_DEF=[
   {id:'ff',icon:'apple',title:'Prima masa',desc:'Prima inregistrare de aliment',xp:50,cond:function(s){return s.food.length>=1}},
   {id:'f10',icon:'tools-kitchen-2',title:'Mancatorul constient',desc:'10 inregistrari aliment',xp:100,cond:function(s){return s.food.length>=10}},
@@ -1045,7 +1159,7 @@ var S={
   obStep:0,
   ob:{name:'',age:'',sex:'',height:'',weight:'',neck:'',waist:'',hip:'',bodyFat:'',bmi:'',activityLevel:'moderat',trainingFrequency:'3',sleepHours:'7',goal:'p',targetWeight:'',diet:'omnivor',bloodGlucose:'',sportHoursWeek:'3',cookTimeDay:'30',workHoursDay:'8',mealContext:'acasa',allergies:[],avoidedFoods:'',preferredSports:[]},
   
-  fmeal:'md',fsearch:'',fsel:null,fqty:'',showManual:false,manF:{name:'',c:'',p:'',f:'',h:''},barcodeResult:null,
+  fmeal:'md',fsearch:'',fsel:null,fqty:'',showManual:false,manF:{name:'',c:'',p:'',f:'',h:''},barcodeResult:null,_mealSeed:0,_mealMode:null,
   wIn:'',slH:'',slQ:0,slD:'',
   mIn:{piept:'',sold:'',pulpa:'',biceps:'',gamba:'',antebrat:'',talie:'',spate:''},photoNote:'',
   sbCollapsed:false,
@@ -2111,6 +2225,85 @@ function vDash(){
   strCard.appendChild(strLeg);
   return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,rdyCard,calRow,sg,wCard,gCard2,(S.mode==='bom'&&typeof bCard!=='undefined'?bCard:null),overCard,strCard,getRec('dash'),progCard,recCard,aiCard)
 }
+function _addMealToJournal(meal){
+  meal.items.forEach(function(it){
+    S.food.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),date:TODAY,meal:meal.id,n:it.n,qty:it.grams,c:it.c,p:+it.p,f:+it.f,h:+it.h,gen:true});
+  });
+  DB.save('food',S.food);addXP(bom('Masă din plan','Masă generată'),5);
+  notify(bom('Adăugat în jurnal','Băgat, boss!'),meal.label+' · '+meal.tot.c+' kcal',2500);
+  render();
+}
+function mkMealCard(meal,compact){
+  var box=el('div',{s:'background:var(--bg2);border:1px solid var(--bg3);border-radius:9px;padding:9px 10px;margin-bottom:6px'});
+  var top=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:5px'});
+  var tl=el('div',{s:'color:var(--tx2);font-size:11px;font-weight:600'});tl.textContent=meal.label;
+  var tr=el('div',{s:'color:var(--ac-l);font-size:11px;font-family:ui-monospace,monospace;font-weight:600'});tr.textContent=meal.tot.c+' kcal';
+  top.appendChild(tl);top.appendChild(tr);box.appendChild(top);
+  meal.items.forEach(function(it){
+    var r=el('div',{s:'display:flex;align-items:center;justify-content:space-between;padding:2px 0'});
+    var rl=el('div',{s:'color:var(--tx3);font-size:11px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'});rl.textContent=it.n;
+    var rg=el('div',{s:'color:var(--tx5);font-size:10px;font-family:ui-monospace,monospace;flex-shrink:0;margin-left:8px'});rg.textContent=it.grams+'g · '+it.c+'kcal';
+    r.appendChild(rl);r.appendChild(rg);box.appendChild(r);
+  });
+  var mr=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-top:6px'});
+  var macs=el('div',{s:'color:var(--tx5);font-size:9px;font-family:ui-monospace,monospace'});macs.textContent=meal.tot.p+'g P · '+meal.tot.h+'g C · '+meal.tot.f+'g G';
+  var addB=el('button',{c:'btn bp',s:'font-size:10px;padding:3px 10px'});addB.appendChild(ic('plus',10));addB.appendChild(document.createTextNode(' '+bom('Adaugă','Bag-o')));
+  addB.onclick=function(){_addMealToJournal(meal)};
+  mr.appendChild(macs);mr.appendChild(addB);box.appendChild(mr);
+  return box;
+}
+function mkMealPlanCard(){
+  var p=S.profile,m=S.metrics;if(!p||!m)return null;
+  var dl=S.food.filter(function(e){return e.date===TODAY});
+  var tots=dl.reduce(function(a,e){return{c:a.c+e.c,p:a.p+e.p}},{c:0,p:0});
+  var remK=Math.max(0,Math.round(m.kcal-tots.c));
+  var remP=Math.max(0,Math.round((m.macros?m.macros.prot:0)-tots.p));
+  var mode=S._mealMode||(remK>=350&&tots.c>0?'fit':'day');
+  var card=el('div',{c:'card cp'});
+  var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:3px'});
+  var hi=el('span',{s:'color:var(--su);display:inline-flex'});hi.appendChild(ic('tools-kitchen-2',13));hd.appendChild(hi);
+  var ht=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});ht.textContent=bom('Plan de masă generat','Ce să-ți bagi, boss');hd.appendChild(ht);
+  if(m.tdeeAdaptive){var ab=el('span',{s:'margin-left:6px;font-size:8px;font-weight:700;color:#34d399;background:rgba(52,211,153,.12);padding:1px 6px;border-radius:99px'});ab.textContent=bom('ADAPTIV','ADAPTIV');hd.appendChild(ab);}
+  var rg=el('button',{s:'margin-left:auto;background:none;border:none;cursor:pointer;color:var(--tx4);display:inline-flex;align-items:center;gap:3px;font-size:10px;font-family:inherit'});rg.appendChild(ic('refresh',11));var rgt=el('span');rgt.textContent=bom('Schimbă','Altele');rg.appendChild(rgt);
+  rg.onclick=function(){S._mealSeed=(S._mealSeed||0)+1;render()};
+  hd.appendChild(rg);card.appendChild(hd);
+  var sub=el('div',{s:'color:var(--tx4);font-size:10px;margin-bottom:9px;line-height:1.5'});
+  sub.textContent=bom('Mese construite din baza de alimente pe ținta ta'+(m.tdeeAdaptive?' adaptivă':'')+', cu dieta și alergiile tale. Atinge "Adaugă" ca să le treci în jurnal.','Mese fix pe cifrele tale, cu dieta și alergiile tale. Dă "Bag-o" și gata.');
+  card.appendChild(sub);
+  // mode toggle
+  var tgl=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px;margin-bottom:9px'});
+  [['fit',bom('Cât mi-a rămas azi','Ce-mi mai trebuie')],['day',bom('Ziua completă','Toată ziua')]].forEach(function(o){
+    var on=mode===o[0];
+    var b=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;padding:5px 4px;border-radius:6px;'+(on?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
+    b.textContent=o[1];b.onclick=function(){S._mealMode=o[0];render()};tgl.appendChild(b);
+  });card.appendChild(tgl);
+  if(mode==='fit'){
+    var remBox=el('div',{s:'background:var(--bg2);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center'});
+    var rl2=el('div',null);var rl2l=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em'});rl2l.textContent=bom('Îți mai rămân azi','Mai ai pe azi');rl2.appendChild(rl2l);
+    var rl2v=el('div',{s:'color:var(--tx1);font-size:14px;font-weight:700;font-family:ui-monospace,monospace'});rl2v.textContent=remK+' kcal · '+remP+'g P';rl2.appendChild(rl2v);
+    remBox.appendChild(rl2);card.appendChild(remBox);
+    if(remK<120){
+      var doneB=el('div',{s:'color:#34d399;font-size:11px;display:flex;align-items:center;gap:5px;padding:4px 0'});var dbi=el('span',{s:'display:inline-flex'});dbi.appendChild(ic('circle-check',13));doneB.appendChild(dbi);doneB.appendChild(document.createTextNode(bom('Ți-ai atins ținta calorică pe azi. Bravo!','Ai făcut plinul pe azi, boss!')));card.appendChild(doneB);
+    }else{
+      var fit=genFitMeal(p,m,remK,remP,S._mealSeed);
+      if(fit&&fit.items.length)card.appendChild(mkMealCard(fit));
+      else{var nf=el('div',{s:'color:var(--tx4);font-size:11px'});nf.textContent=bom('Nu am putut compune o masă din filtrele tale. Verifică dieta/alergiile în Profil.','Nu pot face o masă cu filtrele tale, boss. Vezi profilul.');card.appendChild(nf);}
+    }
+  }else{
+    var plan=genMealPlan(p,m,S._mealSeed);
+    if(!plan){var nf2=el('div',{s:'color:var(--tx4);font-size:11px'});nf2.textContent=bom('Prea puține alimente compatibile cu dieta/alergiile tale pentru un plan complet.','Prea puține alimente cu filtrele tale, boss.');card.appendChild(nf2);return card;}
+    plan.meals.forEach(function(me){if(me.items.length)card.appendChild(mkMealCard(me))});
+    // plan total vs target
+    var tt=el('div',{s:'border-top:1px solid var(--bd);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;align-items:center'});
+    var ttl=el('div',{s:'color:var(--tx4);font-size:10px'});ttl.textContent=bom('Total plan','Total');
+    var ttv=el('div',{s:'color:var(--tx2b);font-size:11px;font-family:ui-monospace,monospace'});ttv.textContent=plan.tot.c+'/'+plan.target.c+' kcal · '+plan.tot.p+'/'+plan.target.p+'g P';
+    tt.appendChild(ttl);tt.appendChild(ttv);card.appendChild(tt);
+    var allB=el('button',{c:'btn bp bw',s:'font-size:11px;margin-top:8px'});allB.appendChild(ic('plus',11));allB.appendChild(document.createTextNode(' '+bom('Adaugă toată ziua în jurnal','Bag toată ziua')));
+    allB.onclick=function(){plan.meals.forEach(function(me){if(me.items.length)me.items.forEach(function(it){S.food.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),date:TODAY,meal:me.id,n:it.n,qty:it.grams,c:it.c,p:+it.p,f:+it.f,h:+it.h,gen:true})})});DB.save('food',S.food);addXP(bom('Plan de masă adăugat','Zi întreagă'),20);notify(bom('Plan adăugat','Gata, boss!'),plan.tot.c+' kcal în jurnal',3000);render();};
+    card.appendChild(allB);
+  }
+  return card;
+}
 function vNutr(){
   var p=S.profile,m=S.metrics,tab=S.ntab;
   var dl=S.food.filter(function(e){return e.date===TODAY});
@@ -2154,7 +2347,7 @@ function vNutr(){
       arr[2].forEach(function(f){var tag=el('span',{s:'padding:2px 7px;background:var(--bg2);border:1px solid var(--bg3);border-radius:99px;font-size:10px;color:var(--tx3)'});tag.textContent=f.n+' ('+f[arr[3]]+'g P)';tags.appendChild(tag)});
       fsCard.appendChild(tags);
     });
-    return mkSec(hdr,getRec('nutr'),calCard,fsCard)
+    return mkSec(hdr,getRec('nutr'),calCard,mkMealPlanCard(),fsCard)
   }
   // Journal tab
   var sumRow=el('div',{c:'g4'});
