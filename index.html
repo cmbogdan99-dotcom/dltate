@@ -4049,20 +4049,26 @@ function vProf(){
   var aiKeyCard=el('div',{c:'card cp'});
   var aiKeyH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});aiKeyH.textContent='AI API Keys';aiKeyCard.appendChild(aiKeyH);
   // Anthropic key
-  var aKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5);margin-bottom:4px'});aKeyLbl.textContent='Claude (Anthropic)';aiKeyCard.appendChild(aKeyLbl);
+  var aKeyLblRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px'});
+  var aKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5)'});aKeyLbl.textContent='Claude (Anthropic)';
+  var aKeyLink=el('a',{href:'https://console.anthropic.com/settings/keys',target:'_blank',rel:'noopener noreferrer',s:'font-size:10px;color:var(--ac-l);text-decoration:none;display:inline-flex;align-items:center;gap:3px;flex-shrink:0'});aKeyLink.appendChild(ic('external-link',10));aKeyLink.appendChild(document.createTextNode(bom('De unde iau cheia?','Ia cheia de aici')));
+  aKeyLblRow.appendChild(aKeyLbl);aKeyLblRow.appendChild(aKeyLink);aiKeyCard.appendChild(aKeyLblRow);
   var aKeyRow=el('div',{s:'display:flex;gap:6px;margin-bottom:10px'});
   var aKeyInp=el('input',{c:'inp',s:'font-size:11px;flex:1;font-family:ui-monospace,monospace',ph:'sk-ant-...',type:'password'});aKeyInp.value=S.anthropicKey||'';
   var aKeySave=el('button',{c:'btn bp',s:'font-size:11px;flex-shrink:0'});aKeySave.textContent='Salvează';
   aKeySave.onclick=function(){var v=aKeyInp.value.trim();S.anthropicKey=v;if(v)DB.save('anthropicKey',v);else DB.del('anthropicKey');render();};
   aKeyRow.appendChild(aKeyInp);aKeyRow.appendChild(aKeySave);aiKeyCard.appendChild(aKeyRow);
   // OpenAI key
-  var oKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5);margin-bottom:4px'});oKeyLbl.textContent='ChatGPT (OpenAI)';aiKeyCard.appendChild(oKeyLbl);
+  var oKeyLblRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px'});
+  var oKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5)'});oKeyLbl.textContent='ChatGPT (OpenAI)';
+  var oKeyLink=el('a',{href:'https://platform.openai.com/api-keys',target:'_blank',rel:'noopener noreferrer',s:'font-size:10px;color:var(--ac-l);text-decoration:none;display:inline-flex;align-items:center;gap:3px;flex-shrink:0'});oKeyLink.appendChild(ic('external-link',10));oKeyLink.appendChild(document.createTextNode(bom('De unde iau cheia?','Ia cheia de aici')));
+  oKeyLblRow.appendChild(oKeyLbl);oKeyLblRow.appendChild(oKeyLink);aiKeyCard.appendChild(oKeyLblRow);
   var oKeyRow=el('div',{s:'display:flex;gap:6px;margin-bottom:4px'});
   var oKeyInp=el('input',{c:'inp',s:'font-size:11px;flex:1;font-family:ui-monospace,monospace',ph:'sk-...',type:'password'});oKeyInp.value=S.openaiKey||'';
   var oKeySave=el('button',{c:'btn bp',s:'font-size:11px;flex-shrink:0'});oKeySave.textContent='Salvează';
   oKeySave.onclick=function(){var v=oKeyInp.value.trim();S.openaiKey=v;if(v)DB.save('openaiKey',v);else DB.del('openaiKey');render();};
   oKeyRow.appendChild(oKeyInp);oKeyRow.appendChild(oKeySave);aiKeyCard.appendChild(oKeyRow);
-  var aiKeyNote=el('div',{s:'color:var(--tx5);font-size:10px;line-height:1.4;margin-top:4px'});aiKeyNote.textContent='Claude are prioritate dacă ambele chei sunt setate. Fără cheie se folosește AI local.';aiKeyCard.appendChild(aiKeyNote);
+  var aiKeyNote=el('div',{s:'color:var(--tx5);font-size:10px;line-height:1.5;margin-top:6px'});aiKeyNote.textContent=bom('Apasă „De unde iau cheia?" → creează/loghează cont → copiază cheia (începe cu sk-...) → lipește-o aici și salvează. Claude are prioritate dacă ambele chei sunt setate; fără cheie se folosește AI local.','Dă pe „Ia cheia de aici", faci cont, copiezi cheia și o lipești aici, boss. Claude e pe primu loc dacă ai ambele; fără cheie merge AI-ul local.');aiKeyCard.appendChild(aiKeyNote);
   // UI Settings card — accessible on mobile (sidebar not visible on mobile)
   var uiCard=el('div',{c:'card cp'});
   var uiH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});uiH.textContent='Interfață';uiCard.appendChild(uiH);
