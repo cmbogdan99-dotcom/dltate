@@ -1384,6 +1384,8 @@ function render(){
   var _epoch=++_renderEpoch;
   S.isMobile=window.innerWidth<=680||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   document.documentElement.setAttribute('data-theme',S.theme||'dark');
+  // Bombardier is a Romanian-only personality mode — never active in English.
+  if(S.lang!=='ro'&&S.mode==='bom'){S.mode='normal';try{DB.save('uiMode','normal')}catch(e){}}
   ACT=S.mode==='bom'?_ACT_B:_ACT_N;
   GOALS=S.mode==='bom'?_GOALS_B:_GOALS_N;
   NAV=S.mode==='bom'?_NAV_B:_NAV_N;
@@ -1653,7 +1655,7 @@ function vOB(){
   logoDiv.appendChild(logoBox);logoDiv.appendChild(logoTitle);logoDiv.appendChild(logoSub);
   var obToggles=el('div',{s:'display:flex;flex-direction:column;gap:6px;margin-bottom:14px'});
   var obModeRow=el('div',{s:'display:flex;gap:4px;background:var(--bg2);border-radius:9px;padding:3px'});
-  [{v:'normal',l:'Normal'},{v:'bom',l:'Bombardier'}].forEach(function(opt){
+  ([{v:'normal',l:'Normal'}].concat(S.lang==='ro'?[{v:'bom',l:'Bombardier'}]:[])).forEach(function(opt){
     var mb=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;padding:5px 2px;border-radius:6px;white-space:nowrap;transition:all .15s;'+(S.mode===opt.v?'background:var(--ac);color:#fff':'background:none;color:var(--tx4)'),click:function(){S.mode=opt.v;DB.save('uiMode',opt.v);render()}});
     mb.textContent=opt.l;obModeRow.appendChild(mb);
   });
@@ -1729,7 +1731,7 @@ function vMain(){
       opts.forEach(function(o){var b=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;padding:6px 3px;border-radius:6px;white-space:nowrap;transition:all .15s;'+(cur===o.v?'background:var(--ac);color:#fff':'background:none;color:var(--tx4)'),click:function(){onPick(o.v);}});b.textContent=o.l;row.appendChild(b);});
       wrap.appendChild(row);return wrap;
     }
-    sbExtras.appendChild(_togRow('Mod',[{v:'normal',l:'Normal'},{v:'bom',l:'Bombardier'}],S.mode,function(v){S.mode=v;DB.save('uiMode',v);render();}));
+    sbExtras.appendChild(_togRow(L('Mode','Mod'),[{v:'normal',l:'Normal'}].concat(S.lang==='ro'?[{v:'bom',l:'Bombardier'}]:[]),S.mode,function(v){S.mode=v;DB.save('uiMode',v);render();}));
     sbExtras.appendChild(_togRow('Temă',[{v:'dark',l:'Dark'},{v:'light',l:'Light'}],S.theme,function(v){S.theme=v;DB.save('uiTheme',v);render();}));
     sbExtras.appendChild(_togRow(L('Language','Limbă'),[{v:'en',l:'EN'},{v:'ro',l:'RO'}],S.lang||'en',function(v){S.lang=v;DB.save('uiLang',v);render();}));
     sbF.appendChild(sbExtras);
@@ -4269,13 +4271,16 @@ function vProf(){
   // UI Settings card — accessible on mobile (sidebar not visible on mobile)
   var uiCard=el('div',{c:'card cp'});
   var uiH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});uiH.textContent='Interfață';uiCard.appendChild(uiH);
-  var modeL=el('div',{s:'font-size:10px;color:var(--tx4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em'});modeL.textContent='Mod';uiCard.appendChild(modeL);
-  var modeRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px;margin-bottom:10px'});
-  [{v:'normal',l:'Normal'},{v:'bom',l:'Bombardier'}].forEach(function(opt){
-    var mb=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:6px 2px;border-radius:6px;white-space:nowrap;transition:all .15s;'+(S.mode===opt.v?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
-    mb.textContent=opt.l;mb.onclick=function(){S.mode=opt.v;DB.save('uiMode',opt.v);render()};
-    modeRow2.appendChild(mb);
-  });uiCard.appendChild(modeRow2);
+  // Bombardier is a Romanian-only mode, so the Mode toggle only appears in RO.
+  if(S.lang==='ro'){
+    var modeL=el('div',{s:'font-size:10px;color:var(--tx4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em'});modeL.textContent='Mod';uiCard.appendChild(modeL);
+    var modeRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px;margin-bottom:10px'});
+    [{v:'normal',l:'Normal'},{v:'bom',l:'Bombardier'}].forEach(function(opt){
+      var mb=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:6px 2px;border-radius:6px;white-space:nowrap;transition:all .15s;'+(S.mode===opt.v?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
+      mb.textContent=opt.l;mb.onclick=function(){S.mode=opt.v;DB.save('uiMode',opt.v);render()};
+      modeRow2.appendChild(mb);
+    });uiCard.appendChild(modeRow2);
+  }
   var themeL=el('div',{s:'font-size:10px;color:var(--tx4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em'});themeL.textContent='Temă';uiCard.appendChild(themeL);
   var themeRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px'});
   [{v:'dark',l:'Dark'},{v:'light',l:'Light'}].forEach(function(opt){
