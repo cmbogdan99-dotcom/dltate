@@ -385,9 +385,39 @@ function getNutritionInsights(s){
   var lowVeg=nDays>=3&&(vegCount/Math.max(nDays,1))<1;
   return {days:days,loggedDays:nDays,avgKcal:avgKcal,avgProtein:avgProtein,targetProtein:targetProtein,proteinGap:proteinGap,wkPerWeek:wkPerWeek,avgSleep:avgSleep,poorSleep:poorSleep,topFoods:topFoods,lowVeg:lowVeg,logConsistency:Math.round(nDays/days*100),targetKcal:m?m.kcal:null};
 }
-var SUPP_EV_LABEL={A:'Dovezi solide',B:'Dovezi moderate',C:'Dovezi emergente'};
+var SUPP_EV_LABEL_RO={A:'Dovezi solide',B:'Dovezi moderate',C:'Dovezi emergente'};
+var SUPP_EV_LABEL_EN={A:'Strong evidence',B:'Moderate evidence',C:'Emerging evidence'};
+var SUPP_EV_LABEL=new Proxy({},{get:function(_,k){return ((typeof S!=='undefined'&&S.lang==='en')?SUPP_EV_LABEL_EN:SUPP_EV_LABEL_RO)[k]}});
 var SUPP_EV_COLOR={A:'#34d399',B:'#fbbf24',C:'#94a3b8'};
+// English translations for supplement display fields, keyed by id.
+var SUPPS_EN={
+  creatine:{n:'Creatine monohydrate',cat:'Performance',dose:'3–5 g/day',timing:'anytime, daily (consistent)',benefit:'The most studied supplement for strength, power and muscle mass. Increases phosphocreatine stores.',note:'Safe long term. No loading phase needed. Drink enough water.'},
+  whey:{n:'Whey protein',cat:'Performance',dose:'20–40 g/serving',timing:'post-workout or between meals',benefit:'Fast, complete, leucine-rich source. Helps hit your daily protein target and muscle synthesis.',note:'A convenience tool, not mandatory if you hit protein from food.'},
+  casein:{n:'Casein',cat:'Performance',dose:'20–40 g',timing:'evening, before bed',benefit:'Slow digestion — sustained amino acid release overnight for recovery.',note:'Useful if the gap between dinner and breakfast is long.'},
+  vitd:{n:'Vitamin D3',cat:'Vitamins',dose:'1000–4000 IU/day',timing:'with a meal containing fat',benefit:'Bone health, immunity, muscle function. Deficiency is common (winter, low sun exposure).',note:'Best dosed after a 25-OH vitamin D test. Consult a doctor for high doses.'},
+  omega3:{n:'Omega-3 (EPA/DHA)',cat:'Health',dose:'1–3 g EPA+DHA/day',timing:'with a meal',benefit:'Anti-inflammatory, cardiovascular and brain health, supports recovery.',note:'Vegans: algae-based option. Check actual EPA+DHA content on the label.'},
+  b12:{n:'Vitamin B12',cat:'Vitamins',dose:'25–100 mcg/day',timing:'anytime',benefit:'Essential for energy, the nervous system and red blood cell formation. Missing from strictly plant diets.',note:'Mandatory for vegans. Deficiency builds slowly but is serious.'},
+  magnesium:{n:'Magnesium (glycinate/citrate)',cat:'Minerals',dose:'200–400 mg',timing:'evening',benefit:'Muscle and nerve function, sleep quality, reduces cramps. Intake is often suboptimal.',note:'Glycinate is gentle on the stomach; citrate can be laxative.'},
+  caffeine:{n:'Caffeine',cat:'Performance',dose:'3–6 mg/kg body weight',timing:'30–60 min pre-workout',benefit:'Boosts performance, alertness and lowers perceived effort. A proven ergogenic.',note:'Avoid in the evening (affects sleep). Watch sensitivity and blood pressure.'},
+  multivit:{n:'Multivitamin',cat:'Vitamins',dose:'1 serving/day',timing:'with a meal',benefit:'A nutritional "safety net" for restrictive or poorly varied diets. Does not replace real food.',note:'Prioritize a diverse diet; the supplement covers occasional gaps.'},
+  betaalanine:{n:'Beta-alanine',cat:'Performance',dose:'3–5 g/day',timing:'daily, anytime',benefit:'Buffers muscle acidity — improves 1–4 minute endurance efforts.',note:'The tingling sensation is normal and harmless; split the dose if it bothers you.'},
+  citrulline:{n:'Citrulline malate',cat:'Performance',dose:'6–8 g',timing:'30–60 min pre-workout',benefit:'Increases nitric oxide production — muscle "pump", endurance and reduces fatigue.',note:'Synergistic with volume training.'},
+  vitc:{n:'Vitamin C',cat:'Vitamins',dose:'200–1000 mg/day',timing:'anytime',benefit:'Antioxidant, supports immunity and collagen synthesis. Useful in periods of stress/intense effort.',note:'Intake from vegetables/fruit is usually sufficient.'},
+  electrolytes:{n:'Electrolytes (Na/K/Mg)',cat:'Health',dose:'based on sweat loss',timing:'during/after long effort or in heat',benefit:'Replace salts lost through sweat — prevent cramps and support hydration.',note:'Relevant for effort over 60 min or heavy sweating.'},
+  iron:{n:'Iron',cat:'Minerals',dose:'only if deficient',timing:'on an empty stomach with vitamin C',benefit:'Fights fatigue from iron-deficiency anemia. Higher risk in women and vegans.',note:'Do NOT supplement without bloodwork (ferritin). Excess is toxic.'},
+  zinc:{n:'Zinc',cat:'Minerals',dose:'8–11 mg/day',timing:'with a meal',benefit:'Immunity, healing, protein and hormone synthesis. Useful when deficient (sweat, plant diet).',note:'Don’t exceed 40 mg/day chronically — it interferes with copper absorption.'},
+  collagen:{n:'Collagen + Vitamin C',cat:'Health',dose:'10–15 g',timing:'30–60 min before joint-loading effort',benefit:'Emerging evidence for tendon, ligament and joint health.',note:'Taken with vitamin C for collagen synthesis.'},
+  ashwagandha:{n:'Ashwagandha (KSM-66)',cat:'Health',dose:'300–600 mg/day',timing:'evening or morning',benefit:'Adaptogen — lowers cortisol and perceived stress, may improve sleep and recovery.',note:'Avoid with thyroid conditions without medical advice.'},
+  melatonin:{n:'Melatonin',cat:'Sleep',dose:'0.5–3 mg',timing:'30–60 min before bed',benefit:'Reduces time to fall asleep; useful for jet-lag and disrupted sleep schedules.',note:'Start with the low dose. Short term.'},
+  probiotics:{n:'Probiotics',cat:'Health',dose:'1–10 billion CFU',timing:'daily, with a meal',benefit:'Support digestive health and the microbiome, especially after antibiotics or gut discomfort.',note:'Strains matter — choose well-documented products.'},
+  calcium:{n:'Calcium',cat:'Minerals',dose:'500–1000 mg (from supplement)',timing:'with meals, divided',benefit:'Bone health — relevant with low dairy intake or a vegan diet.',note:'Combine with vitamin D for absorption. Don’t take together with iron.'}
+};
+// Returns a supplement display field in the active language (falls back to RO).
+function spF(s,field){if(!s)return'';if(S.lang==='en'&&SUPPS_EN[s.id]&&SUPPS_EN[s.id][field]!=null)return SUPPS_EN[s.id][field];return s[field];}
 function getSupp(id){return SUPPS.filter(function(s){return s.id===id})[0]||null}
+// Achievement/challenge title+desc are kept in Romanian on the objects; in EN
+// mode we look them up in EN_DICT (populated below) so toasts/XP labels match.
+function achT(a,field){var v=a[field];if(S.lang==='en'){var t=EN_DICT[_normTxt(v)];if(t)return t;}return v;}
 function suppTakenToday(id){return (S.suppLog||[]).some(function(e){return e.id===id&&e.date===TODAY})}
 function toggleSuppToday(id){
   S.suppLog=S.suppLog||[];
@@ -408,20 +438,20 @@ function recommendSupps(p,ins){
   var diet=p.diet||'omnivor',goal=p.goal||'p',sex=p.sex,freq=+p.trainingFrequency||3;
   SUPPS.forEach(function(s){
     var score=0,reasons=[];
-    if(s.id==='vitd'){score+=3;reasons.push('deficit frecvent, sus\u021Bine imunitatea \u0219i oasele');}
-    if(s.id==='omega3'){score+=2;reasons.push('s\u0103n\u0103tate cardiovascular\u0103 \u0219i recuperare');}
-    if(diet==='vegan'){if(s.id==='b12'){score+=6;reasons.push('esen\u021Bial \u00EEn dieta vegan\u0103');}if(s.id==='iron'){score+=2;reasons.push('risc crescut de deficit');}if(s.id==='calcium'){score+=2;reasons.push('aport redus de lactate');}if(s.id==='creatine'){score+=2;reasons.push('rezerve mai mici la vegani');}}
-    if(diet==='vegetarian'&&s.id==='b12'){score+=3;reasons.push('aport limitat din diet\u0103');}
-    if((goal==='mb'||goal==='mc'||goal==='r')&&s.id==='creatine'){score+=4;reasons.push('cel mai eficient pentru mas\u0103/for\u021B\u0103');}
-    if((goal==='mb'||goal==='mc')&&s.id==='whey'){score+=2;reasons.push('ajut\u0103 surplusul proteic');}
-    if((goal==='p'||goal==='pA')&&s.id==='whey'){score+=3;reasons.push('sa\u021Bietate \u0219i men\u021Binerea masei \u00EEn deficit');}
-    if((goal==='p'||goal==='pA')&&s.id==='caffeine'){score+=2;reasons.push('energie \u0219i performan\u021B\u0103 \u00EEn deficit caloric');}
-    if(freq>=4){if(s.id==='creatine'){score+=2;}if(s.id==='omega3'){score+=1;}if(s.id==='electrolytes'){score+=1;reasons.push('antrenezi des \u2014 pierderi prin transpira\u021Bie');}}
-    if((p.preferredSports||[]).some(function(x){return /alergare|ciclism|inot|\u00EEnot|hiit|crossfit/i.test(x)})&&s.id==='betaalanine'){score+=1;reasons.push('anduran\u021B\u0103 muscular\u0103');}
-    if(sex==='F'&&s.id==='iron'){score+=2;reasons.push('necesar crescut la femei');}
-    if(ins&&ins.proteinGap>20&&(s.id==='whey')){score+=3;reasons.push('mediezi '+ins.avgProtein+'g protein\u0103 vs \u021Binta '+ins.targetProtein+'g');}
-    if(ins&&ins.poorSleep&&(s.id==='magnesium'||s.id==='melatonin')){score+=2;reasons.push('somn sub optim recent');}
-    if(score>0)scored.push({s:s,score:score,reason:reasons[0]||s.benefit});
+    if(s.id==='vitd'){score+=3;reasons.push(L('common deficiency, supports immunity and bones','deficit frecvent, sus\u021Bine imunitatea \u0219i oasele'));}
+    if(s.id==='omega3'){score+=2;reasons.push(L('cardiovascular health and recovery','s\u0103n\u0103tate cardiovascular\u0103 \u0219i recuperare'));}
+    if(diet==='vegan'){if(s.id==='b12'){score+=6;reasons.push(L('essential on a vegan diet','esen\u021Bial \u00EEn dieta vegan\u0103'));}if(s.id==='iron'){score+=2;reasons.push(L('higher risk of deficiency','risc crescut de deficit'));}if(s.id==='calcium'){score+=2;reasons.push(L('low dairy intake','aport redus de lactate'));}if(s.id==='creatine'){score+=2;reasons.push(L('lower stores in vegans','rezerve mai mici la vegani'));}}
+    if(diet==='vegetarian'&&s.id==='b12'){score+=3;reasons.push(L('limited dietary intake','aport limitat din diet\u0103'));}
+    if((goal==='mb'||goal==='mc'||goal==='r')&&s.id==='creatine'){score+=4;reasons.push(L('most effective for mass/strength','cel mai eficient pentru mas\u0103/for\u021B\u0103'));}
+    if((goal==='mb'||goal==='mc')&&s.id==='whey'){score+=2;reasons.push(L('helps the protein surplus','ajut\u0103 surplusul proteic'));}
+    if((goal==='p'||goal==='pA')&&s.id==='whey'){score+=3;reasons.push(L('satiety and muscle retention in a deficit','sa\u021Bietate \u0219i men\u021Binerea masei \u00EEn deficit'));}
+    if((goal==='p'||goal==='pA')&&s.id==='caffeine'){score+=2;reasons.push(L('energy and performance in a calorie deficit','energie \u0219i performan\u021B\u0103 \u00EEn deficit caloric'));}
+    if(freq>=4){if(s.id==='creatine'){score+=2;}if(s.id==='omega3'){score+=1;}if(s.id==='electrolytes'){score+=1;reasons.push(L('you train often \u2014 losses through sweat','antrenezi des \u2014 pierderi prin transpira\u021Bie'));}}
+    if((p.preferredSports||[]).some(function(x){return /alergare|ciclism|inot|\u00EEnot|hiit|crossfit/i.test(x)})&&s.id==='betaalanine'){score+=1;reasons.push(L('muscular endurance','anduran\u021B\u0103 muscular\u0103'));}
+    if(sex==='F'&&s.id==='iron'){score+=2;reasons.push(L('higher requirement in women','necesar crescut la femei'));}
+    if(ins&&ins.proteinGap>20&&(s.id==='whey')){score+=3;reasons.push(L('you average '+ins.avgProtein+'g protein vs the '+ins.targetProtein+'g target','mediezi '+ins.avgProtein+'g protein\u0103 vs \u021Binta '+ins.targetProtein+'g'));}
+    if(ins&&ins.poorSleep&&(s.id==='magnesium'||s.id==='melatonin')){score+=2;reasons.push(L('suboptimal sleep recently','somn sub optim recent'));}
+    if(score>0)scored.push({s:s,score:score,reason:reasons[0]||spF(s,'benefit')});
   });
   scored.sort(function(a,b){var ev={A:3,B:2,C:1};return (b.score-a.score)||(ev[b.s.ev]-ev[a.s.ev])});
   return scored;
@@ -761,6 +791,13 @@ DB.load('openaiKey').then(function(k){if(k){S.openaiKey=k}});
 DB.load('xpPeriods').then(function(v){if(v)S.xpPeriods=v});
 DB.load('suppLog').then(function(v){if(v)S.suppLog=v});
 function bom(n,b){return S.mode==='bom'?b:n}
+// Bilingual copy helper: L(english, romanian) — returns the string for the
+// active UI language. Use for dynamically generated sentences that the
+// dictionary-based translateTree() cannot reach (interpolated numbers, etc.).
+function L(en,ro){return S.lang==='en'?en:ro}
+// 3-way copy helper: B(english, romanianNormal, romanianBom). Falls back to the
+// normal Romanian string when no bom variant is given.
+function B(en,n,b){return S.lang==='en'?en:(S.mode==='bom'&&b!=null?b:n)}
 // Debounced render helper to avoid re-rendering on every keystroke
 var __rtd=null;
 var __siTimer=null;
@@ -834,9 +871,14 @@ var EN_DICT={};
 ['Fondator','Founder'],['Admin','Admin'],['Intru','Join'],
 ['Stiva mea','My stack'],['Stiva','Stack'],
 ['Nu ai setat nicio doză','No dose set'],
-['Logat','Logged'],['Nu am luat','Not taken']
+['Logat','Logged'],['Nu am luat','Not taken'],
+['Prima inregistrare de aliment','First food log'],['10 inregistrari aliment','10 food logs'],['Primul log de apa','First water log'],['7 zile hidratare completa','7 days full hydration'],['Prima inregistrare somn','First sleep log'],['7 nopti calitate ≥4','7 nights quality ≥4'],['5 inregistrari greutate','5 weight logs'],['30 inregistrari greutate','30 weight logs'],['Primul antrenament','First workout'],['10 antrenamente','10 workouts'],['50 antrenamente','50 workouts'],['Prima masuratoare','First measurement'],['10 seturi masuratori','10 measurement sets'],['Clan','Clan'],['Ai intrat într-un Clan','You joined a Clan'],['Prima provocare completata','First challenge completed'],['10 provocari completate','10 challenges completed'],['Quart din drum parcurs','A quarter of the way'],['50% din obiectiv atins','50% of goal reached'],['Ai atins greutatea țintă!','You reached your target weight!'],['Prima poza de progres marcata','First progress photo saved'],
+['Bea 2L de apa','Drink 2L of water'],['Inregistreaza micul dejun, pranzul si cina','Log breakfast, lunch and dinner'],['Inregistreaza un antrenament','Log a workout'],['≥7h somn cu calitate ≥4','≥7h sleep with quality ≥4'],['5 antrenamente saptamana asta','5 workouts this week'],['Inregistreaza mancare 5 zile','Log food for 5 days'],['2L apa in fiecare zi','2L water every day'],
+['Grăsime %','Body fat %'],['Grăsime','Body fat'],['Țintă greutate','Target weight'],['Țintă calorii','Target calories'],['Sport/săpt.','Sport/wk'],['Gătit/zi','Cooking/day'],['Interfață','Interface'],['Aspect','Appearance'],['Cont','Account'],['Date','Data'],['Notițe (opțional)','Notes (optional)'],['Notițe (opțional)...','Notes (optional)...'],['Înregistrează antrenament','Log workout'],['Salvează antrenamentul','Save workout'],['Salvează antrenamentul, tata!','Save workout'],['Durată (min) *','Duration (min) *'],['Intensitate (1-10)','Intensity (1-10)'],['Intensitate','Intensity'],['Tip sport','Sport type'],['Fără antrenamente','No workouts'],['fără antrenamente','no workouts'],['Niciun antrenament','No workouts'],['Parțial','Partial'],['Mese+Apă','Meals+Water'],['Mese/Apă','Meals/Water'],['Apă','Water'],['Estimat','Estimated'],['Real','Actual'],['Prognoză','Forecast'],['Țintă','Target'],['Adaugă în Profil →','Add in Profile →'],['Vezi în Nutriție →','See in Nutrition →'],
+['Echipă','Team'],['Mese','Meals'],['Acasă','Home'],['Acasă (gătești)','Home (you cook)'],['Restaurant / livrare','Restaurant / delivery'],['Mixt (50/50)','Mixed (50/50)'],['Meal prep (pregătești în avans)','Meal prep (prepared ahead)'],['Restaurant','Restaurant'],['Mixt','Mixed'],['Sport/săpt','Sport/wk'],['Gătit','Cooking'],['Muncă/zi','Work/day'],['Frecvență antrenament','Training frequency'],['Ore somn','Sleep hours'],['Glicemie','Blood glucose'],['Alimente evitate','Avoided foods'],['Context masă','Meal context'],['Salut, ','Hi, '],
+['Ștergere cont: elimină permanent contul și toate datele din cloud (ireversibil).','Account deletion: permanently removes the account and all cloud data (irreversible).'],['Șterge cont & date cloud','Delete account & cloud data'],['Schimbă username / parolă','Change username / password'],['Resetare date locale','Reset local data'],['Șterge toate datele locale (alimente, sport, somn, progres). Contul rămâne intact — datele din cloud nu sunt afectate.','Delete all local data (food, exercise, sleep, progress). The account stays intact — cloud data is not affected.'],['Șterge datele locale','Delete local data'],['Date','Data'],['Cont','Account']
 ].forEach(function(pr){EN_DICT[_normTxt(pr[0])]=pr[1];});
-var EN_TOKENS=[[/Începător/g,'Beginner'],[/Intermediar/g,'Intermediate'],[/Avansat/g,'Advanced'],[/Legendă/g,'Legend'],[/ jucători/g,' players'],[/ jucător/g,' player'],[/\(vizitator\)/g,'(guest)'],[/ antren\./g,' workouts'],[/Top global ·/gi,'Global top ·'],[/Top săptămânal ·/gi,'Weekly top ·'],[/Top lunar ·/gi,'Monthly top ·'],[/Top clanuri ·/gi,'Top clans ·'],[/ membri /g,' members '],[/ membri$/g,' members'],[/Distanța față de lider:/g,'Gap to leader:'],[/Spre /g,'Next: '],[/Săptămâna asta/gi,'This week'],[/Luna asta/gi,'This month'],[/antrenamente/gi,'workouts'],[/antrenament/gi,'workout'],[/realizări/gi,'achievements'],[/realizare/gi,'achievement'],[/provocări/gi,'challenges'],[/provocare/gi,'challenge'],[/zi consecutive/g,'day streak'],[/zile consecutive/g,'day streak']];
+var EN_TOKENS=[[/Începător/g,'Beginner'],[/Intermediar/g,'Intermediate'],[/Avansat/g,'Advanced'],[/Legendă/g,'Legend'],[/ jucători/g,' players'],[/ jucător/g,' player'],[/\(vizitator\)/g,'(guest)'],[/ antren\./g,' workouts'],[/Top global ·/gi,'Global top ·'],[/Top săptămânal ·/gi,'Weekly top ·'],[/Top lunar ·/gi,'Monthly top ·'],[/Top clanuri ·/gi,'Top clans ·'],[/ membri /g,' members '],[/ membri$/g,' members'],[/Distanța față de lider:/g,'Gap to leader:'],[/Spre /g,'Next: '],[/Săptămâna asta/gi,'This week'],[/Luna asta/gi,'This month'],[/antrenamente/gi,'workouts'],[/antrenament/gi,'workout'],[/realizări/gi,'achievements'],[/realizare/gi,'achievement'],[/provocări/gi,'challenges'],[/provocare/gi,'challenge'],[/zi consecutive/g,'day streak'],[/zile consecutive/g,'day streak'],[/x\/săpt\./g,'x/wk'],[/x\/săpt\b/g,'x/wk'],[/ ore\b/g,' hours'],[/\bmin\/zi/g,'min/day'],[/\bore\/zi/g,'hours/day']];
 function _trPat(t){var m;
   if(m=t.match(/^(\d+)\s+membri$/))return m[1]+' members';
   if(m=t.match(/^(\d+)\/(\d+)\s+azi$/))return m[1]+'/'+m[2]+' today';
@@ -1004,23 +1046,23 @@ function getDailyReadiness(){
   var ls=S.sleepLog.slice().sort(function(a,b){return b.date.localeCompare(a.date)})[0];
   var slPts=0;
   if(ls){var h=+ls.hours||0;slPts=h>=7&&h<=9?35:h>=6?22:h>=5?12:5;if(ls.q>=4)slPts=Math.min(35,slPts+5);}
-  score+=slPts;factors.push({l:'Somn',pts:slPts,max:35,note:ls?(ls.hours+'h q'+ls.q+'/5'):'nelogat'});
+  score+=slPts;factors.push({l:L('Sleep','Somn'),pts:slPts,max:35,note:ls?(ls.hours+'h q'+ls.q+'/5'):L('not logged','nelogat')});
   // Hydration: 0-25pts
   var tw=watToday(S),wg=S.profile?Calc.wGoal(S.profile):2000;
   var hydPts=Math.min(25,Math.round((tw/wg)*25));
-  score+=hydPts;factors.push({l:'Hidratare',pts:hydPts,max:25,note:(tw/1000).toFixed(1)+'L'});
+  score+=hydPts;factors.push({l:L('Hydration','Hidratare'),pts:hydPts,max:25,note:(tw/1000).toFixed(1)+'L'});
   // Recovery: 0-25pts
   var srtWk=S.workouts.slice().sort(function(a,b){return b.date.localeCompare(a.date)});
   var lastWk=srtWk.length?srtWk[0].date:null;
   var daysSince=lastWk?Math.floor((new Date()-new Date(lastWk))/86400000):99;
   var recPts=daysSince===0?15:daysSince===1?25:daysSince===2?22:daysSince>=5?5:15;
-  score+=recPts;factors.push({l:'Recuperare',pts:recPts,max:25,note:daysSince===0?'antrenat azi':daysSince===99?'fără antrenamente':daysSince+'z odihnă'});
+  score+=recPts;factors.push({l:L('Recovery','Recuperare'),pts:recPts,max:25,note:daysSince===0?L('trained today','antrenat azi'):daysSince===99?L('no workouts','fără antrenamente'):daysSince+L('d rest','z odihnă')});
   // Nutrition: 0-15pts
   var yd=new Date();yd.setDate(yd.getDate()-1);var ydStr=yd.toISOString().split('T')[0];
   var ydMeals=S.food.filter(function(f){return f.date===ydStr||f.date===TODAY});
   var nutPts=ydMeals.length>=3?15:ydMeals.length>=1?8:0;
-  score+=nutPts;factors.push({l:'Nutriție',pts:nutPts,max:15,note:ydMeals.length+' mese'});
-  var cat=score>=85?{l:'Excelent',c:'#34d399'}:score>=65?{l:'Bun',c:'var(--ac-l)'}:score>=45?{l:'Moderat',c:'#fbbf24'}:{l:'Scăzut',c:'#f87171'};
+  score+=nutPts;factors.push({l:L('Nutrition','Nutriție'),pts:nutPts,max:15,note:ydMeals.length+L(' meals',' mese')});
+  var cat=score>=85?{l:L('Excellent','Excelent'),c:'#34d399'}:score>=65?{l:L('Good','Bun'),c:'var(--ac-l)'}:score>=45?{l:L('Moderate','Moderat'),c:'#fbbf24'}:{l:L('Low','Scăzut'),c:'#f87171'};
   return{score:score,max:100,factors:factors,cat:cat};
 }
 function mkStreakCalendar(){
@@ -1140,18 +1182,18 @@ function genChals(p){
   if(!p)return[];
   var sp=p.preferredSports||[];var goal=p.goal||'p';
   var all=[
-    {id:'dc-wk',type:'d',title:'Antrenament azi',desc:'Loghează o sesiune de sport',xp:50,cond:function(){return S.workouts.some(function(w){return w.date===TODAY})}},
-    {id:'dc-fd',type:'d',title:'Nutriție completă',desc:'Loghează cel puțin 3 mese azi',xp:30,cond:function(){return S.food.filter(function(f){return f.date===TODAY}).length>=3}},
-    {id:'dc-wt',type:'d',title:'Hidratare',desc:'Atinge 80% din ținta de apă',xp:20,cond:function(){var tw=watToday(S)/1000,wg=p?Calc.wGoal(p)/1000:2;return tw>=wg*0.8}},
-    {id:'dc-sl',type:'d',title:'Somn odihnitor',desc:'Loghează minim 7h somn',xp:25,cond:function(){var last=S.sleepLog.filter(function(s){return s.date===TODAY})[0];return last&&last.hours>=7}},
-    {id:'dc-pr',type:'d',title:'Cântărire',desc:'Loghează greutatea azi',xp:15,cond:function(){return S.progress.some(function(x){return x.date===TODAY})}},
+    {id:'dc-wk',type:'d',title:L('Workout today','Antrenament azi'),desc:L('Log a sport session','Loghează o sesiune de sport'),xp:50,cond:function(){return S.workouts.some(function(w){return w.date===TODAY})}},
+    {id:'dc-fd',type:'d',title:L('Full nutrition','Nutriție completă'),desc:L('Log at least 3 meals today','Loghează cel puțin 3 mese azi'),xp:30,cond:function(){return S.food.filter(function(f){return f.date===TODAY}).length>=3}},
+    {id:'dc-wt',type:'d',title:L('Hydration','Hidratare'),desc:L('Reach 80% of your water target','Atinge 80% din ținta de apă'),xp:20,cond:function(){var tw=watToday(S)/1000,wg=p?Calc.wGoal(p)/1000:2;return tw>=wg*0.8}},
+    {id:'dc-sl',type:'d',title:L('Restful sleep','Somn odihnitor'),desc:L('Log at least 7h of sleep','Loghează minim 7h somn'),xp:25,cond:function(){var last=S.sleepLog.filter(function(s){return s.date===TODAY})[0];return last&&last.hours>=7}},
+    {id:'dc-pr',type:'d',title:L('Weigh-in','Cântărire'),desc:L('Log your weight today','Loghează greutatea azi'),xp:15,cond:function(){return S.progress.some(function(x){return x.date===TODAY})}},
   ];
-  if(sp.includes('Alergare'))all.push({id:'dc-run',type:'d',title:'Zi de alergare',desc:'Loghează o sesiune de alergare',xp:60,cond:function(){return S.workouts.some(function(w){return w.date===TODAY&&w.type==='Alergare'})}});
-  if(sp.includes('Sala (forță)')||sp.includes('Powerlifting'))all.push({id:'dc-gym',type:'d',title:'Zi de sală',desc:'Loghează o sesiune la sală',xp:60,cond:function(){return S.workouts.some(function(w){return w.date===TODAY&&(w.type==='Sala (forță)'||w.type==='Powerlifting')})}});
-  if(goal==='p'||goal==='pA')all.push({id:'dc-prot',type:'d',title:'Target proteine',desc:'Atinge targetul de proteine azi',xp:35,cond:function(){var m2=S.metrics;if(!m2||!m2.macros)return false;var got=S.food.filter(function(f){return f.date===TODAY}).reduce(function(a,f){return a+f.p},0);return got>=m2.macros.prot}});
+  if(sp.includes('Alergare'))all.push({id:'dc-run',type:'d',title:L('Running day','Zi de alergare'),desc:L('Log a running session','Loghează o sesiune de alergare'),xp:60,cond:function(){return S.workouts.some(function(w){return w.date===TODAY&&w.type==='Alergare'})}});
+  if(sp.includes('Sala (forță)')||sp.includes('Powerlifting'))all.push({id:'dc-gym',type:'d',title:L('Gym day','Zi de sală'),desc:L('Log a gym session','Loghează o sesiune la sală'),xp:60,cond:function(){return S.workouts.some(function(w){return w.date===TODAY&&(w.type==='Sala (forță)'||w.type==='Powerlifting')})}});
+  if(goal==='p'||goal==='pA')all.push({id:'dc-prot',type:'d',title:L('Protein target','Target proteine'),desc:L('Hit your protein target today','Atinge targetul de proteine azi'),xp:35,cond:function(){var m2=S.metrics;if(!m2||!m2.macros)return false;var got=S.food.filter(function(f){return f.date===TODAY}).reduce(function(a,f){return a+f.p},0);return got>=m2.macros.prot}});
   return all;
 }
-function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).indexOf('ach:'+a.id)<0){(S.doneChals=S.doneChals||[]).push('ach:'+a.id);DB.save('doneChals',S.doneChals);addXP('Realizare: '+a.title,a.xp);try{notify('Realizare deblocată: '+a.title,a.desc+' · +'+a.xp+' XP',5500,'ach','ach')}catch(e){}}})}
+function chkAch(){ACH_DEF.forEach(function(a){if(a.cond(S)&&(S.doneChals||[]).indexOf('ach:'+a.id)<0){(S.doneChals=S.doneChals||[]).push('ach:'+a.id);DB.save('doneChals',S.doneChals);addXP(L('Achievement: ','Realizare: ')+achT(a,'title'),a.xp);try{notify(L('Achievement unlocked: ','Realizare deblocată: ')+achT(a,'title'),achT(a,'desc')+' · +'+a.xp+' XP',5500,'ach','ach')}catch(e){}}})}
 var S={
   view:'loading',nav:'dash',profile:null,metrics:null,
   progress:[],food:[],workouts:[],waterLog:[],sleepLog:[],measurements:[],photos:[],doneChals:[],chat:[],suppLog:[],
@@ -1168,7 +1210,7 @@ var S={
   gangCode:'',gangNick:'',
   ntab:'s',ptab:'g',wellTab:'a',chTab:'d',dropdown:null,
   chatIn:'',chatLoading:false,editing:false,
-  lang:'ro',
+  lang:'en',
   mode:'normal',
   theme:'dark',
   logoData:null,
@@ -1307,7 +1349,7 @@ function vLogin(){
   // Divider
   var div=el('div',{s:'display:flex;align-items:center;gap:8px;margin:14px 0 10px'});
   var dl=el('div',{s:'flex:1;height:1px;background:var(--bd)'});
-  var dm=el('span',{s:'color:var(--tx5);font-size:10px;white-space:nowrap'});dm.textContent='sau';
+  var dm=el('span',{s:'color:var(--tx5);font-size:10px;white-space:nowrap'});dm.textContent=L('or','sau');
   var dr=el('div',{s:'flex:1;height:1px;background:var(--bd)'});
   div.appendChild(dl);div.appendChild(dm);div.appendChild(dr);card.appendChild(div);
   var guestBtn=el('button',{s:'width:100%;padding:9px;background:transparent;border:1px solid var(--bd);border-radius:10px;color:var(--tx3);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s ease'});
@@ -1933,7 +1975,7 @@ function getForecast(s){
 function mkRec(tips){
   if(!tips||!tips.length)return null;
   var card=el('div',{c:'card cp',s:'border-left:3px solid var(--ac)'});
-  var rH=el('div',{s:'color:var(--tx3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px'});rH.textContent=bom('Sfat personalizat','Sfat de la Cocoşul');card.appendChild(rH);
+  var rH=el('div',{s:'color:var(--tx3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px'});rH.textContent=B('Personalized tip','Sfat personalizat','Sfat de la Cocoşul');card.appendChild(rH);
   tips.forEach(function(tip,i){
     var row=el('div',{s:'display:flex;align-items:flex-start;gap:6px'+(i>0?';margin-top:5px;padding-top:5px;border-top:1px solid var(--bg1)':'')});
     var dot=el('span',{s:'color:var(--ac);font-size:12px;line-height:1.4;flex-shrink:0'});dot.textContent='›';
@@ -1941,7 +1983,7 @@ function mkRec(tips){
     row.appendChild(dot);row.appendChild(txt);card.appendChild(row);
   });
   var goBtn=el('button',{s:'margin-top:8px;background:none;border:none;color:var(--ac);font-size:10px;cursor:pointer;padding:0;font-family:inherit'});
-  goBtn.textContent='Întreabă Antrenorul AI →';
+  goBtn.textContent=L('Ask the AI Coach →','Întreabă Antrenorul AI →');
   goBtn.onclick=function(){S.nav='ai';render()};
   card.appendChild(goBtn);
   return card;
@@ -1958,32 +2000,32 @@ function getRec(view){
   var wkToday=S.workouts.filter(function(w){return w.date===TODAY}).length;
   if(view==='nutr'){
     var deficit=Math.round(protTgt-protAzi);
-    if(deficit>10)tips.push('Mai ai nevoie de '+deficit+'g proteine azi. Încearcă brânză de vaci, ouă sau piept de pui.');
-    if(tc>m.kcal*1.05)tips.push('Ai depășit targetul caloric cu '+(tc-m.kcal)+' kcal. Mâine compensează cu o masă mai ușoară.');
-    if(tc<m.kcal*0.6&&tl.length<2)tips.push('Ai mâncat puțin azi ('+tc+' kcal). Nu sări peste mese — metabolismul tău are nevoie de combustibil constant.');
+    if(deficit>10)tips.push(L('You still need '+deficit+'g of protein today. Try cottage cheese, eggs or chicken breast.','Mai ai nevoie de '+deficit+'g proteine azi. Încearcă brânză de vaci, ouă sau piept de pui.'));
+    if(tc>m.kcal*1.05)tips.push(L('You went '+(tc-m.kcal)+' kcal over your target. Balance it out tomorrow with a lighter meal.','Ai depășit targetul caloric cu '+(tc-m.kcal)+' kcal. Mâine compensează cu o masă mai ușoară.'));
+    if(tc<m.kcal*0.6&&tl.length<2)tips.push(L('You ate little today ('+tc+' kcal). Don’t skip meals — your metabolism needs steady fuel.','Ai mâncat puțin azi ('+tc+' kcal). Nu sări peste mese — metabolismul tău are nevoie de combustibil constant.'));
   }
   if(view==='stat'){
-    if(tw<wg*0.5)tips.push('Ai băut doar '+tw.toFixed(1)+'L din '+wg.toFixed(1)+'L. Pune o sticlă de apă pe birou și bea câte un pahar în fiecare oră.');
+    if(tw<wg*0.5)tips.push(L('You only drank '+tw.toFixed(1)+'L of '+wg.toFixed(1)+'L. Keep a bottle on your desk and sip a glass every hour.','Ai băut doar '+tw.toFixed(1)+'L din '+wg.toFixed(1)+'L. Pune o sticlă de apă pe birou și bea câte un pahar în fiecare oră.'));
     var ls=S.sleepLog.length?S.sleepLog[S.sleepLog.length-1]:null;
-    if(ls&&ls.hours<7)tips.push('Ultima noapte ai dormit '+ls.hours+'h. Sub 7h crește cortizolul și sabotează slăbitul și recuperarea musculară.');
-    if(!ls)tips.push('Nu ai înregistrat somnul. Urmărind somnul 7 zile vei vedea cum influențează energia și rezultatele.');
+    if(ls&&ls.hours<7)tips.push(L('Last night you slept '+ls.hours+'h. Under 7h raises cortisol and sabotages fat loss and muscle recovery.','Ultima noapte ai dormit '+ls.hours+'h. Sub 7h crește cortizolul și sabotează slăbitul și recuperarea musculară.'));
+    if(!ls)tips.push(L('You haven’t logged sleep. Tracking sleep for 7 days shows how it affects your energy and results.','Nu ai înregistrat somnul. Urmărind somnul 7 zile vei vedea cum influențează energia și rezultatele.'));
   }
   if(view==='sport'){
-    if(!wkToday&&acctAge>0)tips.push('Nu ai antrenament logat azi. Chiar și 20 min de mers rapid contează pentru obiectivul tău.');
+    if(!wkToday&&acctAge>0)tips.push(L('No workout logged today. Even 20 min of brisk walking counts toward your goal.','Nu ai antrenament logat azi. Chiar și 20 min de mers rapid contează pentru obiectivul tău.'));
     var wkWeek=S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]}).length;
-    if(wkWeek<2&&acctAge>=7)tips.push('Ai avut doar '+wkWeek+' antrenamente săptămâna asta. Targetul tău necesită minim '+(p.trainingFrequency||3)+' sesiuni/săptămână.');
-    if(p.preferredSports&&p.preferredSports.length)tips.push('Sporturile tale preferate ('+p.preferredSports.slice(0,2).join(', ')+') sunt incluse în recomandările AI. Întreabă antrenorul pentru un plan detaliat.');
+    if(wkWeek<2&&acctAge>=7)tips.push(L('You had only '+wkWeek+' workouts this week. Your goal needs at least '+(p.trainingFrequency||3)+' sessions/week.','Ai avut doar '+wkWeek+' antrenamente săptămâna asta. Targetul tău necesită minim '+(p.trainingFrequency||3)+' sesiuni/săptămână.'));
+    if(p.preferredSports&&p.preferredSports.length)tips.push(L('Your favorite sports ('+p.preferredSports.slice(0,2).join(', ')+') are included in the AI recommendations. Ask the coach for a detailed plan.','Sporturile tale preferate ('+p.preferredSports.slice(0,2).join(', ')+') sunt incluse în recomandările AI. Întreabă antrenorul pentru un plan detaliat.'));
   }
   if(view==='progr'){
     var lastP=S.progress.length?S.progress[S.progress.length-1]:null;
-    if(!lastP)tips.push('Înregistrează greutatea azi pentru a porni urmărirea progresului tău.');
-    else if(lastP.date!==TODAY)tips.push('Ultima cântărire a fost pe '+lastP.date+'. Cântărește-te dimineața, pe nemâncate, pentru date precise.');
-    if(p.targetWeight&&lastP){var diff=Math.round((lastP.weight-p.targetWeight)*10)/10;if(diff>0)tips.push('Mai ai '+diff+'kg până la obiectiv ('+p.targetWeight+'kg). La ritmul curent, estimarea AI poate fi calculată din chat.')}
+    if(!lastP)tips.push(L('Log your weight today to start tracking your progress.','Înregistrează greutatea azi pentru a porni urmărirea progresului tău.'));
+    else if(lastP.date!==TODAY)tips.push(L('Your last weigh-in was on '+lastP.date+'. Weigh yourself in the morning, fasted, for accurate data.','Ultima cântărire a fost pe '+lastP.date+'. Cântărește-te dimineața, pe nemâncate, pentru date precise.'));
+    if(p.targetWeight&&lastP){var diff=Math.round((lastP.weight-p.targetWeight)*10)/10;if(diff>0)tips.push(L('You’re '+diff+'kg from your goal ('+p.targetWeight+'kg). At your current pace, the AI estimate can be computed from chat.','Mai ai '+diff+'kg până la obiectiv ('+p.targetWeight+'kg). La ritmul curent, estimarea AI poate fi calculată din chat.'))}
   }
   if(view==='dash'){
-    if(tw<wg*0.3)tips.push('Ai băut doar '+tw.toFixed(1)+'L azi. Hidratarea afectează energia și performanța.');
-    if(!wkToday&&new Date().getHours()>10)tips.push('Niciun antrenament azi. Chiar și o sesiune scurtă de '+( p.preferredSports&&p.preferredSports[0]||'cardio')+' contează.');
-    if(tc<100&&new Date().getHours()>12)tips.push('Abia '+tc+' kcal logați azi. Nu uita să introduci mesele pentru a urmări macronutrienții.');
+    if(tw<wg*0.3)tips.push(L('You only drank '+tw.toFixed(1)+'L today. Hydration affects your energy and performance.','Ai băut doar '+tw.toFixed(1)+'L azi. Hidratarea afectează energia și performanța.'));
+    if(!wkToday&&new Date().getHours()>10)tips.push(L('No workout today. Even a short '+( p.preferredSports&&p.preferredSports[0]||'cardio')+' session counts.','Niciun antrenament azi. Chiar și o sesiune scurtă de '+( p.preferredSports&&p.preferredSports[0]||'cardio')+' contează.'));
+    if(tc<100&&new Date().getHours()>12)tips.push(L('Only '+tc+' kcal logged today. Don’t forget to log your meals to track macros.','Abia '+tc+' kcal logați azi. Nu uita să introduci mesele pentru a urmări macronutrienții.'));
   }
   return tips.length?mkRec(tips.slice(0,2)):null;
 }
@@ -2078,43 +2120,46 @@ function vDash(){
   // AI Recs
   var aiCard=el('div',{c:'card cp'});
   var aiH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:8px'});
-  aiH.appendChild(ic('bulb',11));var aiHT=el('span',{s:'color:#fbbf24;font-size:11px;font-weight:600'});aiHT.textContent=bom('Recomand\u0103ri AI','Ce zice Coco\u015ful despre tine');aiH.appendChild(aiHT);aiCard.appendChild(aiH);
+  aiH.appendChild(ic('bulb',11));var aiHT=el('span',{s:'color:#fbbf24;font-size:11px;font-weight:600'});aiHT.textContent=B('AI recommendations','Recomand\u0103ri AI','Ce zice Coco\u015ful despre tine');aiH.appendChild(aiHT);aiCard.appendChild(aiH);
   var recs=[];
-  if(m.bf&&p.sex==='M'&&m.bf>25)recs.push(bom('\uD83D\uDD34 Grasime '+fmt(m.bf)+'% \u2014 risc metabolic. Deficit 400 kcal + cardio 3x/sapt.','\uD83D\uDD34 '+fmt(m.bf)+'% grasime, tata! Risc metabolic real. Deficit 400 kcal + cardio 3x/sapt. Pune mana!'));
-  if(m.bf&&p.sex==='F'&&m.bf>32)recs.push(bom('\uD83D\uDD34 Grasime '+fmt(m.bf)+'% \u2014 peste medie. Deficit -300 kcal + antrenamente de forta.','\uD83D\uDD34 '+fmt(m.bf)+'% grasime \u2014 peste medie, boss. Deficit -300 kcal + antrenamente de forta. Hai sa ne apucam!'));
-  if(m.ffmi&&m.ffmi<18&&p.sex==='M')recs.push(bom('\uD83D\uDCAA FFMI '+fmt(m.ffmi)+' \u2014 sub medie. Prioritizeaza castigul muscular: surplus +250 kcal, proteine 2g/kg.','\uD83D\uDCAA FFMI '+fmt(m.ffmi)+' \u2014 esti slab ca o scandura. Pune surplus +250 kcal si baga 2g proteina/kg!'));
-  if(!S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]}).length)recs.push(bom('\uD83C\uDFC3 Niciun antrenament in 7 zile \u2014 adaugati minim 2-3 sesiuni/saptamana.','\uD83C\uDFC3 7 zile fara antrenament, boss! Ce faci acolo?! Baga minim 2-3 sesiuni pe saptamana!'));
-  if(tw<wg*0.5)recs.push(bom('\uD83D\uDCA7 Hidratare insuficienta azi ('+Math.round(tw/100)/10+'L). Bea inca '+(Math.round((wg-tw)/100)/10)+'L.','\uD83D\uDCA7 Esti uscat ca o stafida! Doar '+Math.round(tw/100)/10+'L apa azi. Bea inca '+(Math.round((wg-tw)/100)/10)+'L acum!'));
-  if(!recs.length)recs.push(bom('\u2705 Totul arat\u0103 bine! Continu\u0103 s\u0103 fii consistent.','\u2705 E\u015fti pe drum bun, tata! Continu\u0103 a\u015fa \u015fi o s\u0103 ar\u0103\u021bi ca un taur!'));
+  if(m.bf&&p.sex==='M'&&m.bf>25)recs.push(B('\uD83D\uDD34 Body fat '+fmt(m.bf)+'% \u2014 metabolic risk. 400 kcal deficit + cardio 3x/wk.','\uD83D\uDD34 Grasime '+fmt(m.bf)+'% \u2014 risc metabolic. Deficit 400 kcal + cardio 3x/sapt.','\uD83D\uDD34 '+fmt(m.bf)+'% grasime, tata! Risc metabolic real. Deficit 400 kcal + cardio 3x/sapt. Pune mana!'));
+  if(m.bf&&p.sex==='F'&&m.bf>32)recs.push(B('\uD83D\uDD34 Body fat '+fmt(m.bf)+'% \u2014 above average. -300 kcal deficit + strength training.','\uD83D\uDD34 Grasime '+fmt(m.bf)+'% \u2014 peste medie. Deficit -300 kcal + antrenamente de forta.','\uD83D\uDD34 '+fmt(m.bf)+'% grasime \u2014 peste medie, boss. Deficit -300 kcal + antrenamente de forta. Hai sa ne apucam!'));
+  if(m.ffmi&&m.ffmi<18&&p.sex==='M')recs.push(B('\uD83D\uDCAA FFMI '+fmt(m.ffmi)+' \u2014 below average. Prioritize muscle gain: +250 kcal surplus, 2g/kg protein.','\uD83D\uDCAA FFMI '+fmt(m.ffmi)+' \u2014 sub medie. Prioritizeaza castigul muscular: surplus +250 kcal, proteine 2g/kg.','\uD83D\uDCAA FFMI '+fmt(m.ffmi)+' \u2014 esti slab ca o scandura. Pune surplus +250 kcal si baga 2g proteina/kg!'));
+  if(!S.workouts.filter(function(w){var d=new Date();d.setDate(d.getDate()-7);return w.date>=d.toISOString().split('T')[0]}).length)recs.push(B('\uD83C\uDFC3 No workouts in 7 days \u2014 add at least 2-3 sessions/week.','\uD83C\uDFC3 Niciun antrenament in 7 zile \u2014 adaugati minim 2-3 sesiuni/saptamana.','\uD83C\uDFC3 7 zile fara antrenament, boss! Ce faci acolo?! Baga minim 2-3 sesiuni pe saptamana!'));
+  if(tw<wg*0.5)recs.push(B('\uD83D\uDCA7 Not enough hydration today ('+Math.round(tw/100)/10+'L). Drink '+(Math.round((wg-tw)/100)/10)+'L more.','\uD83D\uDCA7 Hidratare insuficienta azi ('+Math.round(tw/100)/10+'L). Bea inca '+(Math.round((wg-tw)/100)/10)+'L.','\uD83D\uDCA7 Esti uscat ca o stafida! Doar '+Math.round(tw/100)/10+'L apa azi. Bea inca '+(Math.round((wg-tw)/100)/10)+'L acum!'));
+  if(!recs.length)recs.push(B('\u2705 Everything looks good! Keep being consistent.','\u2705 Totul arat\u0103 bine! Continu\u0103 s\u0103 fii consistent.','\u2705 E\u015fti pe drum bun, tata! Continu\u0103 a\u015fa \u015fi o s\u0103 ar\u0103\u021bi ca un taur!'));
   recs.forEach(function(r){var rt=el('div',{s:'color:var(--tx3);font-size:11px;margin-bottom:4px;line-height:1.5'});rt.textContent=r;aiCard.appendChild(rt)});
   // Personalized recommendations card
   var recCard=el('div',{c:'card cp'});
   var recH=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:10px'});
   recH.appendChild(ic('target',11));
-  var recHT=el('span',{s:'color:var(--tx1);font-size:12px;font-weight:600'});recHT.textContent=bom('Plan personalizat','Planul t\u0103u, tata')+' — '+( GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label;
+  var recHT=el('span',{s:'color:var(--tx1);font-size:12px;font-weight:600'});recHT.textContent=B('Personalized plan','Plan personalizat','Planul t\u0103u, tata')+' — '+( GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label;
   recH.appendChild(recHT);recCard.appendChild(recH);
   var recItems=[];
   // Calories
   var calDiff=m.tdee-m.kcal;
-  if(calDiff>0)recItems.push({ic:'flame',col:'#f87171',txt:bom('Deficit caloric: '+calDiff+' kcal/zi sub TDEE (tinta: '+m.kcal+' kcal). Mese mici la 3-4h interval.','Deficit de '+calDiff+' kcal/zi (tinta: '+m.kcal+' kcal). Mananca la 3-4h interval — nu te lasa infometat ca dai in dulciuri!')});
-  else if(calDiff<0)recItems.push({ic:'flame',col:'var(--su)',txt:bom('Surplus caloric: '+Math.abs(calDiff)+' kcal/zi peste TDEE (tinta: '+m.kcal+' kcal). Mananca des, distribuit echilibrat.','Surplus de '+Math.abs(calDiff)+' kcal/zi (tinta: '+m.kcal+' kcal). Mananca des si bine — esti in faza de umflat, boss!')});
-  else recItems.push({ic:'flame',col:'#fbbf24',txt:bom('Mentinere: '+m.kcal+' kcal/zi. Cantareste alimentele pentru precizie.','Mentinere: '+m.kcal+' kcal/zi. Cantareste alimentele, boss — ochii mint, cantarul nu!')});
+  if(calDiff>0)recItems.push({ic:'flame',col:'#f87171',txt:B('Calorie deficit: '+calDiff+' kcal/day below TDEE (target: '+m.kcal+' kcal). Small meals every 3-4h.','Deficit caloric: '+calDiff+' kcal/zi sub TDEE (tinta: '+m.kcal+' kcal). Mese mici la 3-4h interval.','Deficit de '+calDiff+' kcal/zi (tinta: '+m.kcal+' kcal). Mananca la 3-4h interval — nu te lasa infometat ca dai in dulciuri!')});
+  else if(calDiff<0)recItems.push({ic:'flame',col:'var(--su)',txt:B('Calorie surplus: '+Math.abs(calDiff)+' kcal/day above TDEE (target: '+m.kcal+' kcal). Eat often, evenly spread.','Surplus caloric: '+Math.abs(calDiff)+' kcal/zi peste TDEE (tinta: '+m.kcal+' kcal). Mananca des, distribuit echilibrat.','Surplus de '+Math.abs(calDiff)+' kcal/zi (tinta: '+m.kcal+' kcal). Mananca des si bine — esti in faza de umflat, boss!')});
+  else recItems.push({ic:'flame',col:'#fbbf24',txt:B('Maintenance: '+m.kcal+' kcal/day. Weigh your food for accuracy.','Mentinere: '+m.kcal+' kcal/zi. Cantareste alimentele pentru precizie.','Mentinere: '+m.kcal+' kcal/zi. Cantareste alimentele, boss — ochii mint, cantarul nu!')});
   // Protein
-  if(m.macros)recItems.push({ic:'meat',col:'#38bdf8',txt:bom('Proteina: '+m.macros.prot+'g/zi ('+Math.round(m.macros.prot/p.weight*10)/10+'g/kg). Distribuit in 4-5 mese × ~'+Math.round(m.macros.prot/4)+'g.','Proteina: '+m.macros.prot+'g/zi ('+Math.round(m.macros.prot/p.weight*10)/10+'g/kg). Imparte in 4-5 mese × ~'+Math.round(m.macros.prot/4)+'g. Fara proteina nu cresti, simplu!')});
+  if(m.macros)recItems.push({ic:'meat',col:'#38bdf8',txt:B('Protein: '+m.macros.prot+'g/day ('+Math.round(m.macros.prot/p.weight*10)/10+'g/kg). Split across 4-5 meals × ~'+Math.round(m.macros.prot/4)+'g.','Proteina: '+m.macros.prot+'g/zi ('+Math.round(m.macros.prot/p.weight*10)/10+'g/kg). Distribuit in 4-5 mese × ~'+Math.round(m.macros.prot/4)+'g.','Proteina: '+m.macros.prot+'g/zi ('+Math.round(m.macros.prot/p.weight*10)/10+'g/kg). Imparte in 4-5 mese × ~'+Math.round(m.macros.prot/4)+'g. Fara proteina nu cresti, simplu!')});
   // Water
   var wgL=(Calc.wGoal(p)/1000).toFixed(1);
-  recItems.push({ic:'droplet',col:'#38bdf8',txt:bom('Hidratare: '+wgL+'L apa/zi. 500ml dimineata, 500ml pre-antrenament, restul distribuit pe parcursul zilei.','Apa: '+wgL+'L/zi — nu suc, nu bere, APA! 500ml dimineata cand te scoli, 500ml inainte de antrenament, restul cat poti!')});
+  recItems.push({ic:'droplet',col:'#38bdf8',txt:B('Hydration: '+wgL+'L water/day. 500ml in the morning, 500ml pre-workout, the rest spread through the day.','Hidratare: '+wgL+'L apa/zi. 500ml dimineata, 500ml pre-antrenament, restul distribuit pe parcursul zilei.','Apa: '+wgL+'L/zi — nu suc, nu bere, APA! 500ml dimineata cand te scoli, 500ml inainte de antrenament, restul cat poti!')});
   // Training by goal
   var trainTipsN={p:'forță 3-4x/săpt (full body) + HIIT cardio 2x20min. Menține proteinele la minim '+(m.macros?m.macros.prot:120)+'g/zi.',pA:'forță 4-5x + cardio 3x. Intensitate maximă. Suplimentează cu multivitamine și omega-3.',mb:'volum mare, forță 4-5x/săpt. Cardio max 2x pentru a conserva surplusul caloric.',mc:'forță progresivă 4x/săpt. Crește greutățile săptămânal. Cardio 2x moderat.',m:'mix forță 3x + cardio 2x. Prioritizează sănătatea cardiovasculară și mobilitatea.',r:'forță 4x/săpt cu progresie strictă + cardio 3x moderat. Recompoziția necesită răbdare.'};
   var trainTipsB={p:'forță 3-4x/săpt (full body) + HIIT cardio 2x20min. Nu tăia proteinele sub '+(m.macros?m.macros.prot:120)+'g. Arde grăsimea aia, boss!',pA:'forță 4-5x + cardio 3x. Arde la maximum! Ia multivitamine și omega-3, boss!',mb:'volum mare, forță 4-5x/săpt. Cardio max 2x — nu arde caloriile de care ai nevoie să te umfli!',mc:'forță progresivă 4x/săpt. Crește greutățile sau nu ai ce căuta la sală. Cardio 2x ușor.',m:'mix forță 3x + cardio 2x. Inimă sănătoasă, corp solid. Nici prea gras, nici prea slab.',r:'forță 4x/săpt cu progresie strictă + cardio 3x moderat. Recompoziția e lentă, boss — răbdare!'};
+  var trainTipsEn={p:'strength 3-4x/wk (full body) + HIIT cardio 2x20min. Keep protein at least '+(m.macros?m.macros.prot:120)+'g/day.',pA:'strength 4-5x + cardio 3x. Maximum intensity. Supplement with a multivitamin and omega-3.',mb:'high volume, strength 4-5x/wk. Cardio max 2x to preserve the calorie surplus.',mc:'progressive strength 4x/wk. Add weight weekly. Cardio 2x moderate.',m:'mix strength 3x + cardio 2x. Prioritize cardiovascular health and mobility.',r:'strength 4x/wk with strict progression + cardio 3x moderate. Recomposition takes patience.'};
   var spPref2=p.preferredSports&&p.preferredSports.length?p.preferredSports:null;
   var goalBase=trainTipsN[p.goal]||'forță 3-4x/săpt, mix forță și cardio.';
   var goalBaseB=trainTipsB[p.goal]||'mișcare 3-4x/săpt, mix forță și cardio.';
+  var goalBaseEn=trainTipsEn[p.goal]||'strength 3-4x/wk, mix of strength and cardio.';
   if(spPref2&&spPref2.length){
     var sp1=spPref2[0],sp2=spPref2[1]||null;
     var freq=p.trainingFrequency||3;
     var spStr=sp1+(sp2?' + '+sp2:'');
-    recItems.push({ic:'barbell',col:'#a78bfa',txt:bom(
+    recItems.push({ic:'barbell',col:'#a78bfa',txt:B(
+      'Personalized training: '+spStr+' — '+freq+'x/wk. Tailored to your selected sports.',
       'Antrenament personalizat: '+spStr+' — '+freq+'x/săpt. Adaptat sporturilor tale selectate.',
       'Planul tău, tata: '+spStr+' '+freq+'x/săpt — asta-i ce ai ales, și e bine!'
     )});
@@ -2124,29 +2169,30 @@ function vDash(){
     if(/forț/i.test(goalBase)&&spPref2.indexOf('Sala (forta)')<0&&spPref2.indexOf('Powerlifting')<0&&spPref2.indexOf('CrossFit')<0&&spPref2.indexOf('Streetworkout')<0)suggestedSports.push('Sala (forta)');
     if(/cardio/i.test(goalBase)&&spPref2.indexOf('Alergare')<0&&spPref2.indexOf('Ciclism')<0&&spPref2.indexOf('Inot')<0&&spPref2.indexOf('HIIT')<0)suggestedSports.push('Alergare / Ciclism');
     if(suggestedSports.length){
-      recItems.push({ic:'plus-circle',col:'var(--ac-l)',nav:'prof',navLabel:bom('Adaugă în Profil →','Adaugă în Profil →'),txt:bom(
+      recItems.push({ic:'plus-circle',col:'var(--ac-l)',nav:'prof',navLabel:B('Add in Profile →','Adaugă în Profil →','Adaugă în Profil →'),txt:B(
+        suggestedSports.join(', ')+' — recommended for "'+goalBaseEn+'".',
         suggestedSports.join(', ')+' — recomandate pentru "'+goalBase+'".',
         suggestedSports.join(', ')+' ar da rezultate maxime pentru obiectivul tău, boss.'
       )});
     }
   }else{
-    recItems.push({ic:'barbell',col:'#a78bfa',txt:bom('Antrenament: '+goalBase,'Mișcare: '+goalBaseB)});
+    recItems.push({ic:'barbell',col:'#a78bfa',txt:B('Training: '+goalBaseEn,'Antrenament: '+goalBase,'Mișcare: '+goalBaseB)});
   }
   // Sleep
-  recItems.push({ic:'moon',col:'#fbbf24',txt:bom('Somn: 7-9h/noapte obligatoriu. GH (hormonul de crestere) se secreta in somnul profund — esential pentru recuperare si rezultate.','Somn: 7-9h/noapte sau uiti de rezultate! Hormonul de crestere se secreta noaptea — daca nu dormi, nu cresti si nu slabesti. Simplu.')});
+  recItems.push({ic:'moon',col:'#fbbf24',txt:B('Sleep: 7-9h/night is a must. Growth hormone is released during deep sleep — essential for recovery and results.','Somn: 7-9h/noapte obligatoriu. GH (hormonul de crestere) se secreta in somnul profund — esential pentru recuperare si rezultate.','Somn: 7-9h/noapte sau uiti de rezultate! Hormonul de crestere se secreta noaptea — daca nu dormi, nu cresti si nu slabesti. Simplu.')});
   // Body fat specific
-  if(m.bf&&p.sex==='M'&&m.bf>20)recItems.push({ic:'activity',col:'#f87171',txt:bom('Grasime corporala ~'+fmt(m.bf,1)+'%: adauga 2 sesiuni HIIT/sapt si creste NEAT (pasi zilnici >8000).','Cu '+fmt(m.bf,1)+'% grasime ai de lucru, boss! Baga 2 sesiuni HIIT pe sapt si fa minim 8000 de pasi pe zi.')});
-  if(m.bf&&p.sex==='F'&&m.bf>28)recItems.push({ic:'activity',col:'#f87171',txt:bom('Grasime corporala ~'+fmt(m.bf,1)+'%: cardio moderat 3x/sapt si deficit caloric de 300-400 kcal/zi.','Cu '+fmt(m.bf,1)+'% grasime ai de lucru! Cardio moderat 3x/sapt si deficit de 300-400 kcal/zi — nu dispera, merge!')});
+  if(m.bf&&p.sex==='M'&&m.bf>20)recItems.push({ic:'activity',col:'#f87171',txt:B('Body fat ~'+fmt(m.bf,1)+'%: add 2 HIIT sessions/wk and raise NEAT (daily steps >8000).','Grasime corporala ~'+fmt(m.bf,1)+'%: adauga 2 sesiuni HIIT/sapt si creste NEAT (pasi zilnici >8000).','Cu '+fmt(m.bf,1)+'% grasime ai de lucru, boss! Baga 2 sesiuni HIIT pe sapt si fa minim 8000 de pasi pe zi.')});
+  if(m.bf&&p.sex==='F'&&m.bf>28)recItems.push({ic:'activity',col:'#f87171',txt:B('Body fat ~'+fmt(m.bf,1)+'%: moderate cardio 3x/wk and a 300-400 kcal/day deficit.','Grasime corporala ~'+fmt(m.bf,1)+'%: cardio moderat 3x/sapt si deficit caloric de 300-400 kcal/zi.','Cu '+fmt(m.bf,1)+'% grasime ai de lucru! Cardio moderat 3x/sapt si deficit de 300-400 kcal/zi — nu dispera, merge!')});
   // Adaptive insights — learns from the user's actual logged data
   var _ins=getNutritionInsights(S);
   if(_ins.loggedDays>=3){
-    if(_ins.proteinGap>20){recItems.push({ic:'trending-up',col:'#38bdf8',txt:bom('Adaptiv: în ultimele '+_ins.days+' zile ai mediat '+_ins.avgProtein+'g proteină vs ținta '+_ins.targetProtein+'g (lipsă ~'+_ins.proteinGap+'g/zi). O porție de whey (~24g) sau +120g piept de pui acoperă diferența.','Adaptiv, boss: mediezi '+_ins.avgProtein+'g proteină din '+_ins.targetProtein+'g — lipsesc '+_ins.proteinGap+'g/zi! Bagă un shake de whey sau încă o porție de carne.')});}
-    if(_ins.lowVeg)recItems.push({ic:'leaf',col:'var(--su)',txt:bom('Adaptiv: aport scăzut de legume/fructe în jurnalul recent. Adaugă 1-2 porții/zi pentru fibre, micronutrienți și sațietate.','Adaptiv: cam puține legume în jurnal, tati. Bagă fibre — sațietate mai bună și digestie ca lumea.')});
-    if(_ins.targetKcal&&_ins.avgKcal>0){var dlt=_ins.avgKcal-_ins.targetKcal;if(Math.abs(dlt)>250)recItems.push({ic:'flame',col:dlt>0?'#f87171':'#fbbf24',txt:bom('Adaptiv: mediezi '+_ins.avgKcal+' kcal/zi vs ținta '+_ins.targetKcal+' kcal ('+(dlt>0?'+':'')+dlt+'). '+(dlt>0?'Ajustează porțiile pentru a respecta deficitul.':'Mănânci sub țintă — riști pierdere de masă musculară și metabolism încetinit.'),'Adaptiv: '+_ins.avgKcal+' kcal/zi vs '+_ins.targetKcal+' țintă ('+(dlt>0?'+':'')+dlt+'). '+(dlt>0?'Mai taie din porții, boss.':'Mănânci prea puțin — nu te înfometa că pierzi mușchi!'))});}
+    if(_ins.proteinGap>20){recItems.push({ic:'trending-up',col:'#38bdf8',txt:B('Adaptive: over the last '+_ins.days+' days you averaged '+_ins.avgProtein+'g protein vs the '+_ins.targetProtein+'g target (short ~'+_ins.proteinGap+'g/day). A whey serving (~24g) or +120g chicken breast covers the gap.','Adaptiv: în ultimele '+_ins.days+' zile ai mediat '+_ins.avgProtein+'g proteină vs ținta '+_ins.targetProtein+'g (lipsă ~'+_ins.proteinGap+'g/zi). O porție de whey (~24g) sau +120g piept de pui acoperă diferența.','Adaptiv, boss: mediezi '+_ins.avgProtein+'g proteină din '+_ins.targetProtein+'g — lipsesc '+_ins.proteinGap+'g/zi! Bagă un shake de whey sau încă o porție de carne.')});}
+    if(_ins.lowVeg)recItems.push({ic:'leaf',col:'var(--su)',txt:B('Adaptive: low veg/fruit intake in your recent journal. Add 1-2 servings/day for fiber, micronutrients and satiety.','Adaptiv: aport scăzut de legume/fructe în jurnalul recent. Adaugă 1-2 porții/zi pentru fibre, micronutrienți și sațietate.','Adaptiv: cam puține legume în jurnal, tati. Bagă fibre — sațietate mai bună și digestie ca lumea.')});
+    if(_ins.targetKcal&&_ins.avgKcal>0){var dlt=_ins.avgKcal-_ins.targetKcal;if(Math.abs(dlt)>250)recItems.push({ic:'flame',col:dlt>0?'#f87171':'#fbbf24',txt:B('Adaptive: you average '+_ins.avgKcal+' kcal/day vs the '+_ins.targetKcal+' kcal target ('+(dlt>0?'+':'')+dlt+'). '+(dlt>0?'Adjust portions to keep the deficit.':'You’re eating under target — you risk losing muscle and slowing your metabolism.'),'Adaptiv: mediezi '+_ins.avgKcal+' kcal/zi vs ținta '+_ins.targetKcal+' kcal ('+(dlt>0?'+':'')+dlt+'). '+(dlt>0?'Ajustează porțiile pentru a respecta deficitul.':'Mănânci sub țintă — riști pierdere de masă musculară și metabolism încetinit.'),'Adaptiv: '+_ins.avgKcal+' kcal/zi vs '+_ins.targetKcal+' țintă ('+(dlt>0?'+':'')+dlt+'). '+(dlt>0?'Mai taie din porții, boss.':'Mănânci prea puțin — nu te înfometa că pierzi mușchi!'))});}
   }
   // Evidence-based supplement suggestions (top 2)
   var _suppRecs=recommendSupps(p,_ins).slice(0,2);
-  _suppRecs.forEach(function(r){recItems.push({ic:'pill',col:'#34d399',nav:'nutr',navLabel:bom('Vezi în Nutriție →','Bifează în Jurnal →'),txt:bom(r.s.n+': '+r.s.dose+', '+r.s.timing+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.',r.s.n+': '+r.s.dose+'. '+r.reason+', tati.')});});
+  _suppRecs.forEach(function(r){recItems.push({ic:'pill',col:'#34d399',nav:'nutr',navLabel:B('See in Nutrition →','Vezi în Nutriție →','Bifează în Jurnal →'),txt:B(spF(r.s,'n')+': '+spF(r.s,'dose')+', '+spF(r.s,'timing')+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.',r.s.n+': '+r.s.dose+', '+r.s.timing+'. '+r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.',r.s.n+': '+r.s.dose+'. '+r.reason+', tati.')});});
   recItems.forEach(function(r){
     var row=el('div',{s:'display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bd)'});
     var ico=el('div',{s:'width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px'});
@@ -2229,8 +2275,8 @@ function _addMealToJournal(meal){
   meal.items.forEach(function(it){
     S.food.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),date:TODAY,meal:meal.id,n:it.n,qty:it.grams,c:it.c,p:+it.p,f:+it.f,h:+it.h,gen:true});
   });
-  DB.save('food',S.food);addXP(bom('Masă din plan','Masă generată'),5);
-  notify(bom('Adăugat în jurnal','Băgat, boss!'),meal.label+' · '+meal.tot.c+' kcal',2500);
+  DB.save('food',S.food);addXP(B('Meal from plan','Masă din plan','Masă generată'),5);
+  notify(B('Added to journal','Adăugat în jurnal','Băgat, boss!'),meal.label+' · '+meal.tot.c+' kcal',2500);
   render();
 }
 function mkMealCard(meal,compact){
@@ -2247,7 +2293,7 @@ function mkMealCard(meal,compact){
   });
   var mr=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-top:6px'});
   var macs=el('div',{s:'color:var(--tx5);font-size:9px;font-family:ui-monospace,monospace'});macs.textContent=meal.tot.p+'g P · '+meal.tot.h+'g C · '+meal.tot.f+'g G';
-  var addB=el('button',{c:'btn bp',s:'font-size:10px;padding:3px 10px'});addB.appendChild(ic('plus',10));addB.appendChild(document.createTextNode(' '+bom('Adaugă','Bag-o')));
+  var addB=el('button',{c:'btn bp',s:'font-size:10px;padding:3px 10px'});addB.appendChild(ic('plus',10));addB.appendChild(document.createTextNode(' '+B('Add','Adaugă','Bag-o')));
   addB.onclick=function(){_addMealToJournal(meal)};
   mr.appendChild(macs);mr.appendChild(addB);box.appendChild(mr);
   return box;
@@ -2262,44 +2308,44 @@ function mkMealPlanCard(){
   var card=el('div',{c:'card cp'});
   var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:3px'});
   var hi=el('span',{s:'color:var(--su);display:inline-flex'});hi.appendChild(ic('tools-kitchen-2',13));hd.appendChild(hi);
-  var ht=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});ht.textContent=bom('Plan de masă generat','Ce să-ți bagi, boss');hd.appendChild(ht);
+  var ht=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});ht.textContent=B('Generated meal plan','Plan de masă generat','Ce să-ți bagi, boss');hd.appendChild(ht);
   if(m.tdeeAdaptive){var ab=el('span',{s:'margin-left:6px;font-size:8px;font-weight:700;color:#34d399;background:rgba(52,211,153,.12);padding:1px 6px;border-radius:99px'});ab.textContent=bom('ADAPTIV','ADAPTIV');hd.appendChild(ab);}
-  var rg=el('button',{s:'margin-left:auto;background:none;border:none;cursor:pointer;color:var(--tx4);display:inline-flex;align-items:center;gap:3px;font-size:10px;font-family:inherit'});rg.appendChild(ic('refresh',11));var rgt=el('span');rgt.textContent=bom('Schimbă','Altele');rg.appendChild(rgt);
+  var rg=el('button',{s:'margin-left:auto;background:none;border:none;cursor:pointer;color:var(--tx4);display:inline-flex;align-items:center;gap:3px;font-size:10px;font-family:inherit'});rg.appendChild(ic('refresh',11));var rgt=el('span');rgt.textContent=B('Shuffle','Schimbă','Altele');rg.appendChild(rgt);
   rg.onclick=function(){S._mealSeed=(S._mealSeed||0)+1;render()};
   hd.appendChild(rg);card.appendChild(hd);
   var sub=el('div',{s:'color:var(--tx4);font-size:10px;margin-bottom:9px;line-height:1.5'});
-  sub.textContent=bom('Mese construite din baza de alimente pe ținta ta'+(m.tdeeAdaptive?' adaptivă':'')+', cu dieta și alergiile tale. Atinge "Adaugă" ca să le treci în jurnal.','Mese fix pe cifrele tale, cu dieta și alergiile tale. Dă "Bag-o" și gata.');
+  sub.textContent=B('Meals built from the food database to your'+(m.tdeeAdaptive?' adaptive':'')+' target, honoring your diet and allergies. Tap "Add" to log them.','Mese construite din baza de alimente pe ținta ta'+(m.tdeeAdaptive?' adaptivă':'')+', cu dieta și alergiile tale. Atinge "Adaugă" ca să le treci în jurnal.','Mese fix pe cifrele tale, cu dieta și alergiile tale. Dă "Bag-o" și gata.');
   card.appendChild(sub);
   // mode toggle
   var tgl=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px;margin-bottom:9px'});
-  [['fit',bom('Cât mi-a rămas azi','Ce-mi mai trebuie')],['day',bom('Ziua completă','Toată ziua')]].forEach(function(o){
+  [['fit',B('What I have left today','Cât mi-a rămas azi','Ce-mi mai trebuie')],['day',B('Full day','Ziua completă','Toată ziua')]].forEach(function(o){
     var on=mode===o[0];
     var b=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:10px;font-weight:600;font-family:inherit;padding:5px 4px;border-radius:6px;'+(on?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
     b.textContent=o[1];b.onclick=function(){S._mealMode=o[0];render()};tgl.appendChild(b);
   });card.appendChild(tgl);
   if(mode==='fit'){
     var remBox=el('div',{s:'background:var(--bg2);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center'});
-    var rl2=el('div',null);var rl2l=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em'});rl2l.textContent=bom('Îți mai rămân azi','Mai ai pe azi');rl2.appendChild(rl2l);
+    var rl2=el('div',null);var rl2l=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em'});rl2l.textContent=B('You have left today','Îți mai rămân azi','Mai ai pe azi');rl2.appendChild(rl2l);
     var rl2v=el('div',{s:'color:var(--tx1);font-size:14px;font-weight:700;font-family:ui-monospace,monospace'});rl2v.textContent=remK+' kcal · '+remP+'g P';rl2.appendChild(rl2v);
     remBox.appendChild(rl2);card.appendChild(remBox);
     if(remK<120){
-      var doneB=el('div',{s:'color:#34d399;font-size:11px;display:flex;align-items:center;gap:5px;padding:4px 0'});var dbi=el('span',{s:'display:inline-flex'});dbi.appendChild(ic('circle-check',13));doneB.appendChild(dbi);doneB.appendChild(document.createTextNode(bom('Ți-ai atins ținta calorică pe azi. Bravo!','Ai făcut plinul pe azi, boss!')));card.appendChild(doneB);
+      var doneB=el('div',{s:'color:#34d399;font-size:11px;display:flex;align-items:center;gap:5px;padding:4px 0'});var dbi=el('span',{s:'display:inline-flex'});dbi.appendChild(ic('circle-check',13));doneB.appendChild(dbi);doneB.appendChild(document.createTextNode(B('You hit your calorie target for today. Nice!','Ți-ai atins ținta calorică pe azi. Bravo!','Ai făcut plinul pe azi, boss!')));card.appendChild(doneB);
     }else{
       var fit=genFitMeal(p,m,remK,remP,S._mealSeed);
       if(fit&&fit.items.length)card.appendChild(mkMealCard(fit));
-      else{var nf=el('div',{s:'color:var(--tx4);font-size:11px'});nf.textContent=bom('Nu am putut compune o masă din filtrele tale. Verifică dieta/alergiile în Profil.','Nu pot face o masă cu filtrele tale, boss. Vezi profilul.');card.appendChild(nf);}
+      else{var nf=el('div',{s:'color:var(--tx4);font-size:11px'});nf.textContent=B('Couldn’t build a meal from your filters. Check your diet/allergies in Profile.','Nu am putut compune o masă din filtrele tale. Verifică dieta/alergiile în Profil.','Nu pot face o masă cu filtrele tale, boss. Vezi profilul.');card.appendChild(nf);}
     }
   }else{
     var plan=genMealPlan(p,m,S._mealSeed);
-    if(!plan){var nf2=el('div',{s:'color:var(--tx4);font-size:11px'});nf2.textContent=bom('Prea puține alimente compatibile cu dieta/alergiile tale pentru un plan complet.','Prea puține alimente cu filtrele tale, boss.');card.appendChild(nf2);return card;}
+    if(!plan){var nf2=el('div',{s:'color:var(--tx4);font-size:11px'});nf2.textContent=B('Too few foods compatible with your diet/allergies for a full plan.','Prea puține alimente compatibile cu dieta/alergiile tale pentru un plan complet.','Prea puține alimente cu filtrele tale, boss.');card.appendChild(nf2);return card;}
     plan.meals.forEach(function(me){if(me.items.length)card.appendChild(mkMealCard(me))});
     // plan total vs target
     var tt=el('div',{s:'border-top:1px solid var(--bd);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between;align-items:center'});
-    var ttl=el('div',{s:'color:var(--tx4);font-size:10px'});ttl.textContent=bom('Total plan','Total');
+    var ttl=el('div',{s:'color:var(--tx4);font-size:10px'});ttl.textContent=B('Plan total','Total plan','Total');
     var ttv=el('div',{s:'color:var(--tx2b);font-size:11px;font-family:ui-monospace,monospace'});ttv.textContent=plan.tot.c+'/'+plan.target.c+' kcal · '+plan.tot.p+'/'+plan.target.p+'g P';
     tt.appendChild(ttl);tt.appendChild(ttv);card.appendChild(tt);
-    var allB=el('button',{c:'btn bp bw',s:'font-size:11px;margin-top:8px'});allB.appendChild(ic('plus',11));allB.appendChild(document.createTextNode(' '+bom('Adaugă toată ziua în jurnal','Bag toată ziua')));
-    allB.onclick=function(){plan.meals.forEach(function(me){if(me.items.length)me.items.forEach(function(it){S.food.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),date:TODAY,meal:me.id,n:it.n,qty:it.grams,c:it.c,p:+it.p,f:+it.f,h:+it.h,gen:true})})});DB.save('food',S.food);addXP(bom('Plan de masă adăugat','Zi întreagă'),20);notify(bom('Plan adăugat','Gata, boss!'),plan.tot.c+' kcal în jurnal',3000);render();};
+    var allB=el('button',{c:'btn bp bw',s:'font-size:11px;margin-top:8px'});allB.appendChild(ic('plus',11));allB.appendChild(document.createTextNode(' '+B('Add the whole day to the journal','Adaugă toată ziua în jurnal','Bag toată ziua')));
+    allB.onclick=function(){plan.meals.forEach(function(me){if(me.items.length)me.items.forEach(function(it){S.food.push({id:String(Date.now())+Math.random().toString(36).slice(2,6),date:TODAY,meal:me.id,n:it.n,qty:it.grams,c:it.c,p:+it.p,f:+it.f,h:+it.h,gen:true})})});DB.save('food',S.food);addXP(B('Meal plan added','Plan de masă adăugat','Zi întreagă'),20);notify(B('Plan added','Plan adăugat','Gata, boss!'),plan.tot.c+L(' kcal in journal',' kcal în jurnal'),3000);render();};
     card.appendChild(allB);
   }
   return card;
@@ -2478,8 +2524,8 @@ function mkSuppSection(){
       var box=el('div',{s:'width:18px;height:18px;border-radius:5px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid '+(taken?'var(--su)':'var(--tx4)')+';background:'+(taken?'var(--su)':'transparent')});
       if(taken){var ck=ic('check',11);ck.style.color='#06231a';box.appendChild(ck);}
       var info=el('div',{s:'flex:1;min-width:0'});
-      var nm=el('div',{s:'color:'+(taken?'var(--tx1)':'var(--tx2b)')+';font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px'});nm.appendChild(document.createTextNode(s.n));nm.appendChild(evDot(s.ev));
-      var meta=el('div',{s:'color:var(--tx4);font-size:10px'});meta.textContent=s.dose+' · '+s.timing;
+      var nm=el('div',{s:'color:'+(taken?'var(--tx1)':'var(--tx2b)')+';font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px'});nm.appendChild(document.createTextNode(spF(s,'n')));nm.appendChild(evDot(s.ev));
+      var meta=el('div',{s:'color:var(--tx4);font-size:10px'});meta.textContent=spF(s,'dose')+' · '+spF(s,'timing');
       info.appendChild(nm);info.appendChild(meta);
       var rm=el('button',{s:'background:none;border:none;color:var(--tx5);font-size:13px;cursor:pointer;flex-shrink:0',click:function(ev){ev.stopPropagation();toggleSuppStack(id);render();}});rm.textContent='×';rm.title='Scoate din stack';
       row.appendChild(box);row.appendChild(info);row.appendChild(rm);stackWrap.appendChild(row);
@@ -2488,15 +2534,15 @@ function mkSuppSection(){
   }
   var recs=recommendSupps(p,ins).filter(function(r){return stack.indexOf(r.s.id)<0}).slice(0,4);
   if(recs.length){
-    var recLbl=el('div',{s:'color:var(--tx3);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});recLbl.textContent=bom('Recomandate pentru tine','Ce-ți trebuie ție, tati');card.appendChild(recLbl);
+    var recLbl=el('div',{s:'color:var(--tx3);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});recLbl.textContent=B('Recommended for you','Recomandate pentru tine','Ce-ți trebuie ție, tati');card.appendChild(recLbl);
     recs.forEach(function(r){
       var s=r.s;
       var row=el('div',{s:'display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-top:1px solid var(--bg1)'});
       var info=el('div',{s:'flex:1;min-width:0'});
       var top=el('div',{s:'display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px'});
-      var nm=el('span',{s:'color:var(--tx1);font-size:11.5px;font-weight:600'});nm.textContent=s.n;top.appendChild(nm);top.appendChild(evBadge(s.ev));
+      var nm=el('span',{s:'color:var(--tx1);font-size:11.5px;font-weight:600'});nm.textContent=spF(s,'n');top.appendChild(nm);top.appendChild(evBadge(s.ev));
       var why=el('div',{s:'color:var(--tx3);font-size:10px;line-height:1.45'});why.textContent=r.reason.charAt(0).toUpperCase()+r.reason.slice(1)+'.';
-      var dose=el('div',{s:'color:var(--tx4);font-size:9.5px;margin-top:2px;font-family:ui-monospace,monospace'});dose.textContent=s.dose+' · '+s.timing;
+      var dose=el('div',{s:'color:var(--tx4);font-size:9.5px;margin-top:2px;font-family:ui-monospace,monospace'});dose.textContent=spF(s,'dose')+' · '+spF(s,'timing');
       info.appendChild(top);info.appendChild(why);info.appendChild(dose);
       var add=el('button',{c:'btn bg',s:'font-size:10px;padding:5px 9px;flex-shrink:0;align-self:center',click:function(){toggleSuppStack(s.id);render();}});add.appendChild(ic('plus',11));
       row.appendChild(info);row.appendChild(add);card.appendChild(row);
@@ -2654,17 +2700,17 @@ function mkForecastCard(){
   var card=el('div',{c:'card cp'});
   var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:8px'});
   var hIc=el('span',{s:'color:var(--ac-l);display:inline-flex'});hIc.appendChild(ic('chart-line',13));
-  var hT=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});hT.textContent=bom('Predicție adaptivă','Unde ajungi, boss?');
+  var hT=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});hT.textContent=B('Adaptive prediction','Predicție adaptivă','Unde ajungi, boss?');
   hd.appendChild(hIc);hd.appendChild(hT);card.appendChild(hd);
   if(!f.ready){
     var msg;
-    if(f.reason==='need_data')msg=bom('Mai cântărește-te de câteva ori — predicția pornește după 3 înregistrări (ai '+(f.have||0)+'/3).','Mai urcă pe cântar, tati — am nevoie de 3 cântăriri ca să-ți zic unde ajungi.');
-    else if(f.reason==='need_span')msg=bom('Predicția se activează după ~1 săptămână de cântăriri (ai '+f.spanDays+' zile).','Încă vreo zile de cântăriri și-ți fac harta, boss.');
-    else msg=bom('Adaugă greutatea ta în secțiunea de mai jos pentru predicții personalizate.','Bagă greutatea jos și-ți fac calculul, tati.');
+    if(f.reason==='need_data')msg=B('Weigh yourself a few more times — the prediction starts after 3 entries (you have '+(f.have||0)+'/3).','Mai cântărește-te de câteva ori — predicția pornește după 3 înregistrări (ai '+(f.have||0)+'/3).','Mai urcă pe cântar, tati — am nevoie de 3 cântăriri ca să-ți zic unde ajungi.');
+    else if(f.reason==='need_span')msg=B('The prediction activates after ~1 week of weigh-ins (you have '+f.spanDays+' days).','Predicția se activează după ~1 săptămână de cântăriri (ai '+f.spanDays+' zile).','Încă vreo zile de cântăriri și-ți fac harta, boss.');
+    else msg=B('Add your weight in the section below for personalized predictions.','Adaugă greutatea ta în secțiunea de mai jos pentru predicții personalizate.','Bagă greutatea jos și-ți fac calculul, tati.');
     var mb=el('div',{s:'color:var(--tx4);font-size:11px;line-height:1.5'});mb.textContent=msg;card.appendChild(mb);
     return card;
   }
-  var trajLabels={reached:bom('Țintă atinsă!','Ai reușit, boss!'),ontrack:bom('Pe traiectorie bună','Mergi ca trenul'),fast:bom('Ritm prea agresiv','Prea repede, tati'),slow:bom('Ritm prea lent','Cam moale, boss'),plateau:bom('Platou','Te-ai blocat'),reversed:bom('Direcție greșită','Mergi invers, frate')};
+  var trajLabels={reached:B('Target reached!','Țintă atinsă!','Ai reușit, boss!'),ontrack:B('On track','Pe traiectorie bună','Mergi ca trenul'),fast:B('Too aggressive','Ritm prea agresiv','Prea repede, tati'),slow:B('Too slow','Ritm prea lent','Cam moale, boss'),plateau:B('Plateau','Platou','Te-ai blocat'),reversed:B('Wrong direction','Direcție greșită','Mergi invers, frate')};
   // Headline row
   var hl=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px'});
   var hlL=el('div',null);
@@ -2674,28 +2720,29 @@ function mkForecastCard(){
   var bTx=el('span');bTx.textContent=trajLabels[f.traj];badge.appendChild(bTx);
   hlL.appendChild(badge);
   var rateTx=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:2px'});
-  rateTx.textContent=(f.ratePerWeek>0?'+':'')+f.ratePerWeek+bom(' kg/săpt · tendință reală',' kg/săpt măsurat');
+  rateTx.textContent=(f.ratePerWeek>0?'+':'')+f.ratePerWeek+B(' kg/wk · real trend',' kg/săpt · tendință reală',' kg/săpt măsurat');
   hlL.appendChild(rateTx);
   hl.appendChild(hlL);
   var confChip=el('div',{s:'font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap;color:'+(f.confLabel==='high'?'#34d399':f.confLabel==='medium'?'#fbbf24':'#94a3b8')+';background:'+(f.confLabel==='high'?'rgba(52,211,153,.12)':f.confLabel==='medium'?'rgba(251,191,36,.12)':'rgba(148,163,184,.12)')});
-  confChip.textContent=bom('încredere ','enc. ')+(f.confLabel==='high'?bom('mare','mare'):f.confLabel==='medium'?bom('medie','medie'):bom('redusă','mică'));
+  confChip.textContent=L('confidence ','încredere ')+(f.confLabel==='high'?L('high','mare'):f.confLabel==='medium'?L('medium','medie'):L('low','redusă'));
   hl.appendChild(confChip);card.appendChild(hl);
   // ETA hero
   if(f.eta!=null&&f.etaDate){
     var etaBox=el('div',{s:'background:var(--bg2);border-radius:9px;padding:9px 11px;margin-bottom:9px'});
-    var etaL=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px'});etaL.textContent=bom('Țintă estimată ('+(+p.targetWeight)+'kg)','Ajungi la '+(+p.targetWeight)+'kg');etaBox.appendChild(etaL);
+    var etaL=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px'});etaL.textContent=B('Estimated target ('+(+p.targetWeight)+'kg)','Țintă estimată ('+(+p.targetWeight)+'kg)','Ajungi la '+(+p.targetWeight)+'kg');etaBox.appendChild(etaL);
     var etaV=el('div',{s:'color:var(--tx1);font-size:15px;font-weight:700'});
-    var dObj=new Date(f.etaDate);var etaStr=dObj.toLocaleDateString('ro-RO',{day:'numeric',month:'long',year:'numeric'});
-    etaV.textContent=etaStr+'  ·  ~'+f.etaWeeks+bom(' săpt',' săpt');etaBox.appendChild(etaV);
-    if(f.etaLo&&f.etaHi&&(f.etaHi-f.etaLo)>=5){var bandTx=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:2px'});var lo=new Date();lo.setDate(lo.getDate()+f.etaLo);var hi=new Date();hi.setDate(hi.getDate()+f.etaHi);bandTx.textContent=bom('Interval probabil: ','Cam între ')+lo.toLocaleDateString('ro-RO',{day:'numeric',month:'short'})+' – '+hi.toLocaleDateString('ro-RO',{day:'numeric',month:'short'});etaBox.appendChild(bandTx);}
+    var _loc=L('en-US','ro-RO');
+    var dObj=new Date(f.etaDate);var etaStr=dObj.toLocaleDateString(_loc,{day:'numeric',month:'long',year:'numeric'});
+    etaV.textContent=etaStr+'  ·  ~'+f.etaWeeks+L(' wk',' săpt');etaBox.appendChild(etaV);
+    if(f.etaLo&&f.etaHi&&(f.etaHi-f.etaLo)>=5){var bandTx=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:2px'});var lo=new Date();lo.setDate(lo.getDate()+f.etaLo);var hi=new Date();hi.setDate(hi.getDate()+f.etaHi);bandTx.textContent=L('Likely range: ','Interval probabil: ')+lo.toLocaleDateString(_loc,{day:'numeric',month:'short'})+' – '+hi.toLocaleDateString(_loc,{day:'numeric',month:'short'});etaBox.appendChild(bandTx);}
     card.appendChild(etaBox);
   }else if(f.traj==='plateau'){
     var plBox=el('div',{s:'background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:9px;padding:9px 11px;margin-bottom:9px;color:#fde68a;font-size:11px;line-height:1.5'});
-    plBox.textContent=bom('Greutatea e blocată de ~2 săptămâni. Strategie: o zi de refeed (+250 kcal), variază cardio-ul, sau scade ținta cu ~150 kcal — vezi recomandarea de mai jos.','Te-ai înțepenit, boss. Bagă o zi de refeed, schimbă cardio-ul sau taie ~150 kcal. Vezi mai jos.');
+    plBox.textContent=B('Weight has been stuck for ~2 weeks. Strategy: a refeed day (+250 kcal), vary your cardio, or drop the target by ~150 kcal — see the recommendation below.','Greutatea e blocată de ~2 săptămâni. Strategie: o zi de refeed (+250 kcal), variază cardio-ul, sau scade ținta cu ~150 kcal — vezi recomandarea de mai jos.','Te-ai înțepenit, boss. Bagă o zi de refeed, schimbă cardio-ul sau taie ~150 kcal. Vezi mai jos.');
     card.appendChild(plBox);
   }else if(f.traj==='reversed'){
     var rvBox=el('div',{s:'background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:9px;padding:9px 11px;margin-bottom:9px;color:#fca5a5;font-size:11px;line-height:1.5'});
-    rvBox.textContent=bom('Tendința merge în sens opus obiectivului. Verifică aportul caloric și recomandarea adaptivă de mai jos.','Mergi fix invers, frate. Verifică ce mănânci și aplică ținta de jos.');
+    rvBox.textContent=B('Your trend is moving opposite to your goal. Check your calorie intake and the adaptive recommendation below.','Tendința merge în sens opus obiectivului. Verifică aportul caloric și recomandarea adaptivă de mai jos.','Mergi fix invers, frate. Verifică ce mănânci și aplică ținta de jos.');
     card.appendChild(rvBox);
   }
   // Forecast chart (actual + projected trajectory toward target)
@@ -2720,43 +2767,43 @@ function mkForecastCard(){
   // Adaptive TDEE + self-correcting calorie recommendation
   if(f.measuredTDEE){
     var tdBox=el('div',{s:'border-top:1px solid var(--bd);padding-top:9px'});
-    var tdH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:5px'});var tdHi=el('span',{s:'color:#38bdf8;display:inline-flex'});tdHi.appendChild(ic('flame',11));tdH.appendChild(tdHi);var tdHt=el('span',{s:'color:var(--tx2);font-size:11px;font-weight:600'});tdHt.textContent=bom('Metabolism măsurat','Cât arzi de fapt');tdH.appendChild(tdHt);tdBox.appendChild(tdH);
+    var tdH=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:5px'});var tdHi=el('span',{s:'color:#38bdf8;display:inline-flex'});tdHi.appendChild(ic('flame',11));tdH.appendChild(tdHi);var tdHt=el('span',{s:'color:var(--tx2);font-size:11px;font-weight:600'});tdHt.textContent=B('Measured metabolism','Metabolism măsurat','Cât arzi de fapt');tdH.appendChild(tdHt);tdBox.appendChild(tdH);
     var tdRow=el('div',{s:'display:flex;gap:8px;margin-bottom:7px'});
     function _mini(l,v,c){var d=el('div',{s:'flex:1;background:var(--bg2);border-radius:7px;padding:6px 8px'});var dl=el('div',{s:'color:var(--tx5);font-size:9px;margin-bottom:1px'});dl.textContent=l;var dv=el('div',{s:'color:'+(c||'var(--tx2b)')+';font-size:13px;font-weight:700;font-family:ui-monospace,monospace'});dv.textContent=v;d.appendChild(dl);d.appendChild(dv);return d;}
-    tdRow.appendChild(_mini(bom('Estimat','Estimat'),(f.tdeeEst||'—')+' kcal','#94a3b8'));
-    tdRow.appendChild(_mini(bom('Măsurat real','Real măsurat'),f.measuredTDEE+' kcal','#38bdf8'));
+    tdRow.appendChild(_mini(L('Estimated','Estimat'),(f.tdeeEst||'—')+' kcal','#94a3b8'));
+    tdRow.appendChild(_mini(L('Measured','Măsurat real'),f.measuredTDEE+' kcal','#38bdf8'));
     tdBox.appendChild(tdRow);
     if(f.adaptationPct!=null&&Math.abs(f.adaptationPct)>=4){
       var adTx=el('div',{s:'color:var(--tx4);font-size:10px;line-height:1.5;margin-bottom:7px'});
       adTx.textContent=f.adaptationPct<0
-        ? bom('Corpul tău arde cu ~'+Math.abs(f.adaptationPct)+'% mai puțin decât estimarea teoretică (adaptare metabolică sau porții subraportate). Ținta de mai jos corectează asta.','Arzi cu '+Math.abs(f.adaptationPct)+'% mai puțin decât zice teoria, tati. Ținta de jos repară treaba.')
-        : bom('Corpul tău arde cu ~'+f.adaptationPct+'% mai mult decât estimarea — metabolism rapid. Poți mânca puțin mai mult.','Arzi cu '+f.adaptationPct+'% mai mult decât teoria, boss — poți băga ceva în plus.');
+        ? B('Your body burns ~'+Math.abs(f.adaptationPct)+'% less than the theoretical estimate (metabolic adaptation or under-reported portions). The target below corrects for this.','Corpul tău arde cu ~'+Math.abs(f.adaptationPct)+'% mai puțin decât estimarea teoretică (adaptare metabolică sau porții subraportate). Ținta de mai jos corectează asta.','Arzi cu '+Math.abs(f.adaptationPct)+'% mai puțin decât zice teoria, tati. Ținta de jos repară treaba.')
+        : B('Your body burns ~'+f.adaptationPct+'% more than the estimate — fast metabolism. You can eat a bit more.','Corpul tău arde cu ~'+f.adaptationPct+'% mai mult decât estimarea — metabolism rapid. Poți mânca puțin mai mult.','Arzi cu '+f.adaptationPct+'% mai mult decât teoria, boss — poți băga ceva în plus.');
       tdBox.appendChild(adTx);
     }
     if(f.recKcal){
       var effTdee=(m&&m.tdee)||0;
       var active=!!(p.tdeeOverride);
       var recRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--ac-glow);border:1px solid var(--ac-glow);border-radius:8px;padding:8px 10px'});
-      var recL=el('div',null);var recLl=el('div',{s:'color:var(--tx5);font-size:9px;margin-bottom:1px'});recLl.textContent=bom('Țintă calorică adaptivă','Cât să mănânci');recL.appendChild(recLl);
-      var recV=el('div',{s:'color:var(--ac-l);font-size:14px;font-weight:700;font-family:ui-monospace,monospace'});recV.textContent=f.recKcal+' kcal/zi';recL.appendChild(recV);
-      if(f.recRate)( function(){var rr=el('div',{s:'color:var(--tx4);font-size:9px;margin-top:1px'});rr.textContent=bom('pentru ','pt ')+(f.recRate>0?'+':'')+f.recRate+bom(' kg/săpt sănătos',' kg/săpt');recL.appendChild(rr);})();
+      var recL=el('div',null);var recLl=el('div',{s:'color:var(--tx5);font-size:9px;margin-bottom:1px'});recLl.textContent=B('Adaptive calorie target','Țintă calorică adaptivă','Cât să mănânci');recL.appendChild(recLl);
+      var recV=el('div',{s:'color:var(--ac-l);font-size:14px;font-weight:700;font-family:ui-monospace,monospace'});recV.textContent=f.recKcal+L(' kcal/day',' kcal/zi');recL.appendChild(recV);
+      if(f.recRate)( function(){var rr=el('div',{s:'color:var(--tx4);font-size:9px;margin-top:1px'});rr.textContent=L('for ','pentru ')+(f.recRate>0?'+':'')+f.recRate+L(' kg/wk healthy',' kg/săpt sănătos');recL.appendChild(rr);})();
       recRow.appendChild(recL);
       if(active){
-        var resetB=el('button',{c:'btn bg',s:'font-size:10px;flex-shrink:0'});resetB.textContent=bom('Resetează','Înapoi');
-        resetB.onclick=function(){delete S.profile.tdeeOverride;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);notify(bom('Țintă resetată','Gata'),bom('Folosim din nou estimarea standard.','Înapoi la calculul normal, boss.'),2500);render();};
+        var resetB=el('button',{c:'btn bg',s:'font-size:10px;flex-shrink:0'});resetB.textContent=B('Reset','Resetează','Înapoi');
+        resetB.onclick=function(){delete S.profile.tdeeOverride;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);notify(B('Target reset','Țintă resetată','Gata'),B('Using the standard estimate again.','Folosim din nou estimarea standard.','Înapoi la calculul normal, boss.'),2500);render();};
         recRow.appendChild(resetB);
       }else{
-        var applyB=el('button',{c:'btn bp',s:'font-size:10px;flex-shrink:0'});applyB.textContent=bom('Aplică','Bag-o');
-        applyB.onclick=function(){S.profile.tdeeOverride=f.measuredTDEE;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);addXP(bom('Țintă adaptivă activată','Țintă adaptivă'),15);notify(bom('Țintă adaptivă activă','Făcut, boss!'),bom('Caloriile și macro-urile se recalculează după metabolismul tău real.','Acum totul se calculează după cât arzi tu, nu după teorie.'),3500);render();};
+        var applyB=el('button',{c:'btn bp',s:'font-size:10px;flex-shrink:0'});applyB.textContent=B('Apply','Aplică','Bag-o');
+        applyB.onclick=function(){S.profile.tdeeOverride=f.measuredTDEE;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);addXP(B('Adaptive target enabled','Țintă adaptivă activată','Țintă adaptivă'),15);notify(B('Adaptive target active','Țintă adaptivă activă','Făcut, boss!'),B('Calories and macros now recalculate from your real metabolism.','Caloriile și macro-urile se recalculează după metabolismul tău real.','Acum totul se calculează după cât arzi tu, nu după teorie.'),3500);render();};
         recRow.appendChild(applyB);
       }
       tdBox.appendChild(recRow);
-      if(p.tdeeOverride){var actNote=el('div',{s:'color:#34d399;font-size:9px;margin-top:5px;display:flex;align-items:center;gap:3px'});var anI=el('span',{s:'display:inline-flex'});anI.appendChild(ic('circle-check',10));actNote.appendChild(anI);actNote.appendChild(document.createTextNode(bom('Țintă adaptivă activă în toată aplicația','Ținta adaptivă merge peste tot acum')));tdBox.appendChild(actNote);}
+      if(p.tdeeOverride){var actNote=el('div',{s:'color:#34d399;font-size:9px;margin-top:5px;display:flex;align-items:center;gap:3px'});var anI=el('span',{s:'display:inline-flex'});anI.appendChild(ic('circle-check',10));actNote.appendChild(anI);actNote.appendChild(document.createTextNode(B('Adaptive target active across the whole app','Țintă adaptivă activă în toată aplicația','Ținta adaptivă merge peste tot acum')));tdBox.appendChild(actNote);}
     }
     card.appendChild(tdBox);
   }else if(f.intakeDays<5){
     var hint=el('div',{s:'border-top:1px solid var(--bd);padding-top:8px;color:var(--tx5);font-size:10px;line-height:1.5'});
-    hint.textContent=bom('Loghează mâncarea câteva zile (ai '+f.intakeDays+'/5) ca să-ți măsor metabolismul real și să-ți ajustez ținta calorică automat.','Bagă mâncarea în jurnal câteva zile (ai '+f.intakeDays+'/5) și-ți zic exact cât arzi, tati.');
+    hint.textContent=B('Log your food for a few days (you have '+f.intakeDays+'/5) so I can measure your real metabolism and auto-adjust your calorie target.','Loghează mâncarea câteva zile (ai '+f.intakeDays+'/5) ca să-ți măsor metabolismul real și să-ți ajustez ținta calorică automat.','Bagă mâncarea în jurnal câteva zile (ai '+f.intakeDays+'/5) și-ți zic exact cât arzi, tati.');
     card.appendChild(hint);
   }
   return card;
@@ -3590,37 +3637,38 @@ function extractCoachMems(msg){
 // ── Proactive daily briefing — consumes forecast + nutrition + readiness ────
 function coachBriefing(){
   var p=S.profile,m=S.metrics;if(!p||!m)return null;
-  var bom2=S.mode==='bom';var L=[];
+  var bom2=S.mode==='bom';var en=S.lang==='en';var lines=[];
   var f=getForecast();
   var dl=S.food.filter(function(e){return e.date===TODAY});
   var tc=dl.reduce(function(a,e){return a+e.c},0),tp=dl.reduce(function(a,e){return a+(e.p||0)},0);
   var remK=Math.round(m.kcal-tc),remP=Math.round((m.macros?m.macros.prot:0)-tp);
   // 1) Forecast headline
   if(f&&f.ready){
-    if(f.traj==='plateau')L.push(bom2?'Te-ai înțepenit — greutatea n-a mișcat de ~2 săptămâni. Bagă o zi de refeed sau schimbă cardio-ul, boss.':'Greutatea ta a stagnat de ~2 săptămâni. Încearcă o zi de refeed (+250 kcal) sau variază cardio-ul.');
-    else if(f.traj==='reversed')L.push(bom2?'Atenție, tati — mergi fix invers față de țintă. Verifică ce mănânci.':'Tendința merge în sens opus obiectivului — verifică aportul caloric.');
-    else if(f.eta&&f.etaDate)L.push((bom2?'La cum tragi acum ':'La ritmul actual ')+'('+(f.ratePerWeek>0?'+':'')+f.ratePerWeek+' kg/săpt) '+(bom2?'ajungi la ':'atingi ')+p.targetWeight+'kg pe ~'+new Date(f.etaDate).toLocaleDateString('ro-RO',{day:'numeric',month:'long'})+'.');
-    if(f.adaptationPct!=null&&f.adaptationPct<=-6&&f.measuredTDEE)L.push((bom2?'Arzi de fapt ':'Metabolismul tău real e ~')+f.measuredTDEE+' kcal/zi'+(bom2?', mai puțin decât zice teoria. ':' (sub estimare). ')+(p.tdeeOverride?'':(bom2?'Aplică ținta adaptivă din Progres.':'Aplică ținta adaptivă din tab-ul Progres.')));
+    if(f.traj==='plateau')lines.push(en?'Your weight has plateaued for ~2 weeks. Try a refeed day (+250 kcal) or switch up your cardio.':(bom2?'Te-ai înțepenit — greutatea n-a mișcat de ~2 săptămâni. Bagă o zi de refeed sau schimbă cardio-ul, boss.':'Greutatea ta a stagnat de ~2 săptămâni. Încearcă o zi de refeed (+250 kcal) sau variază cardio-ul.'));
+    else if(f.traj==='reversed')lines.push(en?'Your trend is moving opposite to your goal — check your calorie intake.':(bom2?'Atenție, tati — mergi fix invers față de țintă. Verifică ce mănânci.':'Tendința merge în sens opus obiectivului — verifică aportul caloric.'));
+    else if(f.eta&&f.etaDate)lines.push(en?('At your current pace ('+(f.ratePerWeek>0?'+':'')+f.ratePerWeek+' kg/wk) you reach '+p.targetWeight+'kg around '+new Date(f.etaDate).toLocaleDateString('en-US',{day:'numeric',month:'long'})+'.'):((bom2?'La cum tragi acum ':'La ritmul actual ')+'('+(f.ratePerWeek>0?'+':'')+f.ratePerWeek+' kg/săpt) '+(bom2?'ajungi la ':'atingi ')+p.targetWeight+'kg pe ~'+new Date(f.etaDate).toLocaleDateString('ro-RO',{day:'numeric',month:'long'})+'.'));
+    if(f.adaptationPct!=null&&f.adaptationPct<=-6&&f.measuredTDEE)lines.push(en?('Your real metabolism is ~'+f.measuredTDEE+' kcal/day (below estimate). '+(p.tdeeOverride?'':'Apply the adaptive target from the Progress tab.')):((bom2?'Arzi de fapt ':'Metabolismul tău real e ~')+f.measuredTDEE+' kcal/zi'+(bom2?', mai puțin decât zice teoria. ':' (sub estimare). ')+(p.tdeeOverride?'':(bom2?'Aplică ținta adaptivă din Progres.':'Aplică ținta adaptivă din tab-ul Progres.'))));
   }
   // 2) Today's nutrition + concrete meal
-  if(tc===0)L.push((bom2?'N-ai băgat nimic în jurnal azi. Ținta: ':'Încă n-ai logat mâncare azi. Ținta: ')+m.kcal+' kcal'+(m.macros?' / '+m.macros.prot+'g proteină':'')+'.');
+  if(tc===0)lines.push(en?('You haven’t logged any food today. Target: '+m.kcal+' kcal'+(m.macros?' / '+m.macros.prot+'g protein':'')+'.'):((bom2?'N-ai băgat nimic în jurnal azi. Ținta: ':'Încă n-ai logat mâncare azi. Ținta: ')+m.kcal+' kcal'+(m.macros?' / '+m.macros.prot+'g proteină':'')+'.'));
   else if(remK>250){
     var fit=genFitMeal(p,m,remK,remP,(S._mealSeed||0));
+    var sugEn=fit&&fit.items.length?(' Suggestion: '+fit.items.map(function(it){return it.n+' '+it.grams+'g'}).join(' + ')+'.'):'';
     var sug=fit&&fit.items.length?(' '+(bom2?'Bagă: ':'Sugestie: ')+fit.items.map(function(it){return it.n+' '+it.grams+'g'}).join(' + ')+'.'):'';
-    L.push((bom2?'Mai ai loc de ':'Ți-au mai rămas ')+remK+' kcal'+(remP>0?' și '+remP+'g proteină':'')+' azi.'+sug);
-  }else if(remK<-150)L.push((bom2?'Ai cam depășit cu ':'Ai depășit ținta cu ')+Math.abs(remK)+' kcal azi'+(bom2?', tati. Mâine mai ușor.':'. Mâine compensează cu o masă mai ușoară.'));
+    lines.push(en?('You have '+remK+' kcal'+(remP>0?' and '+remP+'g protein':'')+' left today.'+sugEn):((bom2?'Mai ai loc de ':'Ți-au mai rămas ')+remK+' kcal'+(remP>0?' și '+remP+'g proteină':'')+' azi.'+sug));
+  }else if(remK<-150)lines.push(en?('You went '+Math.abs(remK)+' kcal over today. Balance it out tomorrow with a lighter meal.'):((bom2?'Ai cam depășit cu ':'Ai depășit ținta cu ')+Math.abs(remK)+' kcal azi'+(bom2?', tati. Mâine mai ușor.':'. Mâine compensează cu o masă mai ușoară.')));
   // 3) Readiness / recovery
   var rdy=getDailyReadiness();
-  if(rdy&&rdy.score<50)L.push((bom2?'Ești cam stors azi ':'Recuperare scăzută azi ')+'('+rdy.score+'/100). '+(bom2?'Antrenament ușor sau odihnă.':'Mai bine antrenament ușor sau odihnă activă.'));
-  else if(rdy&&rdy.score>=85)L.push((bom2?'Ești fresh azi ':'Recuperare excelentă azi ')+'('+rdy.score+'/100)'+(bom2?'! Zi bună de greutăți mari.':' — zi bună pentru un antrenament intens.'));
+  if(rdy&&rdy.score<50)lines.push(en?('Low recovery today ('+rdy.score+'/100). Better to do a light workout or active rest.'):((bom2?'Ești cam stors azi ':'Recuperare scăzută azi ')+'('+rdy.score+'/100). '+(bom2?'Antrenament ușor sau odihnă.':'Mai bine antrenament ușor sau odihnă activă.')));
+  else if(rdy&&rdy.score>=85)lines.push(en?('Excellent recovery today ('+rdy.score+'/100) — a great day for an intense workout.'):((bom2?'Ești fresh azi ':'Recuperare excelentă azi ')+'('+rdy.score+'/100)'+(bom2?'! Zi bună de greutăți mari.':' — zi bună pentru un antrenament intens.')));
   // 4) Protein gap from real logs
   var ins=getNutritionInsights(S);
-  if(ins.loggedDays>=3&&ins.proteinGap>20)L.push((bom2?'Mediezi doar ':'În medie consumi ')+ins.avgProtein+'g proteină/zi din '+ins.targetProtein+'g — '+(bom2?'mai bagă carne/shake.':'adaugă o porție de proteină sau un shake.'));
+  if(ins.loggedDays>=3&&ins.proteinGap>20)lines.push(en?('You average only '+ins.avgProtein+'g protein/day out of '+ins.targetProtein+'g — add a protein serving or a shake.'):((bom2?'Mediezi doar ':'În medie consumi ')+ins.avgProtein+'g proteină/zi din '+ins.targetProtein+'g — '+(bom2?'mai bagă carne/shake.':'adaugă o porție de proteină sau un shake.')));
   // 5) Supplements not taken
   var stack=(p.suppStack||[]).filter(function(id){return !suppTakenToday(id)});
-  if(stack.length){var nm=stack.map(function(id){var s=getSupp(id);return s?s.n:null}).filter(Boolean);if(nm.length)L.push((bom2?'N-ai bifat azi: ':'Suplimente nebifate azi: ')+nm.slice(0,4).join(', ')+'.');}
-  if(!L.length)L.push(bom2?'Totul arată bine azi, boss. Ține-o tot așa!':'Totul arată bine azi. Continuă consecvența!');
-  return L;
+  if(stack.length){var nm=stack.map(function(id){var s=getSupp(id);return s?s.n:null}).filter(Boolean);if(nm.length)lines.push(en?('Supplements not taken today: '+nm.slice(0,4).join(', ')+'.'):((bom2?'N-ai bifat azi: ':'Suplimente nebifate azi: ')+nm.slice(0,4).join(', ')+'.'));}
+  if(!lines.length)lines.push(en?'Everything looks good today. Keep up the consistency!':(bom2?'Totul arată bine azi, boss. Ține-o tot așa!':'Totul arată bine azi. Continuă consecvența!'));
+  return lines;
 }
 function mkCoachMemoryPanel(){
   var mems=coachMems();
@@ -3697,9 +3745,9 @@ function vAI(){
       var bw=el('div',{c:'cm'});
       var bb=el('div',{c:'cb a',s:'border-color:var(--ac-glow);background:var(--ac-glow)'});
       var bh=el('div',{s:'display:flex;align-items:center;gap:5px;margin-bottom:7px;color:var(--ac-l);font-size:11px;font-weight:700'});
-      bh.appendChild(ic('bulb',12));var bht=el('span');bht.textContent=bom('Briefing-ul tău de azi','Situația pe azi, boss');bh.appendChild(bht);bb.appendChild(bh);
+      bh.appendChild(ic('bulb',12));var bht=el('span');bht.textContent=B('Your briefing for today','Briefing-ul tău de azi','Situația pe azi, boss');bh.appendChild(bht);bb.appendChild(bh);
       brief.forEach(function(line){var lr=el('div',{s:'display:flex;gap:6px;margin-bottom:5px'});var dot=el('span',{s:'color:var(--ac);flex-shrink:0;line-height:1.4'});dot.textContent='•';var lt=el('span',{s:'color:var(--tx2);font-size:12px;line-height:1.5'});lt.textContent=line;lr.appendChild(dot);lr.appendChild(lt);bb.appendChild(lr)});
-      var bAsk=el('button',{c:'qbtn',s:'margin-top:5px;width:100%'});bAsk.textContent=bom('Discută cu antrenorul despre azi →','Hai să discutăm, boss →');bAsk.onclick=function(){S.chatIn=bom('Analizează situația mea de azi și spune-mi ce să prioritizez.','Zi-mi ce să fac azi, boss.');sendMsg()};bb.appendChild(bAsk);
+      var bAsk=el('button',{c:'qbtn',s:'margin-top:5px;width:100%'});bAsk.textContent=B('Talk to the coach about today →','Discută cu antrenorul despre azi →','Hai să discutăm, boss →');bAsk.onclick=function(){S.chatIn=B('Analyze my situation today and tell me what to prioritize.','Analizează situația mea de azi și spune-mi ce să prioritizez.','Zi-mi ce să fac azi, boss.');sendMsg()};bb.appendChild(bAsk);
       bw.appendChild(bb);msgs.appendChild(bw);
     }
     if(bulliesAI.length){
@@ -4068,7 +4116,7 @@ function vProf(){
   var oKeySave=el('button',{c:'btn bp',s:'font-size:11px;flex-shrink:0'});oKeySave.textContent='Salvează';
   oKeySave.onclick=function(){var v=oKeyInp.value.trim();S.openaiKey=v;if(v)DB.save('openaiKey',v);else DB.del('openaiKey');render();};
   oKeyRow.appendChild(oKeyInp);oKeyRow.appendChild(oKeySave);aiKeyCard.appendChild(oKeyRow);
-  var aiKeyNote=el('div',{s:'color:var(--tx5);font-size:10px;line-height:1.5;margin-top:6px'});aiKeyNote.textContent=bom('Apasă „De unde iau cheia?" → creează/loghează cont → copiază cheia (începe cu sk-...) → lipește-o aici și salvează. Claude are prioritate dacă ambele chei sunt setate; fără cheie se folosește AI local.','Dă pe „Ia cheia de aici", faci cont, copiezi cheia și o lipești aici, boss. Claude e pe primu loc dacă ai ambele; fără cheie merge AI-ul local.');aiKeyCard.appendChild(aiKeyNote);
+  var aiKeyNote=el('div',{s:'color:var(--tx5);font-size:10px;line-height:1.5;margin-top:6px'});aiKeyNote.textContent=B('Tap "Where do I get the key?" → create/log into an account → copy the key (starts with sk-...) → paste it here and save. Claude takes priority if both keys are set; without a key, the local AI is used.','Apasă „De unde iau cheia?" → creează/loghează cont → copiază cheia (începe cu sk-...) → lipește-o aici și salvează. Claude are prioritate dacă ambele chei sunt setate; fără cheie se folosește AI local.','Dă pe „Ia cheia de aici", faci cont, copiezi cheia și o lipești aici, boss. Claude e pe primu loc dacă ai ambele; fără cheie merge AI-ul local.');aiKeyCard.appendChild(aiKeyNote);
   // UI Settings card — accessible on mobile (sidebar not visible on mobile)
   var uiCard=el('div',{c:'card cp'});
   var uiH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});uiH.textContent='Interfață';uiCard.appendChild(uiH);
@@ -4086,6 +4134,13 @@ function vProf(){
     tb2.textContent=opt.l;tb2.onclick=function(){S.theme=opt.v;DB.save('uiTheme',opt.v);render()};
     themeRow2.appendChild(tb2);
   });uiCard.appendChild(themeRow2);
+  var langL=el('div',{s:'font-size:10px;color:var(--tx4);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em'});langL.textContent=L('Language','Limbă');uiCard.appendChild(langL);
+  var langRow2=el('div',{s:'display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:3px'});
+  [{v:'en',l:'English'},{v:'ro',l:'Română'}].forEach(function(opt){
+    var lb=el('button',{s:'flex:1;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;padding:6px 0;border-radius:6px;transition:all .15s;'+((S.lang||'en')===opt.v?'background:var(--ac);color:#fff':'background:transparent;color:var(--tx4)')});
+    lb.textContent=opt.l;lb.onclick=function(){S.lang=opt.v;DB.save('uiLang',opt.v);render()};
+    langRow2.appendChild(lb);
+  });uiCard.appendChild(langRow2);
   return mkSec(hdr,pc,mc,logoCard,aiKeyCard,uiCard,ac,dc)
 }
 render();
