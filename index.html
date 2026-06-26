@@ -1708,7 +1708,7 @@ function vMain(){
   uc.appendChild(avEl);
   if(!coll){
     var ucInfo=el('div',{c:'uc-info'});
-    var ucName=el('div',{s:'color:var(--tx2);font-size:11px;font-weight:500'});ucName.textContent=p.name+(S.authUser?' (@'+S.authUser+')':S.guest?' (vizitator)':'');
+    var ucName=el('div',{s:'color:var(--tx2);font-size:11px;font-weight:500'});ucName.textContent=p.name+(S.authUser?' (@'+S.authUser+')':S.guest?L(' (guest)',' (vizitator)'):'');
     var ucXP=el('div',{s:'color:'+lvl.c+';font-size:10px;font-weight:600'});ucXP.textContent=xp+' XP · '+lvl.n;
     ucInfo.appendChild(ucName);ucInfo.appendChild(ucXP);uc.appendChild(ucInfo);
   }
@@ -1716,8 +1716,8 @@ function vMain(){
   if(S.guest&&!coll){
     var gBanner=el('div',{s:'margin:6px 6px 0;padding:7px 9px;background:rgba(45,106,79,.12);border:1px solid rgba(45,106,79,.25);border-radius:8px;cursor:pointer'});
     gBanner.onclick=function(){S.guest=false;S.view='login';S.loginTab='register';render()};
-    var gT=el('div',{s:'color:var(--ac-l);font-size:10px;font-weight:600;margin-bottom:2px'});gT.textContent='Mod vizitator';
-    var gS=el('div',{s:'color:var(--tx4);font-size:10px;line-height:1.4'});gS.textContent='Creează cont pentru sync & social →';
+    var gT=el('div',{s:'color:var(--ac-l);font-size:10px;font-weight:600;margin-bottom:2px'});gT.textContent=L('Guest mode','Mod vizitator');
+    var gS=el('div',{s:'color:var(--tx4);font-size:10px;line-height:1.4'});gS.textContent=L('Create an account for sync & social →','Creează cont pentru sync & social →');
     gBanner.appendChild(gT);gBanner.appendChild(gS);sbF.appendChild(gBanner);
   }
   if(!coll){
@@ -1736,9 +1736,9 @@ function vMain(){
   }
   // Logout button always visible in sidebar
   if(S.loggedIn){
-    var logoutSb=el('button',{c:'ni',s:'width:100%;color:#f87171;margin-top:3px',click:function(){if(confirm('Sigur vrei să te deconectezi?'))authLogout()}});
+    var logoutSb=el('button',{c:'ni',s:'width:100%;color:#f87171;margin-top:3px',click:function(){if(confirm(L('Are you sure you want to log out?','Sigur vrei să te deconectezi?')))authLogout()}});
     logoutSb.appendChild(ic('logout',11));
-    if(!coll){var logoutLbl=document.createTextNode('Deconectare');logoutSb.appendChild(logoutLbl)}
+    if(!coll){var logoutLbl=document.createTextNode(L('Log out','Deconectare'));logoutSb.appendChild(logoutLbl)}
     sbF.appendChild(logoutSb);
   }
   sbWrap.appendChild(sbF);
