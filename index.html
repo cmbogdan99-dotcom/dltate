@@ -36,6 +36,16 @@ body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Robo
 .sb-h{padding:11px 10px;border-bottom:1px solid var(--bg1);display:flex;align-items:center;gap:7px}
 .lb{width:25px;height:25px;border-radius:7px;background:var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sb-n{flex:1;padding:5px 4px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.sb-grp{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx5);padding:10px 11px 3px}
+.qlfab{position:fixed;right:18px;bottom:24px;width:54px;height:54px;border-radius:50%;background:var(--ac);color:#fff;border:none;box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .15s}
+.qlfab:hover{transform:scale(1.06)}
+.qlfab.open{transform:rotate(135deg);background:var(--bg3)}
+.qlfab-back{position:fixed;inset:0;background:rgba(2,6,23,.45);z-index:59;animation:fadeIn .15s}
+.qlfab-sheet{position:fixed;right:18px;bottom:90px;width:300px;max-width:calc(100vw - 36px);background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:14px;z-index:61;box-shadow:0 16px 48px rgba(2,6,23,.6);animation:slideUp .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.qlfab-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.qlfab-act{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 6px;border-radius:11px;border:1px solid var(--bd);background:var(--bg1);color:var(--tx2);cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;transition:background .12s,border-color .12s}
+.qlfab-act:hover{background:var(--bg3);border-color:var(--bg3)}
 .ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;border:none;background:none;color:var(--tx3);font-size:13px;font-weight:500;width:100%;text-align:left;font-family:inherit;transition:background .13s,color .13s;position:relative}
 .ni:hover{background:var(--bg2);color:var(--tx3)}
 .ni.act{background:var(--ac-glow);color:var(--ac-l)}
@@ -124,6 +134,9 @@ input[type="number"].inp{-moz-appearance:textfield}
   .mob-nav .ni::before{display:none}
   .mob-nav .ni.act{background:none;color:var(--ac-l)}
   .mob-nav .ni svg{width:18px;height:18px;flex-shrink:0}
+  .mob-sep{width:1px;align-self:stretch;background:var(--bd);margin:8px 2px;flex-shrink:0;opacity:.7}
+  .qlfab{bottom:72px!important}
+  .qlfab-sheet{bottom:138px!important}
   /* Content */
   .mc{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   .wrap{height:100dvh}
@@ -293,6 +306,43 @@ function mkLogDateRow(){
   if(backdated){var tb=el('button',{c:'btn bg',s:'font-size:9px;padding:3px 8px;flex-shrink:0'});tb.textContent=L('Today','Azi');tb.onclick=function(){S.logDate='';render();};row.appendChild(tb);}
   wrap.appendChild(row);
   if(backdated){var note=el('div',{s:'color:#fbbf24;font-size:9.5px;margin-top:4px;padding-left:2px'});note.textContent=L('Logging for '+relDate(ld)+' — entries go to that day in your history.','Înregistrezi pentru '+relDate(ld)+' — intrările merg în acea zi din istoric.');wrap.appendChild(note);}
+  return wrap;
+}
+// Floating Quick-Log button + sheet: log water/weight instantly or jump to any
+// logger from anywhere in the app. Logging made one tap away.
+function mkQuickLogFab(){
+  if(!S.profile)return el('div',{s:'display:none'});
+  var wrap=el('div',null);
+  if(S._qlOpen){
+    var back=el('div',{c:'qlfab-back'});back.onclick=function(){S._qlOpen=false;render()};wrap.appendChild(back);
+    var sheet=el('div',{c:'qlfab-sheet'});
+    var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:9px'});var hi=el('span',{s:'color:var(--ac-l);display:inline-flex'});hi.appendChild(ic('bolt',14));hd.appendChild(hi);var ht=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:700'});ht.textContent=L('Quick log','Înregistrare rapidă');hd.appendChild(ht);sheet.appendChild(hd);
+    sheet.appendChild(mkLogDateRow());
+    // Instant water
+    var wLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px'});wLbl.textContent=L('Water','Apă');sheet.appendChild(wLbl);
+    var wRow=el('div',{s:'display:flex;gap:6px;margin-bottom:11px'});
+    [250,500,750].forEach(function(ml){var b=el('button',{c:'qlfab-act',s:'flex:1;flex-direction:row;gap:3px;padding:9px 4px'});b.appendChild(ic('droplet',13));b.appendChild(document.createTextNode('+'+ml));b.onclick=function(){S.waterLog.push({id:String(Date.now()),date:logDate(),amt:ml});DB.save('waterLog',S.waterLog);try{refreshStreak()}catch(e){}notify(L('Water logged','Apă logată'),'+'+ml+'ml',1800,null,'done');render();};wRow.appendChild(b);});
+    sheet.appendChild(wRow);
+    // Instant weight
+    var gLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px'});gLbl.textContent=L('Weight','Greutate');sheet.appendChild(gLbl);
+    var gRow=el('div',{s:'display:flex;gap:6px;margin-bottom:11px'});
+    var gIn=el('input',{c:'inp',type:'number',s:'flex:1;font-size:13px',ph:S.profile.weight?String(S.profile.weight):'kg',val:S._qlWeight||''});gIn.oninput=function(){S._qlWeight=this.value};
+    var gBtn=el('button',{c:'btn bp',s:'font-size:12px;flex-shrink:0',disabled:!S._qlWeight});gBtn.textContent=L('Save','Salvează');
+    gBtn.onclick=function(){var v=+S._qlWeight;if(!v)return;var _ld=logDate();S.progress=S.progress.filter(function(x){return x.date!==_ld});S.progress.push({id:String(Date.now()),date:_ld,weight:v,bf:null});S.progress.sort(function(a,b){return a.date.localeCompare(b.date)});DB.save('progress',S.progress);if(_ld>=(S.progress.length?S.progress[S.progress.length-1].date:_ld)){S.profile.weight=v;DB.save('profile',S.profile);S.metrics=Calc.getM(S.profile);}addXP('Progres logat',10);S._qlWeight='';try{pushClanEvent('weight')}catch(e){}try{refreshStreak()}catch(e){}notify(L('Weight logged','Greutate logată'),v+' kg',1800,null,'done');render();};
+    gRow.appendChild(gIn);gRow.appendChild(gBtn);sheet.appendChild(gRow);
+    // Shortcuts to full loggers
+    var sLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px'});sLbl.textContent=L('Open a logger','Deschide un jurnal');sheet.appendChild(sLbl);
+    var grid=el('div',{c:'qlfab-grid'});
+    [['nutr','apple',L('Meal','Masă'),function(){S.nav='nutr';S.ntab='j';}],['sport','barbell',L('Workout','Antren.'),function(){S.nav='sport';S.strTab='gen';}],['stat','moon',L('Sleep','Somn'),function(){S.nav='stat';S.wellTab='s';}],['progr','ruler',L('Measure','Măsuri'),function(){S.nav='progr';S.ptab='ms';}]].forEach(function(it){
+      var b=el('button',{c:'qlfab-act'});b.appendChild(ic(it[1],18));var t=el('span');t.textContent=it[2];b.appendChild(t);
+      b.onclick=function(){it[3]();S._qlOpen=false;render();};grid.appendChild(b);
+    });
+    sheet.appendChild(grid);
+    wrap.appendChild(sheet);
+  }
+  var fab=el('button',{c:'qlfab'+(S._qlOpen?' open':''),s:'',title:L('Quick log','Înregistrare rapidă')});fab.appendChild(ic('plus',26));
+  fab.onclick=function(){S._qlOpen=!S._qlOpen;render()};
+  wrap.appendChild(fab);
   return wrap;
 }
 // Map a stored (Romanian-canonical) level name to the active UI language.
@@ -1902,9 +1952,13 @@ function vOB(){
   obToggles.appendChild(obModeRow);obToggles.appendChild(obThemeRow);
   oc.appendChild(logoDiv);oc.appendChild(obToggles);oc.appendChild(prog);oc.appendChild(frm);wrap.appendChild(oc);return wrap
 }
-var _NAV_N=[{id:'dash',l:'Panou',m:'Panou',ic:'layout-dashboard'},{id:'nutr',l:'Nutriție & Jurnal',m:'Nutriție',ic:'apple'},{id:'stat',l:'Hidratare & Somn',m:'Hidratare',ic:'heart-rate-monitor'},{id:'progr',l:'Progres',m:'Progres',ic:'chart-line'},{id:'sport',l:'Sport',m:'Sport',ic:'barbell'},{id:'chal',l:'Provocări',m:'Provocări',ic:'trophy'},{id:'ach',l:'Realizări',m:'Realizări',ic:'award'},{id:'gang',l:'Clan',m:'Clan',ic:'users'},{id:'top',l:'Top Global',m:'Top',ic:'medal'},{id:'ai',l:'Antrenor AI',m:'AI',ic:'message-circle-2'},{id:'prof',l:'Profil',m:'Profil',ic:'user'}];
-var _NAV_B=[{id:'dash',l:'Situatia, boss',m:'Situatia',ic:'layout-dashboard'},{id:'nutr',l:'Ce bagi in gura',m:'Mancare',ic:'apple'},{id:'stat',l:'Apa & Somn',m:'Apa',ic:'heart-rate-monitor'},{id:'progr',l:'Cum evoluezi',m:'Evolutie',ic:'chart-line'},{id:'sport',l:'Fier & Sudori',m:'Fier',ic:'barbell'},{id:'chal',l:'Dare-deal',m:'Dare-deal',ic:'trophy'},{id:'ach',l:'Trofee',m:'Trofee',ic:'award'},{id:'gang',l:'Clanul tau',m:'Clan',ic:'users'},{id:'top',l:'Top Cocosi',m:'Top',ic:'medal'},{id:'ai',l:'Cocosul tau',m:'AI Bro',ic:'message-circle-2'},{id:'prof',l:'Profil',m:'Profil',ic:'user'}];
+// grp groups the nav into labeled sections: 'home' (overview), 'log' (the
+// daily logging screens, kept up front), 'community' (browse/compete), and
+// 'extra' (coach/profile). Logging-first ordering.
+var _NAV_N=[{id:'dash',l:'Panou',m:'Panou',ic:'layout-dashboard',grp:'home'},{id:'nutr',l:'Nutriție & Jurnal',m:'Nutriție',ic:'apple',grp:'log'},{id:'sport',l:'Sport',m:'Sport',ic:'barbell',grp:'log'},{id:'stat',l:'Hidratare & Somn',m:'Hidratare',ic:'heart-rate-monitor',grp:'log'},{id:'progr',l:'Progres',m:'Progres',ic:'chart-line',grp:'log'},{id:'chal',l:'Provocări',m:'Provocări',ic:'trophy',grp:'community'},{id:'ach',l:'Realizări',m:'Realizări',ic:'award',grp:'community'},{id:'gang',l:'Clan',m:'Clan',ic:'users',grp:'community'},{id:'top',l:'Top Global',m:'Top',ic:'medal',grp:'community'},{id:'ai',l:'Antrenor AI',m:'AI',ic:'message-circle-2',grp:'extra'},{id:'prof',l:'Profil',m:'Profil',ic:'user',grp:'extra'}];
+var _NAV_B=[{id:'dash',l:'Situatia, boss',m:'Situatia',ic:'layout-dashboard',grp:'home'},{id:'nutr',l:'Ce bagi in gura',m:'Mancare',ic:'apple',grp:'log'},{id:'sport',l:'Fier & Sudori',m:'Fier',ic:'barbell',grp:'log'},{id:'stat',l:'Apa & Somn',m:'Apa',ic:'heart-rate-monitor',grp:'log'},{id:'progr',l:'Cum evoluezi',m:'Evolutie',ic:'chart-line',grp:'log'},{id:'chal',l:'Dare-deal',m:'Dare-deal',ic:'trophy',grp:'community'},{id:'ach',l:'Trofee',m:'Trofee',ic:'award',grp:'community'},{id:'gang',l:'Clanul tau',m:'Clan',ic:'users',grp:'community'},{id:'top',l:'Top Cocosi',m:'Top',ic:'medal',grp:'community'},{id:'ai',l:'Cocosul tau',m:'AI Bro',ic:'message-circle-2',grp:'extra'},{id:'prof',l:'Profil',m:'Profil',ic:'user',grp:'extra'}];
 var NAV=_NAV_N;
+function _navGroupLabel(grp){return grp==='log'?L('Log','Înregistrează'):grp==='community'?L('Community','Comunitate'):grp==='extra'?L('More','Altele'):'';}
 function getAvatar(p,lvl){
   var sp=p&&p.preferredSports&&p.preferredSports[0];
   var sportEmoji={Alergare:'🏃',Ciclism:'🚴','Sala (forță)':'🏋️',Înot:'🏊',Yoga:'🧘',CrossFit:'⚡',Fotbal:'⚽',Baschet:'🏀',HIIT:'🔥',Box:'🥊',Drumeție:'🏔️',Dans:'💃',Tenis:'🎾',Padel:'🎾',Volei:'🏐',Powerlifting:'🏋️',MMA:'🥋',Spinning:'🚴',Pilates:'🧘',Streetworkout:'🤸'};
@@ -1924,7 +1978,14 @@ function vMain(){
   var togBtn=el('button',{c:'sb-tog'});togBtn.innerHTML=coll?'&#x203A;&#x203A;':'&#x2039;&#x2039;';togBtn.onclick=function(){S.sbCollapsed=!S.sbCollapsed;render()};
   sbH.appendChild(sbHLeft);sbH.appendChild(togBtn);sbWrap.appendChild(sbH);
   var sbN=el('div',{c:'sb-n'});
+  var _lastGrp=null;
   NAV.forEach(function(n){
+    // section header when entering a new logical group (sidebar only, expanded)
+    if(n.grp&&n.grp!==_lastGrp&&(n.grp==='log'||n.grp==='community'||n.grp==='extra')){
+      if(!coll){var sh=el('div',{c:'sb-grp'});sh.textContent=_navGroupLabel(n.grp);sbN.appendChild(sh);}
+      else{var sep=el('div',{s:'height:1px;background:var(--bd);margin:6px 10px;opacity:.6'});sbN.appendChild(sep);}
+    }
+    _lastGrp=n.grp;
     var btn=el('button',{c:'ni'+(S.nav===n.id?' act':''),click:function(){S.nav=n.id;render()}});
     btn.appendChild(ic(n.ic,11));
     if(!coll){var ltxt2=document.createTextNode(n.l);btn.appendChild(ltxt2)}
@@ -2037,7 +2098,12 @@ function vMain(){
   }
   // Mobile bottom nav — all items, horizontally scrollable
   var mobNav=el('div',{c:'mob-nav'});
+  var _mLastGrp=null;
   NAV.forEach(function(n){
+    if(n.grp&&n.grp!==_mLastGrp&&(n.grp==='community'||n.grp==='extra')){
+      var sep=el('div',{c:'mob-sep'});mobNav.appendChild(sep);
+    }
+    _mLastGrp=n.grp;
     var btn=el('button',{c:'ni'+(S.nav===n.id?' act':'')});
     btn.onclick=function(){S.nav=n.id;render()};
     btn.appendChild(ic(n.ic,18));
@@ -2046,6 +2112,8 @@ function vMain(){
     mobNav.appendChild(btn);
   });
   wrap.appendChild(mobNav);
+  // Quick-Log floating action button (logging from anywhere)
+  if(S.view==='app')wrap.appendChild(mkQuickLogFab());
   return wrap
 }
 function mkSec(){var d=el('div',{c:'sec'});for(var i=0;i<arguments.length;i++)if(arguments[i])d.appendChild(arguments[i]);return d}
