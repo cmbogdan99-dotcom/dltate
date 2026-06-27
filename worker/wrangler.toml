@@ -1,0 +1,14 @@
+name = "dl-siski-ai"
+main = "anthropic-proxy.js"
+compatibility_date = "2024-11-01"
+
+# Optional cost-control vars (uncomment / adjust as needed):
+# [vars]
+# ALLOWED_ORIGIN = "https://your-app-domain"
+# MAX_TOKENS = "1024"
+# DAILY_CAP = "2000"
+
+# For the optional KV-backed daily cap, create a namespace and bind it as RL:
+# [[kv_namespaces]]
+# binding = "RL"
+# id = "<your-kv-namespace-id>"
