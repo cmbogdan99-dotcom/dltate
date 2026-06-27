@@ -437,6 +437,7 @@ function tourSteps(){return [
   {nav:'progr',title:L('Progress','Progres'),body:L('Log your weight and see an adaptive forecast: when you’ll hit your goal, your real measured metabolism, and a self-correcting calorie target.','Înregistrează-ți greutatea și vezi o predicție adaptivă: când îți atingi obiectivul, metabolismul tău real măsurat și o țintă calorică auto-corectată.')},
   {nav:'gang',title:L('Clan','Clan'),body:L('Join a clan to chase a weekly goal together, see the live activity feed, and climb the monthly season podium.','Intră într-un Clan ca să urmăriți împreună un obiectiv săptămânal, vezi feed-ul de activitate și urcă pe podiumul lunar.')},
   {nav:'top',title:L('Leaderboards','Clasamente'),body:L('Compare your XP globally and by clan — all-time, weekly and monthly.','Compară-ți XP-ul global și pe clanuri — din toate timpurile, săptămânal și lunar.')},
+  {nav:'rewards',title:L('Rewards','Recompense'),body:L('Spend the XP you earn: build a Training Base for your sports, buy accent themes / titles / power-ups in the Shop, or stake XP on a wager to win more. Your level never drops from spending.','Cheltuie XP-ul câștigat: construiește-ți o Bază pentru sporturile tale, cumpără teme / titluri / power-up-uri din Magazin, sau mizează XP pe un pariu ca să câștigi mai mult. Nivelul nu scade când cheltui.')},
   {nav:'ai',title:L('AI Coach','Antrenor AI'),body:(aiProxyOn()?L('Ask anything — the full Claude coach is already connected. It knows your data, remembers your preferences and gives a daily briefing.','Întreabă orice — antrenorul Claude e deja conectat. Îți știe datele, îți reține preferințele și îți dă un briefing zilnic.'):L('Ask anything — it knows your data, remembers your preferences and gives a daily briefing. Connect an API key for the full model, or use the built-in coach.','Întreabă orice — îți știe datele, îți reține preferințele și îți dă un briefing zilnic. Conectează o cheie API pentru modelul complet, sau folosește antrenorul integrat.'))},
   {nav:'prof',title:L('Profile & settings','Profil & setări'),body:L('Edit your stats, switch language/theme, manage your account and privacy — and you can replay this tour anytime from here.','Editează-ți datele, schimbă limba/tema, gestionează contul și confidențialitatea — și poți relua acest tur oricând de aici.')}
 ];}
@@ -930,6 +931,7 @@ function _feedLine(ev){
     case 'level':return L(who+' reached '+lvlLabel(ev.val),who+' a ajuns '+lvlLabel(ev.val));
     case 'streak':return L(who+' hit a '+ev.val+'-day streak',who+' are un streak de '+ev.val+' zile');
     case 'joined':return L(who+' joined the clan',who+' s-a alăturat Clanului');
+    case 'boost':return L(who+' boosted the weekly goal (+'+(ev.val||0)+')',who+' a dat boost obiectivului (+'+(ev.val||0)+')');
     default:return who+' '+(ev.val||'');
   }
 }
@@ -1234,6 +1236,21 @@ function mkGauge(cons,tgt){
   return svg
 }
 function getXP(){var x=0;(S.doneChals||[]).forEach(function(id){if(id.startsWith('ach:')){var a=ACH_DEF.find(function(x2){return'ach:'+x2.id===id});if(a)x+=a.xp}});(S.xpLog||[]).forEach(function(e){x+=e.amt||0});return x}
+// ── XP economy ─────────────────────────────────────────────────────────────
+// getXP() is lifetime XP (drives your level — never decreases). Spending XP in
+// the Rewards hub draws from a separate spendable BALANCE so it never de-levels.
+function xpSpent(){return (S.profile&&+S.profile.xpSpent)||0;}
+function xpBalance(){return Math.max(0,getXP()-xpSpent());}
+function spendXP(cost,reason){
+  if(!S.profile||cost<0)return false;
+  if(xpBalance()<cost)return false;
+  S.profile.xpSpent=xpSpent()+cost;
+  S.profile.spendLog=(S.profile.spendLog||[]).concat([{d:TODAY,amt:cost,r:reason||''}]).slice(-100);
+  DB.save('profile',S.profile);
+  return true;
+}
+// Active 2x-XP power-up?
+function doubleXpActive(){return !!(S.profile&&S.profile.dblXpUntil&&S.profile.dblXpUntil>=TODAY);}
 function getLvl(){var x=getXP();var bom=S.mode==='bom';if(x>=5000)return{n:'Legend\u0103',c:'#fbbf24',e:bom?'\uD83D\uDC51':'L'};if(x>=2000)return{n:'Elite',c:'#a78bfa',e:bom?'\u26A1':'E'};if(x>=1000)return{n:'Avansat',c:'#38bdf8',e:bom?'\uD83D\uDCAA':'A'};if(x>=400)return{n:'Intermediar',c:'#34d399',e:bom?'\uD83C\uDF1F':'I'};if(x>=100)return{n:'\u00CEncep\u0103tor',c:'#94a3b8',e:bom?'\uD83C\uDF31':'N'};return{n:'Nou',c:'#64748b',e:bom?'\uD83D\uDC76':'0'}}
 function weekKey(d){d=d?new Date(d):new Date();var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);var ys=new Date(Date.UTC(t.getUTCFullYear(),0,1));var wk=Math.ceil((((t-ys)/86400000)+1)/7);return t.getUTCFullYear()+'-W'+(wk<10?'0'+wk:wk)}
 function monthKey(d){d=d?new Date(d):new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
@@ -1308,7 +1325,7 @@ function _enterApp(prof){
   S.profile=prof;S.metrics=Calc.getM(prof);S._canonName=prof.name;
   Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
     S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
-    S.view='app';try{refreshStreak()}catch(e){}syncUserToFB();cloudProfileSync();if(prof.gangCode){setupGangListener(prof.gangCode);try{migrateClanMembership()}catch(e){}}
+    S.view='app';try{refreshStreak()}catch(e){}try{settleWagers()}catch(e){}syncUserToFB();cloudProfileSync();if(prof.gangCode){setupGangListener(prof.gangCode);try{migrateClanMembership()}catch(e){}}
     // First-time users get a guided tour automatically.
     if(prof&&!prof.tourDone&&S._tour==null){try{startTour();return;}catch(e){}}
     render();
@@ -1566,6 +1583,7 @@ function openScreenshotScanner(mode){
 
 function addXP(reason,amt){
   var prevLvl=getLvl().n;
+  if(doubleXpActive())amt=Math.round(amt*2); // 2x-XP power-up
   S.xpLog=S.xpLog||[];
   S.xpLog.push({date:TODAY,reason:reason,amt:amt});
   if(S.xpLog.length>500)S.xpLog=S.xpLog.slice(-500);
@@ -1781,6 +1799,7 @@ function render(){
   var _epoch=++_renderEpoch;
   S.isMobile=window.innerWidth<=680||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   document.documentElement.setAttribute('data-theme',S.theme||'dark');
+  try{applyCosmetics()}catch(e){}
   // Bombardier is a Romanian-only personality mode — never active in English.
   if(S.lang!=='ro'&&S.mode==='bom'){S.mode='normal';try{DB.save('uiMode','normal')}catch(e){}}
   ACT=S.mode==='bom'?_ACT_B:_ACT_N;
@@ -2095,8 +2114,8 @@ function vOB(){
 // grp groups the nav into labeled sections: 'home' (overview), 'log' (the
 // daily logging screens, kept up front), 'community' (browse/compete), and
 // 'extra' (coach/profile). Logging-first ordering.
-var _NAV_N=[{id:'dash',l:'Panou',m:'Panou',ic:'layout-dashboard',grp:'home'},{id:'nutr',l:'Nutriție & Jurnal',m:'Nutriție',ic:'apple',grp:'log'},{id:'sport',l:'Sport',m:'Sport',ic:'barbell',grp:'log'},{id:'stat',l:'Hidratare & Somn',m:'Hidratare',ic:'heart-rate-monitor',grp:'log'},{id:'progr',l:'Progres',m:'Progres',ic:'chart-line',grp:'log'},{id:'chal',l:'Provocări',m:'Provocări',ic:'trophy',grp:'community'},{id:'ach',l:'Realizări',m:'Realizări',ic:'award',grp:'community'},{id:'gang',l:'Clan',m:'Clan',ic:'users',grp:'community'},{id:'top',l:'Top Global',m:'Top',ic:'medal',grp:'community'},{id:'ai',l:'Antrenor AI',m:'AI',ic:'message-circle-2',grp:'extra'},{id:'prof',l:'Profil',m:'Profil',ic:'user',grp:'extra'}];
-var _NAV_B=[{id:'dash',l:'Situatia, boss',m:'Situatia',ic:'layout-dashboard',grp:'home'},{id:'nutr',l:'Ce bagi in gura',m:'Mancare',ic:'apple',grp:'log'},{id:'sport',l:'Fier & Sudori',m:'Fier',ic:'barbell',grp:'log'},{id:'stat',l:'Apa & Somn',m:'Apa',ic:'heart-rate-monitor',grp:'log'},{id:'progr',l:'Cum evoluezi',m:'Evolutie',ic:'chart-line',grp:'log'},{id:'chal',l:'Dare-deal',m:'Dare-deal',ic:'trophy',grp:'community'},{id:'ach',l:'Trofee',m:'Trofee',ic:'award',grp:'community'},{id:'gang',l:'Clanul tau',m:'Clan',ic:'users',grp:'community'},{id:'top',l:'Top Cocosi',m:'Top',ic:'medal',grp:'community'},{id:'ai',l:'Cocosul tau',m:'AI Bro',ic:'message-circle-2',grp:'extra'},{id:'prof',l:'Profil',m:'Profil',ic:'user',grp:'extra'}];
+var _NAV_N=[{id:'dash',l:'Panou',m:'Panou',ic:'layout-dashboard',grp:'home'},{id:'nutr',l:'Nutriție & Jurnal',m:'Nutriție',ic:'apple',grp:'log'},{id:'sport',l:'Sport',m:'Sport',ic:'barbell',grp:'log'},{id:'stat',l:'Hidratare & Somn',m:'Hidratare',ic:'heart-rate-monitor',grp:'log'},{id:'progr',l:'Progres',m:'Progres',ic:'chart-line',grp:'log'},{id:'chal',l:'Provocări',m:'Provocări',ic:'trophy',grp:'community'},{id:'ach',l:'Realizări',m:'Realizări',ic:'award',grp:'community'},{id:'rewards',l:'Recompense',m:'Recompense',ic:'gift',grp:'community'},{id:'gang',l:'Clan',m:'Clan',ic:'users',grp:'community'},{id:'top',l:'Top Global',m:'Top',ic:'medal',grp:'community'},{id:'ai',l:'Antrenor AI',m:'AI',ic:'message-circle-2',grp:'extra'},{id:'prof',l:'Profil',m:'Profil',ic:'user',grp:'extra'}];
+var _NAV_B=[{id:'dash',l:'Situatia, boss',m:'Situatia',ic:'layout-dashboard',grp:'home'},{id:'nutr',l:'Ce bagi in gura',m:'Mancare',ic:'apple',grp:'log'},{id:'sport',l:'Fier & Sudori',m:'Fier',ic:'barbell',grp:'log'},{id:'stat',l:'Apa & Somn',m:'Apa',ic:'heart-rate-monitor',grp:'log'},{id:'progr',l:'Cum evoluezi',m:'Evolutie',ic:'chart-line',grp:'log'},{id:'chal',l:'Dare-deal',m:'Dare-deal',ic:'trophy',grp:'community'},{id:'ach',l:'Trofee',m:'Trofee',ic:'award',grp:'community'},{id:'rewards',l:'Recompense',m:'Recompense',ic:'gift',grp:'community'},{id:'gang',l:'Clanul tau',m:'Clan',ic:'users',grp:'community'},{id:'top',l:'Top Cocosi',m:'Top',ic:'medal',grp:'community'},{id:'ai',l:'Cocosul tau',m:'AI Bro',ic:'message-circle-2',grp:'extra'},{id:'prof',l:'Profil',m:'Profil',ic:'user',grp:'extra'}];
 var NAV=_NAV_N;
 function _navGroupLabel(grp){return grp==='log'?L('Log','Înregistrează'):grp==='community'?L('Community','Comunitate'):grp==='extra'?L('More','Altele'):'';}
 function getAvatar(p,lvl){
@@ -2181,7 +2200,7 @@ function vMain(){
   }
   sbWrap.appendChild(sbF);
   var mc=el('div',{c:'mc'});
-  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,top:vTop,ai:vAI,prof:vProf,friends:vFriends,notif:vNotif,admin:vAdmin};
+  var views={dash:vDash,nutr:vNutr,stat:vStat,progr:vProgr,sport:vSport,chal:vChal,ach:vAch,gang:vGang,top:vTop,ai:vAI,prof:vProf,friends:vFriends,notif:vNotif,admin:vAdmin,rewards:vRewards};
   var fn=views[S.nav]||vDash;
   var content=null;
   try{content=fn();}catch(er){content=el('div',{s:'padding:20px;color:#f87171;font-size:12px;font-family:monospace'});content.textContent='Eroare: '+er.message;}
@@ -4183,6 +4202,9 @@ function vGang(){
   if(sorted.length){sorted.forEach(function(m3,i){var isMe=m3._uid===(S.authUser||UID)||(S.authUser&&m3.username===S.authUser);var mRole=m3.role||'member';var mIsOwn=mRole==='owner'||(meta.ownerUid&&m3._uid===meta.ownerUid);var mIsAdm=mRole==='admin';var r=el('div',{c:'gmember',s:isMe?'background:var(--ac-glow)':''});var rRk=el('div',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:12px;width:24px;flex-shrink:0;text-align:center'});rRk.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);var rAv=el('div',{s:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg3);overflow:hidden'});if(isMe){avatarSelfInto(rAv);}else{rAv.textContent=S.mode==='bom'?(m3.emoji||'👤'):initialOf(m3.nick||m3.name);}var rI=el('div',{s:'flex:1;min-width:0'});var rNRow=el('div',{s:'display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:1px'});var rN2=el('div',{s:'color:'+(isMe?'var(--ac-l)':'var(--tx1)')+';font-size:12px;font-weight:'+(isMe?'700':'500')});rN2.textContent=(m3.nick||m3.name)+(isMe?L(' (you)',' (tu)'):'');rNRow.appendChild(rN2);if(mIsOwn){var ob2=el('span',{c:'badge badge-owner'});ob2.appendChild(ic('crown',9));ob2.title='Fondator';rNRow.appendChild(ob2);}else if(mIsAdm){var ab2=el('span',{c:'badge badge-admin'});ab2.appendChild(ic('shield',9));ab2.title='Admin';rNRow.appendChild(ab2);}rI.appendChild(rNRow);var rSub=el('div',{s:'color:var(--tx5);font-size:10px'});var _since=m3.since||m3.joined;rSub.textContent=lvlLabel(m3.level||'Nou')+(m3.workouts?' · '+m3.workouts+L(' workouts',' antren.'):'')+(_since?' · '+L('joined ','intrat ')+relDate(_since):'');rI.appendChild(rSub);var rXP=el('div',{s:'text-align:right;flex-shrink:0'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:13px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';var rW3=el('div',{s:'color:var(--tx5);font-size:10px'});rW3.textContent=m3.weight?fmt(m3.weight,1)+'kg':'';rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rAv);r.appendChild(rI);r.appendChild(rXP);if(!isMe&&isAdmin&&!mIsOwn){var actDiv=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-left:6px'});if(isOwner){var promBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px'});promBtn.textContent=mIsAdm?'→Mbru':'→Admin';promBtn.onclick=(function(uid,wasA){return function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+uid+'/role').set(wasA?'member':'admin').then(function(){notify('OK','Rolul a fost schimbat.',2000)}).catch(function(){});};})(m3._uid,mIsAdm);actDiv.appendChild(promBtn);}if(isOwner||(!mIsAdm&&isAdmin)){var kickBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px;color:var(--er);border-color:rgba(248,113,113,.3)'});kickBtn.textContent='Kick';kickBtn.onclick=(function(uid,nm){return function(){if(!confirm('Elimini pe '+nm+'?'))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+uid).remove().then(function(){notify('Eliminat',nm+' a fost scos.',2000)}).catch(function(){});};})(m3._uid,m3.nick||m3.name);actDiv.appendChild(kickBtn);}if(actDiv.children.length)r.appendChild(actDiv);}lbCard.appendChild(r);});var topXP=sorted[0]?sorted[0].xp||0:1;var myXPInClan=myMember?myMember.xp||0:xp;if(topXP>0&&!isOwner&&myXPInClan<topXP){var gap=topXP-myXPInClan;var gapDiv=el('div',{s:'padding:8px 13px;border-top:1px solid var(--bg1)'});var gapTxt=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});gapTxt.textContent=bom('Distanta fata de lider: '+gap+' XP','Boss-ul e cu '+gap+' XP mai sus!');var gapBar=el('div',{s:'height:4px;background:var(--bg3);border-radius:99px;overflow:hidden'});var gapFill=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+Math.round(myXPInClan/topXP*100)+'%'});gapBar.appendChild(gapFill);gapDiv.appendChild(gapTxt);gapDiv.appendChild(gapBar);lbCard.appendChild(gapDiv);}}else{var em3=el('div',{s:'text-align:center;padding:28px;color:var(--tx5);font-size:11px'});em3.appendChild(ic('users',32));var em3t=el('div',{s:'margin-top:8px'});em3t.textContent=bom('Esti singurul. Trimite codul: ','Esti singur, boss! Codul: ')+p.gangCode;em3.appendChild(em3t);lbCard.appendChild(em3);}
   // ── Weekly clan challenge + momentum
   var wkWk=members.reduce(function(a,m){return a+(m.wkWorkouts||0)},0);
+  // XP-boost perk: members spend XP to add to the weekly goal (boost feed events this week).
+  var boostWk=0;if(S.gangFeed){Object.keys(S.gangFeed).forEach(function(k){var ev=S.gangFeed[k];if(ev&&ev.type==='boost'&&ev.ts&&ev.ts>=(Date.now()-7*864e5))boostWk+=(+ev.val||0);});}
+  wkWk+=boostWk;
   var activeWk=members.filter(function(m){return m.lastActive&&m.lastActive>=_daysAgoISO(7)}).length||(members.length?1:0);
   var wkTarget=Math.max(5,members.length*3);
   var wkPct=Math.min(100,Math.round(wkWk/wkTarget*100));
@@ -4194,6 +4216,12 @@ function vGang(){
   var cs1=el('span');cs1.textContent=wkWk+'/'+wkTarget+L(' workouts',' antrenamente');var cs2=el('span');cs2.textContent=activeWk+L(' active this week',' activi săptămâna asta');
   chalStats.appendChild(cs1);chalStats.appendChild(cs2);chalCard.appendChild(chalStats);
   if(wkPct>=100){var chalDone=el('div',{s:'margin-top:7px;color:#34d399;font-size:11px;display:flex;align-items:center;gap:5px'});chalDone.appendChild(ic('circle-check',13));chalDone.appendChild(document.createTextNode(L('Goal reached — great work, clan!','Obiectiv atins — bravo, Clan!')));chalCard.appendChild(chalDone);}
+  else if(!S.guest&&S.authUser){
+    var canBoost=xpBalance()>=120;
+    var boostB=el('button',{c:'btn '+(canBoost?'bp':'bg'),s:'font-size:10px;margin-top:9px;width:100%',disabled:!canBoost});boostB.appendChild(ic('flame',11));boostB.appendChild(document.createTextNode(' '+L('Boost the goal (+2) — 120 XP','Boost obiectivului (+2) — 120 XP')));
+    boostB.onclick=function(){if(spendXP(120,'Clan boost')){try{pushClanEvent('boost',2)}catch(e){}notify(L('Clan boosted! +2','Clan boostat! +2'),'',2200,null,'done');render();}};
+    chalCard.appendChild(boostB);
+  }
   // ── Clan activity feed
   var feedCard=null;
   var feedArr=S.gangFeed?Object.keys(S.gangFeed).map(function(k){return S.gangFeed[k]}).filter(Boolean).sort(function(a,b){return (b.ts||0)-(a.ts||0)}):[];
@@ -4676,6 +4704,208 @@ function vAdmin(){
   var resetBtn=el('button',{s:'background:none;border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:11px;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px'});resetBtn.appendChild(ic('refresh',12));resetBtn.appendChild(document.createTextNode(L('Reset all admin changes','Resetează toate modificările')));resetBtn.onclick=function(){if(confirm(L('Reset all admin edits?','Resetezi toate modificările?'))){_clearAdminPatch();render();}};resetCard.appendChild(resetBtn);
   return mkSec(h1,statsCard,usersCard,clansCard,cloudCard,resetCard);
 }
+// ── Rewards hub: Training Base, Shop, Wagers (spend XP) ─────────────────────
+function cz(o){return o?(S.lang==='en'?o.en:o.ro):'';}
+var COSMETIC_ACCENTS=[
+  {id:'emerald',name:{en:'Emerald',ro:'Smarald'},cost:0,ac:'#2d6a4f',acl:'#34d399',glow:'rgba(45,106,79,.18)'},
+  {id:'ocean',name:{en:'Ocean',ro:'Ocean'},cost:300,ac:'#0e7490',acl:'#38bdf8',glow:'rgba(14,116,144,.20)'},
+  {id:'violet',name:{en:'Violet',ro:'Violet'},cost:700,ac:'#6d28d9',acl:'#a78bfa',glow:'rgba(109,40,217,.20)'},
+  {id:'crimson',name:{en:'Crimson',ro:'Stacojiu'},cost:1200,ac:'#b91c1c',acl:'#f87171',glow:'rgba(185,28,28,.20)'},
+  {id:'gold',name:{en:'Gold',ro:'Auriu'},cost:2500,ac:'#b45309',acl:'#fbbf24',glow:'rgba(180,83,9,.20)'}
+];
+var COSMETIC_TITLES=[
+  {id:'rookie',name:{en:'Rookie',ro:'Novice'},cost:150},
+  {id:'grinder',name:{en:'The Grinder',ro:'Muncitorul'},cost:500},
+  {id:'ironwill',name:{en:'Iron Will',ro:'Voință de Fier'},cost:1000},
+  {id:'machine',name:{en:'The Machine',ro:'Mașinăria'},cost:2000},
+  {id:'legend',name:{en:'Living Legend',ro:'Legendă Vie'},cost:4000}
+];
+var BASE_ITEMS=[
+  {id:'rack',cat:'strength',name:{en:'Squat Rack',ro:'Rack de Squat'},ic:'barbell',cost:400,req:{wk:5}},
+  {id:'dumbbells',cat:'strength',name:{en:'Dumbbell Set',ro:'Set Gantere'},ic:'dumbbell',cost:250},
+  {id:'bench',cat:'strength',name:{en:'Bench Press',ro:'Bancă'},ic:'layout-rows',cost:200},
+  {id:'pullup',cat:'strength',name:{en:'Pull-up Bar',ro:'Bară Tracțiuni'},ic:'arrow-up',cost:150},
+  {id:'treadmill',cat:'cardio',name:{en:'Treadmill',ro:'Bandă Alergat'},ic:'run',cost:350,req:{wk:5}},
+  {id:'track',cat:'cardio',name:{en:'Running Track',ro:'Pistă'},ic:'route',cost:550},
+  {id:'bike',cat:'cardio',name:{en:'Spin Bike',ro:'Bicicletă'},ic:'bike',cost:300},
+  {id:'rower',cat:'cardio',name:{en:'Rowing Machine',ro:'Aparat Vâslit'},ic:'rotate-2',cost:300},
+  {id:'pool',cat:'water',name:{en:'Lap Pool',ro:'Bazin'},ic:'ripple',cost:900,req:{wk:10}},
+  {id:'bag',cat:'combat',name:{en:'Boxing Bag',ro:'Sac de Box'},ic:'bolt',cost:350},
+  {id:'mat',cat:'mind',name:{en:'Yoga Studio',ro:'Studio Yoga'},ic:'leaf',cost:300},
+  {id:'sauna',cat:'recovery',name:{en:'Sauna',ro:'Saună'},ic:'flame',cost:700,req:{wk:8}},
+  {id:'smoothie',cat:'general',name:{en:'Smoothie Bar',ro:'Bar Smoothie'},ic:'cup',cost:250},
+  {id:'trophy',cat:'general',name:{en:'Trophy Wall',ro:'Perete Trofee'},ic:'trophy',cost:600,req:{wk:15}}
+];
+var WAGER_TEMPLATES=[
+  {id:'w-wk3',name:{en:'3 workouts in 5 days',ro:'3 antrenamente în 5 zile'},stake:150,reward:320,days:5,metric:'workouts',goal:3},
+  {id:'w-wk5',name:{en:'5 workouts in 7 days',ro:'5 antrenamente în 7 zile'},stake:300,reward:650,days:7,metric:'workouts',goal:5},
+  {id:'w-food7',name:{en:'Log food on 7 days',ro:'Loghează mâncare 7 zile'},stake:250,reward:520,days:8,metric:'foodDays',goal:7},
+  {id:'w-weigh5',name:{en:'Weigh in on 5 days',ro:'Cântărește-te 5 zile'},stake:120,reward:260,days:7,metric:'weighDays',goal:5}
+];
+// Apply the chosen accent cosmetic by overriding CSS vars (called from render).
+function applyCosmetics(){
+  try{var c=(S.profile&&S.profile.cosmetics)||{};var acc=null;COSMETIC_ACCENTS.forEach(function(a){if(a.id===c.accent)acc=a;});var root=document.documentElement;
+  if(acc&&acc.id!=='emerald'){root.style.setProperty('--ac',acc.ac);root.style.setProperty('--ac-l',acc.acl);root.style.setProperty('--ac-glow',acc.glow);}
+  else{root.style.removeProperty('--ac');root.style.removeProperty('--ac-l');root.style.removeProperty('--ac-glow');}}catch(e){}
+}
+function activeTitle(){var c=(S.profile&&S.profile.cosmetics)||{};if(!c.title)return'';var t=null;COSMETIC_TITLES.forEach(function(x){if(x.id===c.title)t=x;});return t?cz(t.name):'';}
+// Wager progress + auto-settlement
+function wagerProgress(w){
+  if(w.metric==='workouts')return (S.workouts||[]).filter(function(x){return x.date>=w.start}).length;
+  if(w.metric==='foodDays'){var d={};(S.food||[]).forEach(function(f){if(f.date>=w.start)d[f.date]=1;});return Object.keys(d).length;}
+  if(w.metric==='weighDays'){var d2={};(S.progress||[]).forEach(function(x){if(x.date>=w.start)d2[x.date]=1;});return Object.keys(d2).length;}
+  return 0;
+}
+function settleWagers(){
+  if(!S.profile||!S.profile.wagers)return;var changed=false;
+  S.profile.wagers.forEach(function(w){
+    if(w.status!=='active')return;
+    if(wagerProgress(w)>=w.goal){w.status='won';changed=true;try{addXP('Pariu câștigat',w.reward)}catch(e){}try{notify(L('Wager won! +'+w.reward+' XP','Pariu câștigat! +'+w.reward+' XP'),cz(w.name),5000,null,'ach')}catch(e){}}
+    else if(TODAY>w.deadline){w.status='lost';changed=true;try{notify(L('Wager lost','Pariu pierdut'),L('You forfeited '+w.stake+' XP.','Ai pierdut '+w.stake+' XP.'),4500)}catch(e){}}
+  });
+  if(changed)DB.save('profile',S.profile);
+}
+function acceptWager(tpl){
+  if((S.profile.wagers||[]).some(function(w){return w.tpl===tpl.id&&w.status==='active'})){notify(L('Already active','Deja activ'),'',2000);return;}
+  if(!spendXP(tpl.stake,'Wager: '+tpl.id)){notify(L('Not enough XP','XP insuficient'),'',2000);return;}
+  var dl=new Date();dl.setDate(dl.getDate()+tpl.days);
+  S.profile.wagers=(S.profile.wagers||[]).concat([{id:tpl.id+'_'+Date.now(),tpl:tpl.id,name:tpl.name,stake:tpl.stake,reward:tpl.reward,goal:tpl.goal,metric:tpl.metric,start:TODAY,deadline:dl.toISOString().split('T')[0],status:'active'}]);
+  DB.save('profile',S.profile);notify(L('Wager accepted','Pariu acceptat'),L(tpl.stake+' XP staked','Ai mizat '+tpl.stake+' XP'),2500,null,'done');render();
+}
+// XP-balance pill used across the Rewards hub.
+function mkXpBalance(){
+  var bal=xpBalance();
+  var card=el('div',{c:'card cp',s:'display:flex;align-items:center;gap:11px'});
+  var co=el('div',{s:'width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(251,191,36,.14);color:#fbbf24'});co.appendChild(ic('coins',22));
+  var mid=el('div',{s:'flex:1;min-width:0'});var bn=el('div',{s:'color:var(--tx1);font-size:18px;font-weight:800;font-family:ui-monospace,monospace'});var bnS=el('span');countUp(bnS,bal,'bal:'+bal);bn.appendChild(bnS);bn.appendChild(document.createTextNode(' XP'));mid.appendChild(bn);
+  var sub=el('div',{s:'color:var(--tx4);font-size:10px'});sub.textContent=L('spendable balance','sold disponibil')+' · '+getXP()+L(' lifetime',' total');mid.appendChild(sub);
+  card.appendChild(co);card.appendChild(mid);
+  if(doubleXpActive()){var dx=el('div',{s:'flex-shrink:0;background:rgba(167,139,250,.15);color:#a78bfa;border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700'});dx.textContent='2× XP';card.appendChild(dx);}
+  return card;
+}
+function vRewards(){
+  var p=S.profile;if(!p)return mkSec(el('div',null));
+  if(!S.rwTab)S.rwTab='base';
+  var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700;display:flex;align-items:center;gap:7px'});h1.appendChild(ic('gift',18));var h1t=el('span');h1t.textContent=L('Rewards','Recompense');h1.appendChild(h1t);
+  var tabBar=el('div',{s:'display:flex;gap:6px'});
+  [['base',L('Training Base','Baza Ta')],['shop',L('Shop','Magazin')],['wager',L('Challenges','Pariuri')]].forEach(function(t){
+    var on=S.rwTab===t[0];var b=el('button',{s:'flex:1;padding:7px 4px;border-radius:8px;border:1px solid '+(on?'var(--ac)':'var(--bd)')+';font-size:11px;font-family:inherit;cursor:pointer;background:'+(on?'var(--ac)':'var(--bg2)')+';color:'+(on?'#fff':'var(--tx3)')});
+    b.textContent=t[1];b.onclick=function(){S.rwTab=t[0];render();};tabBar.appendChild(b);
+  });
+  var content=S.rwTab==='shop'?mkShopTab():S.rwTab==='wager'?mkWagerTab():mkBaseTab();
+  return mkSec(h1,mkXpBalance(),tabBar,content);
+}
+function mkBaseTab(){
+  var p=S.profile;var owned=p.baseOwned||[];
+  var wrap=el('div',null);
+  var pct=Math.round(owned.length/BASE_ITEMS.length*100);
+  var head=el('div',{c:'card cp'});
+  var ht=el('div',{s:'color:var(--tx2);font-size:11px;margin-bottom:6px'});ht.textContent=L('Your base — '+owned.length+'/'+BASE_ITEMS.length+' built ('+pct+'%)','Baza ta — '+owned.length+'/'+BASE_ITEMS.length+' construite ('+pct+'%)');head.appendChild(ht);
+  var bar=el('div',{s:'height:8px;background:var(--bg3);border-radius:99px;overflow:hidden'});var bf=el('div',{s:'height:100%;border-radius:99px;background:linear-gradient(90deg,var(--ac),#fbbf24);width:'+pct+'%;transition:width .4s'});bar.appendChild(bf);head.appendChild(bar);
+  var hint=el('div',{s:'color:var(--tx5);font-size:9.5px;margin-top:6px'});hint.textContent=L('Spend XP to build equipment for your sports. Some need logged workouts first.','Cheltuie XP ca să construiești echipament pentru sporturile tale. Unele cer întâi antrenamente logate.');head.appendChild(hint);
+  wrap.appendChild(head);
+  var sp=(p.preferredSports||[]).join(' ').toLowerCase();
+  var catSport={strength:/sal|forț|forta|power|cross|street/,cardio:/alerg|cicl|bike|hiit|cardio/,water:/inot|înot|swim/,combat:/box|mma|kick|lupt/,mind:/yoga|pilates|mobil/,recovery:/recup/,general:/./};
+  var grid=el('div',{c:'g2'});
+  var wkCount=(S.workouts||[]).length;
+  // sort: relevant-to-your-sports first
+  var items=BASE_ITEMS.slice().sort(function(a,b){var ra=catSport[a.cat]&&catSport[a.cat].test(sp)?0:1;var rb=catSport[b.cat]&&catSport[b.cat].test(sp)?0:1;return ra-rb;});
+  items.forEach(function(it){
+    var isOwned=owned.indexOf(it.id)>-1;
+    var reqWk=it.req&&it.req.wk;var reqMet=!reqWk||wkCount>=reqWk;var canAfford=xpBalance()>=it.cost;
+    var card=el('div',{s:'border:1px solid '+(isOwned?'var(--ac)':'var(--bd)')+';border-radius:12px;padding:11px 10px;background:'+(isOwned?'var(--ac-glow)':'var(--bg2)')+';display:flex;flex-direction:column;gap:6px'});
+    var top=el('div',{s:'display:flex;align-items:center;gap:7px'});
+    var io=el('div',{s:'width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:'+(isOwned?'var(--ac)':'var(--bg3)')+';color:'+(isOwned?'#fff':'var(--tx3)')});io.appendChild(ic(it.ic,16));
+    var nm=el('div',{s:'color:var(--tx1);font-size:11.5px;font-weight:600;flex:1;min-width:0'});nm.textContent=cz(it.name);
+    top.appendChild(io);top.appendChild(nm);card.appendChild(top);
+    if(isOwned){var b1=el('div',{s:'color:var(--ac-l);font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px'});b1.appendChild(ic('circle-check',12));b1.appendChild(document.createTextNode(L('Built','Construit')));card.appendChild(b1);}
+    else if(!reqMet){var rq=el('div',{s:'color:var(--tx4);font-size:9.5px'});rq.textContent='🔒 '+L('Log '+reqWk+' workouts first','Loghează '+reqWk+' antrenamente întâi')+' ('+wkCount+'/'+reqWk+')';card.appendChild(rq);}
+    else{var bb=el('button',{c:'btn '+(canAfford?'bp':'bg'),s:'font-size:10.5px;padding:6px 8px',disabled:!canAfford});bb.appendChild(ic('coins',11));bb.appendChild(document.createTextNode(' '+it.cost+' XP'));bb.onclick=function(){if(spendXP(it.cost,'Base: '+it.id)){p.baseOwned=(p.baseOwned||[]).concat([it.id]);DB.save('profile',p);notify(L('Built: ','Construit: ')+cz(it.name),'',2200,null,'done');render();}};card.appendChild(bb);}
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+function mkShopTab(){
+  var p=S.profile;p.cosmetics=p.cosmetics||{};
+  var wrap=el('div',null);
+  function section(title){var s=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin:4px 2px 6px'});s.textContent=title;return s;}
+  // Power-ups
+  wrap.appendChild(section(L('Power-ups','Power-up-uri')));
+  var puCard=el('div',{c:'card cp'});
+  function puRow(icn,col,title,desc,cost,owned,fn){
+    var r=el('div',{s:'display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid var(--bg1)'});
+    var ci=el('div',{s:'width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:'+col+'22;color:'+col});ci.appendChild(ic(icn,15));
+    var t=el('div',{s:'flex:1;min-width:0'});var t1=el('div',{s:'color:var(--tx1);font-size:11.5px;font-weight:600'});t1.textContent=title;var t2=el('div',{s:'color:var(--tx4);font-size:9.5px'});t2.textContent=desc;t.appendChild(t1);t.appendChild(t2);
+    var btn;if(owned){btn=el('div',{s:'color:#34d399;font-size:10px;font-weight:600;flex-shrink:0'});btn.textContent=L('Active','Activ');}
+    else{var can=xpBalance()>=cost;btn=el('button',{c:'btn '+(can?'bp':'bg'),s:'font-size:10px;flex-shrink:0',disabled:!can});btn.appendChild(ic('coins',10));btn.appendChild(document.createTextNode(' '+cost));btn.onclick=function(){if(spendXP(cost,title))fn();};}
+    r.appendChild(ci);r.appendChild(t);r.appendChild(btn);return r;
+  }
+  puCard.appendChild(puRow('bolt-filled','#a78bfa',L('2× XP — today','2× XP — azi'),L('Double all XP earned today','Dublează tot XP-ul de azi',''),250,doubleXpActive(),function(){p.dblXpUntil=TODAY;DB.save('profile',p);notify(L('2× XP active!','2× XP activ!'),'',2500,null,'ach');render();}));
+  puCard.appendChild(puRow('snowflake','#38bdf8',L('Streak freeze','Îngheț streak'),L('+1 token to cover a missed day','+1 token pentru o zi pierdută'),200,false,function(){p.freezeTokens=(p.freezeTokens||0)+1;DB.save('profile',p);notify(L('+1 freeze token','+1 token de îngheț'),'',2200,null,'done');render();}));
+  wrap.appendChild(puCard);
+  // Accents
+  wrap.appendChild(section(L('Accent themes','Teme de culoare')));
+  var accCard=el('div',{c:'card cp'});var accGrid=el('div',{s:'display:grid;grid-template-columns:1fr 1fr;gap:7px'});
+  var accOwned=p.cosmetics.accentsOwned||['emerald'];
+  COSMETIC_ACCENTS.forEach(function(a){
+    var isOwned=a.cost===0||accOwned.indexOf(a.id)>-1;var isActive=(p.cosmetics.accent||'emerald')===a.id;
+    var card=el('div',{s:'border:1px solid '+(isActive?a.acl:'var(--bd)')+';border-radius:10px;padding:9px;display:flex;align-items:center;gap:8px;cursor:'+(isOwned?'pointer':'default')});
+    var sw=el('div',{s:'width:24px;height:24px;border-radius:7px;flex-shrink:0;background:linear-gradient(135deg,'+a.ac+','+a.acl+')'});
+    var t=el('div',{s:'flex:1;min-width:0'});var t1=el('div',{s:'color:var(--tx1);font-size:11px;font-weight:600'});t1.textContent=cz(a.name);t.appendChild(t1);
+    var t2=el('div',{s:'font-size:9px;color:'+(isActive?a.acl:'var(--tx4)')});t2.textContent=isActive?L('Active','Activ'):isOwned?L('Tap to use','Apasă pt. a folosi'):a.cost+' XP';t.appendChild(t2);
+    card.appendChild(sw);card.appendChild(t);
+    card.onclick=function(){
+      if(isOwned){p.cosmetics.accent=a.id;DB.save('profile',p);render();}
+      else{if(spendXP(a.cost,'Accent: '+a.id)){p.cosmetics.accentsOwned=(p.cosmetics.accentsOwned||['emerald']).concat([a.id]);p.cosmetics.accent=a.id;DB.save('profile',p);notify(L('Unlocked: ','Deblocat: ')+cz(a.name),'',2200,null,'done');render();}}
+    };
+    accGrid.appendChild(card);
+  });
+  accCard.appendChild(accGrid);wrap.appendChild(accCard);
+  // Titles
+  wrap.appendChild(section(L('Titles','Titluri')));
+  var titCard=el('div',{c:'card cp'});var titOwned=p.cosmetics.titlesOwned||[];
+  COSMETIC_TITLES.forEach(function(tt){
+    var isOwned=titOwned.indexOf(tt.id)>-1;var isActive=p.cosmetics.title===tt.id;
+    var r=el('div',{s:'display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid var(--bg1)'});
+    var nm=el('div',{s:'flex:1;color:var(--tx1);font-size:12px;font-weight:600'});nm.textContent='« '+cz(tt.name)+' »';
+    var btn;if(isActive){btn=el('button',{c:'btn bg',s:'font-size:10px;flex-shrink:0'});btn.textContent=L('Active ✓','Activ ✓');btn.onclick=function(){p.cosmetics.title='';DB.save('profile',p);render();};}
+    else if(isOwned){btn=el('button',{c:'btn bp',s:'font-size:10px;flex-shrink:0'});btn.textContent=L('Use','Folosește');btn.onclick=function(){p.cosmetics.title=tt.id;DB.save('profile',p);render();};}
+    else{var can=xpBalance()>=tt.cost;btn=el('button',{c:'btn '+(can?'bp':'bg'),s:'font-size:10px;flex-shrink:0',disabled:!can});btn.appendChild(ic('coins',10));btn.appendChild(document.createTextNode(' '+tt.cost));btn.onclick=function(){if(spendXP(tt.cost,'Title: '+tt.id)){p.cosmetics.titlesOwned=(titOwned).concat([tt.id]);p.cosmetics.title=tt.id;DB.save('profile',p);notify(L('Unlocked: ','Deblocat: ')+cz(tt.name),'',2200,null,'ach');render();}};}
+    r.appendChild(nm);r.appendChild(btn);titCard.appendChild(r);
+  });
+  wrap.appendChild(titCard);
+  return wrap;
+}
+function mkWagerTab(){
+  var p=S.profile;var wrap=el('div',null);
+  var active=(p.wagers||[]).filter(function(w){return w.status==='active'});
+  var intro=el('div',{c:'card cp'});var it=el('div',{s:'color:var(--tx3);font-size:11px;line-height:1.5'});it.textContent=L('Stake XP on a goal. Hit it before the deadline to win more back; miss it and you forfeit the stake.','Mizează XP pe un obiectiv. Atinge-l înainte de termen ca să câștigi mai mult; ratează și pierzi miza.');intro.appendChild(it);wrap.appendChild(intro);
+  if(active.length){
+    var aL=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin:4px 2px 6px'});aL.textContent=L('Active','Active');wrap.appendChild(aL);
+    active.forEach(function(w){
+      var prog=Math.min(wagerProgress(w),w.goal);var pct=Math.round(prog/w.goal*100);
+      var c=el('div',{c:'card cp'});
+      var top=el('div',{s:'display:flex;justify-content:space-between;align-items:center;margin-bottom:5px'});
+      var nm=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});nm.textContent=cz(w.name);
+      var rw=el('div',{s:'color:#fbbf24;font-size:11px;font-weight:700;font-family:ui-monospace,monospace'});rw.textContent='+'+w.reward+' XP';
+      top.appendChild(nm);top.appendChild(rw);c.appendChild(top);
+      var bar=el('div',{s:'height:7px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-bottom:4px'});var bf=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+pct+'%'});bar.appendChild(bf);c.appendChild(bar);
+      var sub=el('div',{s:'display:flex;justify-content:space-between;color:var(--tx4);font-size:9.5px'});var s1=el('span');s1.textContent=prog+'/'+w.goal;var s2=el('span');s2.textContent=L('ends ','termen ')+relDate(w.deadline);sub.appendChild(s1);sub.appendChild(s2);c.appendChild(sub);
+      wrap.appendChild(c);
+    });
+  }
+  var tL=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin:8px 2px 6px'});tL.textContent=L('Take a wager','Acceptă un pariu');wrap.appendChild(tL);
+  WAGER_TEMPLATES.forEach(function(tpl){
+    var isActive=(p.wagers||[]).some(function(w){return w.tpl===tpl.id&&w.status==='active'});
+    var can=xpBalance()>=tpl.stake;
+    var c=el('div',{c:'card cp',s:'display:flex;align-items:center;gap:10px'});
+    var info=el('div',{s:'flex:1;min-width:0'});var nm=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});nm.textContent=cz(tpl.name);var sub=el('div',{s:'color:var(--tx4);font-size:9.5px'});sub.textContent=L('Stake ','Mizezi ')+tpl.stake+L(' XP · win ',' XP · câștigi ')+tpl.reward+' XP · '+tpl.days+L(' days',' zile');info.appendChild(nm);info.appendChild(sub);
+    var btn=el('button',{c:'btn '+(can&&!isActive?'bp':'bg'),s:'font-size:10.5px;flex-shrink:0',disabled:isActive||!can});btn.textContent=isActive?L('Active','Activ'):L('Accept','Acceptă');btn.onclick=function(){acceptWager(tpl);};
+    c.appendChild(info);c.appendChild(btn);wrap.appendChild(c);
+  });
+  return wrap;
+}
 function vProf(){
   var p=S.profile,m=S.metrics,lvl=getLvl(),xp=getXP();
   var h1=el('h1',{s:'color:var(--tx1);font-size:18px;font-weight:700'});h1.textContent=bom('Profil','Yo, tata');
@@ -4687,10 +4917,11 @@ function vProf(){
   var pTop=el('div',{s:'display:flex;align-items:center;gap:10px;margin-bottom:12px'});
   var pE=el('div',{s:'width:42px;height:42px;border-radius:11px;background:var(--ac-glow);border:1px solid var(--ac-glow);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden'});avatarSelfInto(pE);
   var pI=el('div',null);var pN=el('div',{s:'color:var(--tx1);font-size:14px;font-weight:700'});pN.textContent=p.name+(p.gangNick?' ('+p.gangNick+')':'');
+  var _ttl=activeTitle();if(_ttl){var pTtl=el('div',{s:'color:var(--ac-l);font-size:10px;font-weight:600;font-style:italic'});pTtl.textContent='« '+_ttl+' »';pI.appendChild(pN);pI.appendChild(pTtl);}else pI.appendChild(pN);
   var pL=el('div',{s:'color:'+lvl.c+';font-size:11px;font-weight:600'});pL.textContent=lvl.n+' \u00b7 '+xp+' XP';
   var pS=el('div',{s:'color:var(--tx4);font-size:11px'});pS.textContent=p.age+L(' yrs',' ani')+' \u00b7 '+(p.sex==='M'?L('Male','Masculin'):L('Female','Feminin'))+' \u00b7 '+p.height+'cm';
   var pMS=el('div',{s:'color:var(--tx5);font-size:10px;margin-top:2px;display:flex;align-items:center;gap:4px'});pMS.appendChild(ic('calendar',10));pMS.appendChild(document.createTextNode(L('Member since ','Membru din ')+fmtMonthYear(accountSinceDate())));
-  pI.appendChild(pN);pI.appendChild(pL);pI.appendChild(pS);pI.appendChild(pMS);pTop.appendChild(pE);pTop.appendChild(pI);pc.appendChild(pTop);
+  pI.appendChild(pL);pI.appendChild(pS);pI.appendChild(pMS);pTop.appendChild(pE);pTop.appendChild(pI);pc.appendChild(pTop);
   if(S.editing){
     // Preserve draft across re-renders (e.g., clicking allergy checkbox triggers render)
     if(!S._editDraft){S._editDraft={weight:p.weight,targetWeight:p.targetWeight,sleepHours:p.sleepHours,trainingFrequency:p.trainingFrequency,sportHoursWeek:p.sportHoursWeek||3,cookTimeDay:p.cookTimeDay||30,workHoursDay:p.workHoursDay||8,goal:p.goal,mealContext:p.mealContext||'acasa',allergies:(p.allergies||[]).slice(),avoidedFoods:p.avoidedFoods||'',preferredSports:(p.preferredSports||[]).slice()};}
