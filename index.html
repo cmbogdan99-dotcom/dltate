@@ -272,6 +272,21 @@ window.addEventListener('error',function(ev){
 <script>
 'use strict';
 var TODAY=new Date().toISOString().split('T')[0];
+// ── Shared AI proxy ────────────────────────────────────────────────────────
+// Paste your deployed Cloudflare Worker URL here to enable the Claude coach for
+// ALL users with NO per-user API key. The Worker keeps the real key secret
+// server-side (never shipped to the browser). Leave '' to keep per-user keys.
+// Worker code + setup: see worker/anthropic-proxy.js and worker/README.md.
+var AI_PROXY='';
+function aiProxyOn(){return !!(AI_PROXY&&/^https?:\/\//.test(AI_PROXY));}
+// True when the Claude coach is usable (shared proxy or a personal key).
+function anthropicReady(){return aiProxyOn()||!!S.anthropicKey;}
+// Single fetch path for Claude: routes through the proxy when configured
+// (no key header — the Worker adds it), else direct with the user's key.
+function anthropicFetch(body){
+  if(aiProxyOn())return fetch(AI_PROXY,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  return fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':S.anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify(body)});
+}
 // The day this user first opened the app (persisted once). Used as the
 // "member since" / account-creation anchor. Falls back to May 2026 if the
 // very first launch predates this tracking.
@@ -422,7 +437,7 @@ function tourSteps(){return [
   {nav:'progr',title:L('Progress','Progres'),body:L('Log your weight and see an adaptive forecast: when you’ll hit your goal, your real measured metabolism, and a self-correcting calorie target.','Înregistrează-ți greutatea și vezi o predicție adaptivă: când îți atingi obiectivul, metabolismul tău real măsurat și o țintă calorică auto-corectată.')},
   {nav:'gang',title:L('Clan','Clan'),body:L('Join a clan to chase a weekly goal together, see the live activity feed, and climb the monthly season podium.','Intră într-un Clan ca să urmăriți împreună un obiectiv săptămânal, vezi feed-ul de activitate și urcă pe podiumul lunar.')},
   {nav:'top',title:L('Leaderboards','Clasamente'),body:L('Compare your XP globally and by clan — all-time, weekly and monthly.','Compară-ți XP-ul global și pe clanuri — din toate timpurile, săptămânal și lunar.')},
-  {nav:'ai',title:L('AI Coach','Antrenor AI'),body:L('Ask anything — it knows your data, remembers your preferences and gives a daily briefing. Connect an API key for the full model, or use the built-in coach.','Întreabă orice — îți știe datele, îți reține preferințele și îți dă un briefing zilnic. Conectează o cheie API pentru modelul complet, sau folosește antrenorul integrat.')},
+  {nav:'ai',title:L('AI Coach','Antrenor AI'),body:(aiProxyOn()?L('Ask anything — the full Claude coach is already connected. It knows your data, remembers your preferences and gives a daily briefing.','Întreabă orice — antrenorul Claude e deja conectat. Îți știe datele, îți reține preferințele și îți dă un briefing zilnic.'):L('Ask anything — it knows your data, remembers your preferences and gives a daily briefing. Connect an API key for the full model, or use the built-in coach.','Întreabă orice — îți știe datele, îți reține preferințele și îți dă un briefing zilnic. Conectează o cheie API pentru modelul complet, sau folosește antrenorul integrat.'))},
   {nav:'prof',title:L('Profile & settings','Profil & setări'),body:L('Edit your stats, switch language/theme, manage your account and privacy — and you can replay this tour anytime from here.','Editează-ți datele, schimbă limba/tema, gestionează contul și confidențialitatea — și poți relua acest tur oricând de aici.')}
 ];}
 function startTour(){var st=tourSteps();S._tour=0;S._qlOpen=false;S._qlInput=null;S.nav=st[0].nav||S.nav;render();}
@@ -1507,15 +1522,14 @@ function openScreenshotScanner(mode){
   closeBtn.onclick=function(){overlay.parentNode&&overlay.parentNode.removeChild(overlay);};
   fi.onchange=function(){
     if(!fi.files||!fi.files[0])return;
-    var key=S.anthropicKey||'';
-    if(!key){hint.textContent='Adauga o cheie API Anthropic in Profil > AI pentru scanare automata.';return;}
-    hint.textContent='Se analizeaza imaginea...';uploadBtn.disabled=true;
+    if(!anthropicReady()){hint.textContent=L('Connect Claude in Profile › AI for automatic scanning.','Conectează Claude în Profil › AI pentru scanare automată.');return;}
+    hint.textContent=L('Analyzing the image…','Se analizează imaginea…');uploadBtn.disabled=true;
     resizeForAI(fi.files[0],function(b64){
       var imgData=b64.split(',')[1];
       var prompt=mode==='sport'
         ?'Analizeaza acest screenshot de activitate sportiva. Extrage urmatoarele informatii in format JSON strict, fara explicatii suplimentare:\n{"sport":"<tipul sportului in romana, ex: Alergare, Ciclism, Mers>","duration":<durata in minute, numar intreg>,"kcal":<calorii arse, numar intreg sau null>,"distance":<distanta in km, numar zecimal sau null>,"note":"<observatie scurta sau \\"\\">"}. Daca nu gasesti o informatie, foloseste null.'
         :'Analizeaza aceasta imagine cu informatii nutritionale (eticheta, screenshot app, meniu etc). Extrage urmatoarele in format JSON strict:\n{"name":"<numele produsului/mesei>","kcal":<calorii la 100g sau per portie, numar intreg>,"protein":<proteine g, numar intreg>,"fat":<grasimi g, numar intreg>,"carbs":<carbohidrati g, numar intreg>,"qty":<cantitate in grame daca e vizibila sau null>}. Daca nu gasesti o valoare, pune null.';
-      fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgData}},{type:'text',text:prompt}]}]})})
+      anthropicFetch({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgData}},{type:'text',text:prompt}]}]})
       .then(function(r){return r.json()})
       .then(function(resp){
         var txt=(resp.content&&resp.content[0]&&resp.content[0].text)||'';
@@ -4330,7 +4344,7 @@ function vAI(){
   var wHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px;flex-shrink:0'});
   var wHdrIcon=el('div',{s:'width:30px;height:30px;border-radius:8px;background:var(--ac-glow);border:1px solid var(--ac-glow);display:flex;align-items:center;justify-content:center'});wHdrIcon.appendChild(ic('message-circle',13));
   var wHdrI=el('div',null);var wHdrN=el('div',{s:'color:var(--tx1);font-weight:600;font-size:12px'});wHdrN.textContent=t('ai_title');
-  var wHdrS=el('div',{s:'color:var(--tx4);font-size:10px'});wHdrS.textContent=S.anthropicKey?safe('⚡ Claude AI · '+t('ai_powered')):S.openaiKey?safe('✨ ChatGPT · '+t('ai_powered')):safe('🤖 Local · '+t('ai_powered'));
+  var wHdrS=el('div',{s:'color:var(--tx4);font-size:10px'});wHdrS.textContent=anthropicReady()?safe('⚡ Claude AI · '+t('ai_powered')):S.openaiKey?safe('✨ ChatGPT · '+t('ai_powered')):safe('🤖 Local · '+t('ai_powered'));
   wHdrI.appendChild(wHdrN);wHdrI.appendChild(wHdrS);
   wHdr.appendChild(wHdrIcon);wHdr.appendChild(wHdrI);wrap.appendChild(wHdr);
   QUICK=[t('ai_q1'),t('ai_q2'),t('ai_q3'),t('ai_q4'),t('ai_q5'),t('ai_q6'),t('ai_q7')];
@@ -4531,9 +4545,9 @@ function vAI(){
       S.chat.push({role:'assistant',content:txt||fallback||aiReply(msg)});
       S.chatLoading=false;DB.save('chat',S.chat);render();
     }
-    if(S.anthropicKey){
+    if(anthropicReady()){
       var msgs2=S.chat.slice(-10).map(function(c){return{role:c.role,content:c.content}});
-      fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':S.anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:700,system:sysP(),messages:msgs2})})
+      anthropicFetch({model:'claude-haiku-4-5-20251001',max_tokens:700,system:sysP(),messages:msgs2})
       .then(function(r){return r.json()})
       .then(function(d){done(d&&d.content&&d.content[0]?d.content[0].text:null)})
       .catch(function(){done(null)});
@@ -4803,6 +4817,12 @@ function vProf(){
   // AI API Keys card
   var aiKeyCard=el('div',{c:'card cp'});
   var aiKeyH=el('div',{s:'color:var(--tx3);font-size:12px;font-weight:500;margin-bottom:10px'});aiKeyH.textContent='AI API Keys';aiKeyCard.appendChild(aiKeyH);
+  if(aiProxyOn()){
+    var connRow=el('div',{s:'display:flex;align-items:center;gap:7px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.28);border-radius:9px;padding:9px 11px;margin-bottom:10px'});
+    var connI=el('span',{s:'color:#34d399;display:inline-flex;flex-shrink:0'});connI.appendChild(ic('circle-check',15));
+    var connT=el('div',null);var connT1=el('div',{s:'color:var(--tx1);font-size:11.5px;font-weight:600'});connT1.textContent=L('Claude is connected','Claude e conectat');var connT2=el('div',{s:'color:var(--tx4);font-size:9.5px'});connT2.textContent=L('Managed by the app — no key needed. A personal key below is optional.','Gestionat de aplicație — fără cheie. O cheie personală mai jos e opțională.');connT.appendChild(connT1);connT.appendChild(connT2);
+    connRow.appendChild(connI);connRow.appendChild(connT);aiKeyCard.appendChild(connRow);
+  }
   // Anthropic key
   var aKeyLblRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px'});
   var aKeyLbl=el('div',{s:'font-size:10px;color:var(--tx5)'});aKeyLbl.textContent='Claude (Anthropic)';
