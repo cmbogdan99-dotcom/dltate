@@ -37,12 +37,16 @@ body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Robo
 .lb{width:25px;height:25px;border-radius:7px;background:var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sb-n{flex:1;padding:5px 4px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
 .sb-grp{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx5);padding:10px 11px 3px}
-.qlfab{position:fixed;right:18px;bottom:24px;width:56px;height:56px;border-radius:50%;background:var(--ac);color:#fff;border:none;box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:62;display:flex;align-items:center;justify-content:center;transition:transform .26s cubic-bezier(.34,1.56,.64,1),background .15s;animation:fabPulse 3.6s ease-in-out infinite}
+.qlfab{position:fixed;right:18px;bottom:24px;width:56px;height:56px;border-radius:50%;background:var(--ac);color:#fff;border:none;box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:62;display:flex;align-items:center;justify-content:center;transition:transform .26s cubic-bezier(.34,1.56,.64,1),background .15s}
 .qlfab:hover{transform:scale(1.08)}
 .qlfab:active{transform:scale(.92)}
-.qlfab.open{transform:rotate(135deg);background:var(--bg3);animation:none}
+.qlfab.open{transform:rotate(135deg);background:var(--bg3)}
 .qlfab.open:hover{transform:rotate(135deg) scale(1.08)}
-@keyframes fabPulse{0%,100%{box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3)}50%{box-shadow:0 8px 30px rgba(45,106,79,.6),0 0 0 7px rgba(45,106,79,.10)}}
+/* One-shot attention pulse — runs twice then stops (no infinite loop). */
+.attn{animation:attnPulse 1.25s cubic-bezier(.4,0,.2,1) 2}
+@keyframes attnPulse{0%{box-shadow:0 0 0 0 rgba(45,106,79,.5)}70%{box-shadow:0 0 0 11px rgba(45,106,79,0)}100%{box-shadow:0 0 0 0 rgba(45,106,79,0)}}
+.attn-amber{animation:attnPulseA 1.25s cubic-bezier(.4,0,.2,1) 2}
+@keyframes attnPulseA{0%{box-shadow:0 0 0 0 rgba(251,191,36,.55)}70%{box-shadow:0 0 0 11px rgba(251,191,36,0)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
 .qlfab-back{position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:59;animation:fadeIn .18s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 /* Speed-dial */
@@ -381,6 +385,7 @@ function mkQuickLogFab(){
     }
   }
   var fab=el('button',{c:'qlfab'+(S._qlOpen?' open':''),title:L('Quick log','Înregistrare rapidă')});fab.appendChild(ic('plus',26));
+  if(!S._qlOpen)attn(fab,'fab',{persist:true}); // pulse once ever, to introduce the quick-log gadget
   fab.onclick=function(){if(S._qlInput){S._qlInput=null;render();return;}S._qlOpen=!S._qlOpen;render();};
   wrap.appendChild(fab);
   return wrap;
@@ -388,6 +393,67 @@ function mkQuickLogFab(){
 // Map a stored (Romanian-canonical) level name to the active UI language.
 var _LVL_EN={'Legendă':'Legend','Elite':'Elite','Avansat':'Advanced','Intermediar':'Intermediate','Începător':'Beginner','Nou':'New'};
 function lvlLabel(ro){if(!ro)ro='Nou';return S.lang==='en'?(_LVL_EN[ro]||ro):ro;}
+// One-shot attention pulse on an element. key dedupes so it fires only once
+// (per session, or persisted forever with opts.persist) despite re-renders.
+var _attnShown={};
+function attn(elm,key,opts){
+  if(!elm)return elm;opts=opts||{};
+  if(key){
+    if(opts.persist){try{if(_ls.get('dltate:attn:'+key))return elm;_ls.set('dltate:attn:'+key,'1');}catch(e){}}
+    else{if(_attnShown[key])return elm;_attnShown[key]=1;}
+  }
+  elm.classList.add(opts.amber?'attn-amber':'attn');return elm;
+}
+// Animated count-up for a hero number (eases 0→value once per key/session).
+function countUp(elm,to,key,suffix){
+  if(!elm)return elm;suffix=suffix||'';to=+to||0;
+  if(key){if(_attnShown['cu:'+key]){elm.textContent=to+suffix;return elm;}_attnShown['cu:'+key]=1;}
+  var dur=680,t0=null;
+  function step(ts){if(t0==null)t0=ts;var p=Math.min(1,(ts-t0)/dur);elm.textContent=Math.round(to*(1-Math.pow(1-p,3)))+suffix;if(p<1)requestAnimationFrame(step);}
+  try{requestAnimationFrame(step);}catch(e){elm.textContent=to+suffix;}
+  return elm;
+}
+// ── Guided tour for new users ──────────────────────────────────────────────
+function tourSteps(){return [
+  {nav:'dash',title:L('Welcome to Dl. Siski 👋','Bun venit la Dl. Siski 👋'),body:L('A 30-second tour. This is your Dashboard — your daily snapshot: readiness, streak, your calorie & macro plan and smart tips.','Un tur de 30 de secunde. Acesta e Panoul — rezumatul tău zilnic: starea de pregătire, streak-ul, planul de calorii & macro și sfaturi.')},
+  {nav:'dash',spotlight:'.qlfab',title:L('Log from anywhere','Loghează de oriunde'),body:L('Tap the ＋ button to quickly log water, weight, a meal, a workout, sleep or measurements — without leaving the screen. You can even log for a past day.','Apasă butonul ＋ ca să loghezi rapid apă, greutate, o masă, un antrenament, somn sau măsurători — fără să schimbi ecranul. Poți loga și pentru o zi trecută.')},
+  {nav:'nutr',title:L('Nutrition','Nutriție'),body:L('Log meals by search, barcode, AI photo scan or manual entry — and get a generated meal plan that fits your calories, macros, diet and allergies.','Loghează mese prin căutare, cod de bare, scanare AI sau manual — și primești un plan de mese pe caloriile, macro-urile, dieta și alergiile tale.')},
+  {nav:'sport',title:L('Exercise','Sport'),body:L('Log any workout — even a custom sport you type yourself — and track strength progress with automatic progressive-overload suggestions.','Loghează orice antrenament — chiar și un sport pe care îl scrii tu — și urmărește progresul la forță cu sugestii automate de supraîncărcare.')},
+  {nav:'progr',title:L('Progress','Progres'),body:L('Log your weight and see an adaptive forecast: when you’ll hit your goal, your real measured metabolism, and a self-correcting calorie target.','Înregistrează-ți greutatea și vezi o predicție adaptivă: când îți atingi obiectivul, metabolismul tău real măsurat și o țintă calorică auto-corectată.')},
+  {nav:'gang',title:L('Clan','Clan'),body:L('Join a clan to chase a weekly goal together, see the live activity feed, and climb the monthly season podium.','Intră într-un Clan ca să urmăriți împreună un obiectiv săptămânal, vezi feed-ul de activitate și urcă pe podiumul lunar.')},
+  {nav:'top',title:L('Leaderboards','Clasamente'),body:L('Compare your XP globally and by clan — all-time, weekly and monthly.','Compară-ți XP-ul global și pe clanuri — din toate timpurile, săptămânal și lunar.')},
+  {nav:'ai',title:L('AI Coach','Antrenor AI'),body:L('Ask anything — it knows your data, remembers your preferences and gives a daily briefing. Connect an API key for the full model, or use the built-in coach.','Întreabă orice — îți știe datele, îți reține preferințele și îți dă un briefing zilnic. Conectează o cheie API pentru modelul complet, sau folosește antrenorul integrat.')},
+  {nav:'prof',title:L('Profile & settings','Profil & setări'),body:L('Edit your stats, switch language/theme, manage your account and privacy — and you can replay this tour anytime from here.','Editează-ți datele, schimbă limba/tema, gestionează contul și confidențialitatea — și poți relua acest tur oricând de aici.')}
+];}
+function startTour(){var st=tourSteps();S._tour=0;S._qlOpen=false;S._qlInput=null;S.nav=st[0].nav||S.nav;render();}
+function endTour(){S._tour=null;if(S.profile){S.profile.tourDone=true;try{DB.save('profile',S.profile)}catch(e){}}render();}
+function mkTourOverlay(){
+  var st=tourSteps();var i=Math.max(0,Math.min(S._tour||0,st.length-1));var step=st[i];
+  var layer=el('div',null);
+  var spot=el('div',{s:'position:fixed;border-radius:14px;pointer-events:none;z-index:210;transition:all .25s ease'});
+  if(step.spotlight){
+    spot.style.cssText+=';box-shadow:0 0 0 9999px rgba(2,6,23,.74),0 0 0 3px var(--ac);opacity:0';
+    setTimeout(function(){try{var tgt=document.querySelector(step.spotlight);if(tgt){var r=tgt.getBoundingClientRect();var pad=8;spot.style.left=(r.left-pad)+'px';spot.style.top=(r.top-pad)+'px';spot.style.width=(r.width+pad*2)+'px';spot.style.height=(r.height+pad*2)+'px';spot.style.opacity='1';}else{spot.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.74);z-index:210';}}catch(e){}},40);
+  }else{spot.style.cssText='position:fixed;inset:0;background:rgba(2,6,23,.74);z-index:210;pointer-events:none';}
+  layer.appendChild(spot);
+  var blocker=el('div',{s:'position:fixed;inset:0;z-index:211'});blocker.onclick=function(e){e.stopPropagation();};layer.appendChild(blocker);
+  var card=el('div',{s:'position:fixed;left:50%;transform:translateX(-50%);bottom:86px;width:344px;max-width:calc(100vw - 28px);background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:16px;z-index:213;box-shadow:0 18px 54px rgba(2,6,23,.65);animation:slideUp .26s'});
+  var cnt=el('div',{s:'color:var(--ac-l);font-size:10px;font-weight:700;letter-spacing:.06em;margin-bottom:5px'});cnt.textContent=(i+1)+' / '+st.length;
+  var ttl=el('div',{s:'color:var(--tx1);font-size:15px;font-weight:800;margin-bottom:6px'});ttl.textContent=step.title;
+  var bdy=el('div',{s:'color:var(--tx3);font-size:12px;line-height:1.55;margin-bottom:12px'});bdy.textContent=step.body;
+  var dots=el('div',{s:'display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap'});
+  st.forEach(function(_,k){var d=el('span',{s:'width:6px;height:6px;border-radius:50%;transition:background .2s;background:'+(k===i?'var(--ac)':'var(--bg3)')});dots.appendChild(d);});
+  var row=el('div',{s:'display:flex;align-items:center;gap:8px'});
+  var skip=el('button',{c:'btn bg',s:'font-size:11px'});skip.textContent=L('Skip','Sari peste');skip.onclick=function(){endTour();};
+  var spacer=el('div',{s:'flex:1'});row.appendChild(skip);row.appendChild(spacer);
+  if(i>0){var back=el('button',{c:'btn bg',s:'font-size:11px'});back.textContent=L('Back','Înapoi');back.onclick=function(){S._tour=i-1;S.nav=st[i-1].nav||S.nav;render();};row.appendChild(back);}
+  var next=el('button',{c:'btn bp',s:'font-size:11px'});next.textContent=i===st.length-1?L('Done','Gata'):L('Next →','Mai departe →');
+  next.onclick=function(){if(i===st.length-1){endTour();}else{S._tour=i+1;S.nav=st[i+1].nav||S.nav;render();}};
+  row.appendChild(next);
+  card.appendChild(cnt);card.appendChild(ttl);card.appendChild(bdy);card.appendChild(dots);card.appendChild(row);
+  layer.appendChild(card);
+  return layer;
+}
 function getToday(){return new Date().toISOString().split('T')[0]}
 var _ACT_N=[{id:'sedentar',label:'Sedentar',sub:'Birou, miscare minima',mult:1.2},{id:'usor',label:'Usor activ',sub:'1-3x/sapt.',mult:1.375},{id:'moderat',label:'Moderat activ',sub:'3-5x/sapt.',mult:1.55},{id:'activ',label:'Foarte activ',sub:'6-7x/sapt.',mult:1.725},{id:'extrem',label:'Extrem activ',sub:'Munca fizica + training zilnic',mult:1.9}];
 var _ACT_B=[{id:'sedentar',label:'Cartof de canapea, tati',sub:'Stat pe loc, mișcare zero',mult:1.2},{id:'usor',label:'Mai ieși din casă, boss',sub:'1-3x/săpt., cam rar',mult:1.375},{id:'moderat',label:'Mișcare normală, frate',sub:'3-5x/săpt., merge',mult:1.55},{id:'activ',label:'Dai la fier serios, cocoș',sub:'6-7x/săpt., respect',mult:1.725},{id:'extrem',label:'Bestia din sală, tati!',sub:'Training + muncă fizică zilnic',mult:1.9}];
@@ -1227,7 +1293,10 @@ function _enterApp(prof){
   S.profile=prof;S.metrics=Calc.getM(prof);S._canonName=prof.name;
   Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
     S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
-    S.view='app';try{refreshStreak()}catch(e){}syncUserToFB();cloudProfileSync();if(prof.gangCode){setupGangListener(prof.gangCode);try{migrateClanMembership()}catch(e){}}render();
+    S.view='app';try{refreshStreak()}catch(e){}syncUserToFB();cloudProfileSync();if(prof.gangCode){setupGangListener(prof.gangCode);try{migrateClanMembership()}catch(e){}}
+    // First-time users get a guided tour automatically.
+    if(prof&&!prof.tourDone&&S._tour==null){try{startTour();return;}catch(e){}}
+    render();
   }).catch(function(){S.view='app';render()});
 }
 // Resolve the logged-in account to its canonical identity, then open the app.
@@ -1340,7 +1409,8 @@ function mkStreakCard(){
   var card=el('div',{c:'card cp',s:'display:flex;align-items:center;gap:11px'});
   var flame=el('div',{s:'width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(251,146,60,.18),rgba(248,113,113,.12));color:#fb923c'});flame.appendChild(ic('flame',22));
   var mid=el('div',{s:'flex:1;min-width:0'});
-  var big=el('div',{s:'color:var(--tx1);font-size:16px;font-weight:800'});big.textContent=info.streak+' '+(info.streak===1?L('day streak','zi streak'):L('day streak','zile streak'));mid.appendChild(big);
+  var big=el('div',{s:'color:var(--tx1);font-size:16px;font-weight:800'});var bigN=el('span');countUp(bigN,info.streak,'streak:'+info.streak);big.appendChild(bigN);big.appendChild(document.createTextNode(' '+(info.streak===1?L('day streak','zi streak'):L('day streak','zile streak'))));mid.appendChild(big);
+  if(info.streak>=3)attn(card,'streakHot:'+info.streak,{amber:true});
   var subWrap=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:1px'});
   subWrap.textContent=info.streak===0?L('Log anything today to start a streak','Loghează ceva azi ca să pornești un streak'):(_activityDays()[TODAY]?L('Logged today ✓','Logat azi ✓'):L('Log something today to keep it alive','Loghează ceva azi ca să-l păstrezi'));
   mid.appendChild(subWrap);
@@ -2170,6 +2240,7 @@ function vMain(){
   wrap.appendChild(mobNav);
   // Quick-Log floating action button (logging from anywhere)
   if(S.view==='app')wrap.appendChild(mkQuickLogFab());
+  if(S.view==='app'&&S._tour!=null)wrap.appendChild(mkTourOverlay());
   return wrap
 }
 function mkSec(){var d=el('div',{c:'sec'});for(var i=0;i<arguments.length;i++)if(arguments[i])d.appendChild(arguments[i]);return d}
@@ -3164,7 +3235,7 @@ function mkForecastCard(){
         resetB.onclick=function(){delete S.profile.tdeeOverride;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);notify(B('Target reset','Țintă resetată','Gata'),B('Using the standard estimate again.','Folosim din nou estimarea standard.','Înapoi la calculul normal, boss.'),2500);render();};
         recRow.appendChild(resetB);
       }else{
-        var applyB=el('button',{c:'btn bp',s:'font-size:10px;flex-shrink:0'});applyB.textContent=B('Apply','Aplică','Bag-o');
+        var applyB=el('button',{c:'btn bp',s:'font-size:10px;flex-shrink:0'});applyB.textContent=B('Apply','Aplică','Bag-o');attn(applyB,'adaptiveApply');
         applyB.onclick=function(){S.profile.tdeeOverride=f.measuredTDEE;S._suppressCloudSync=true;DB.save('profile',S.profile);S._suppressCloudSync=false;cloudProfileSync();S.metrics=Calc.getM(S.profile);addXP(B('Adaptive target enabled','Țintă adaptivă activată','Țintă adaptivă'),15);notify(B('Adaptive target active','Țintă adaptivă activă','Făcut, boss!'),B('Calories and macros now recalculate from your real metabolism.','Caloriile și macro-urile se recalculează după metabolismul tău real.','Acum totul se calculează după cât arzi tu, nu după teorie.'),3500);render();};
         recRow.appendChild(applyB);
       }
@@ -4789,6 +4860,7 @@ function vProf(){
   var swKnob=el('span',{s:'position:absolute;top:2px;left:'+(swOn?'20px':'2px')+';width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s'});swBtn.appendChild(swKnob);
   swBtn.onclick=function(){p.shareWeight=!p.shareWeight;DB.save('profile',p);try{if(S.authUser&&!S.guest)publishXP()}catch(e){}render();};
   swRow.appendChild(swT);swRow.appendChild(swBtn);uiCard.appendChild(swRow);
+  var tourBtn=el('button',{c:'btn bg',s:'font-size:11px;margin-top:10px;width:100%'});tourBtn.appendChild(ic('route',12));tourBtn.appendChild(document.createTextNode(' '+L('Replay app tour','Reia turul aplicației')));tourBtn.onclick=function(){startTour();};uiCard.appendChild(tourBtn);
   var adminCard=null;
   if(isAdmin()){
     adminCard=el('div',{c:'card cp',s:'cursor:pointer;border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.06)'});
