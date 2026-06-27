@@ -37,15 +37,30 @@ body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Robo
 .lb{width:25px;height:25px;border-radius:7px;background:var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sb-n{flex:1;padding:5px 4px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
 .sb-grp{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx5);padding:10px 11px 3px}
-.qlfab{position:fixed;right:18px;bottom:24px;width:54px;height:54px;border-radius:50%;background:var(--ac);color:#fff;border:none;box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;transition:transform .18s cubic-bezier(.34,1.56,.64,1),background .15s}
-.qlfab:hover{transform:scale(1.06)}
-.qlfab.open{transform:rotate(135deg);background:var(--bg3)}
-.qlfab-back{position:fixed;inset:0;background:rgba(2,6,23,.45);z-index:59;animation:fadeIn .15s}
-.qlfab-sheet{position:fixed;right:18px;bottom:90px;width:300px;max-width:calc(100vw - 36px);background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:14px;z-index:61;box-shadow:0 16px 48px rgba(2,6,23,.6);animation:slideUp .2s}
+.qlfab{position:fixed;right:18px;bottom:24px;width:56px;height:56px;border-radius:50%;background:var(--ac);color:#fff;border:none;box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:62;display:flex;align-items:center;justify-content:center;transition:transform .26s cubic-bezier(.34,1.56,.64,1),background .15s;animation:fabPulse 3.6s ease-in-out infinite}
+.qlfab:hover{transform:scale(1.08)}
+.qlfab:active{transform:scale(.92)}
+.qlfab.open{transform:rotate(135deg);background:var(--bg3);animation:none}
+.qlfab.open:hover{transform:rotate(135deg) scale(1.08)}
+@keyframes fabPulse{0%,100%{box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3)}50%{box-shadow:0 8px 30px rgba(45,106,79,.6),0 0 0 7px rgba(45,106,79,.10)}}
+.qlfab-back{position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:59;animation:fadeIn .18s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.qlfab-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.qlfab-act{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 6px;border-radius:11px;border:1px solid var(--bd);background:var(--bg1);color:var(--tx2);cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;transition:background .12s,border-color .12s}
-.qlfab-act:hover{background:var(--bg3);border-color:var(--bg3)}
+/* Speed-dial */
+.qld-wrap{position:fixed;right:21px;bottom:92px;z-index:61;display:flex;flex-direction:column-reverse;gap:12px;align-items:flex-end}
+.qld-item{display:flex;align-items:center;gap:10px;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;opacity:0;transform:translateY(16px) scale(.7);animation:dialPop .44s cubic-bezier(.34,1.56,.64,1) forwards}
+.qld-item .lbl{background:var(--bg2);border:1px solid var(--bd);color:var(--tx1);font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;box-shadow:0 4px 14px rgba(0,0,0,.32);white-space:nowrap}
+.qld-item .dot{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.38);flex-shrink:0;transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.qld-item:hover .dot{transform:scale(1.14)}
+.qld-item:active .dot{transform:scale(.88)}
+@keyframes dialPop{to{opacity:1;transform:translateY(0) scale(1)}}
+.qld-pop{position:fixed;right:21px;bottom:92px;z-index:62;width:252px;max-width:calc(100vw - 42px);background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:13px;box-shadow:0 16px 48px rgba(2,6,23,.62);animation:popIn .28s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{opacity:0;transform:translateY(18px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Button micro-interactions + ripple */
+.btn:active,.tb:active,.qbtn:active,.wqb:active,.ob2:active,.chip:active{transform:scale(.95)}
+.btn,.tb,.qbtn,.wqb{transition:transform .14s cubic-bezier(.34,1.56,.64,1),background .14s,border-color .14s,box-shadow .14s}
+.btn.bp:hover,.btn.bw:hover{box-shadow:0 4px 16px var(--ac-glow)}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.32);transform:scale(0);animation:rip .6s ease-out;pointer-events:none;z-index:5}
+@keyframes rip{to{transform:scale(2.3);opacity:0}}
 .ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;border:none;background:none;color:var(--tx3);font-size:13px;font-weight:500;width:100%;text-align:left;font-family:inherit;transition:background .13s,color .13s;position:relative}
 .ni:hover{background:var(--bg2);color:var(--tx3)}
 .ni.act{background:var(--ac-glow);color:var(--ac-l)}
@@ -308,40 +323,65 @@ function mkLogDateRow(){
   if(backdated){var note=el('div',{s:'color:#fbbf24;font-size:9.5px;margin-top:4px;padding-left:2px'});note.textContent=L('Logging for '+relDate(ld)+' — entries go to that day in your history.','Înregistrezi pentru '+relDate(ld)+' — intrările merg în acea zi din istoric.');wrap.appendChild(note);}
   return wrap;
 }
-// Floating Quick-Log button + sheet: log water/weight instantly or jump to any
-// logger from anywhere in the app. Logging made one tap away.
+// Animated speed-dial Quick-Log: tap ＋ and action chips spring out. Water and
+// Weight pop a little input bubble (custom number + quick chips); the rest jump
+// straight to the full logger. Logging made one tap away, from anywhere.
+function _qlLogWater(ml){if(!ml||ml<=0)return;S.waterLog.push({id:String(Date.now())+Math.random().toString(36).slice(2,5),date:logDate(),amt:ml});DB.save('waterLog',S.waterLog);try{refreshStreak()}catch(e){}notify(L('Water logged','Apă logată'),'+'+ml+'ml',1600,null,'done');}
+function _qlInputPopover(kind){
+  var pop=el('div',{c:'qld-pop'});
+  var hd=el('div',{s:'display:flex;align-items:center;gap:7px;margin-bottom:9px'});
+  var bk=el('button',{s:'background:none;border:none;cursor:pointer;color:var(--tx4);display:inline-flex;padding:0'});bk.appendChild(ic('chevron-left',16));bk.onclick=function(){S._qlInput=null;render();};
+  var ci=el('span',{s:'color:'+(kind==='water'?'#38bdf8':'#a78bfa')+';display:inline-flex'});ci.appendChild(ic(kind==='water'?'droplet':'scale',15));
+  var ht=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:700;flex:1'});ht.textContent=kind==='water'?L('Add water','Adaugă apă'):L('Log weight','Înregistrează greutatea');
+  hd.appendChild(bk);hd.appendChild(ci);hd.appendChild(ht);pop.appendChild(hd);
+  pop.appendChild(mkLogDateRow());
+  if(kind==='water'){
+    var chips=el('div',{s:'display:flex;gap:6px;margin-bottom:9px'});
+    [250,500,750].forEach(function(ml){var b=el('button',{c:'btn bg',s:'flex:1;font-size:11px;padding:8px 4px'});b.textContent='+'+ml;b.onclick=function(){_qlLogWater(ml);render();};chips.appendChild(b);});
+    pop.appendChild(chips);
+    var row=el('div',{s:'display:flex;gap:6px'});
+    var inp=el('input',{c:'inp',type:'number',s:'flex:1;font-size:13px',ph:L('custom ml','ml personalizat'),val:S._qlWater||''});inp.oninput=function(){S._qlWater=this.value};
+    var add=el('button',{c:'btn bp',s:'font-size:12px;flex-shrink:0'});add.textContent=L('Add','Adaugă');
+    add.onclick=function(){var v=+S._qlWater;if(!v)return;_qlLogWater(v);S._qlWater='';render();};
+    row.appendChild(inp);row.appendChild(add);pop.appendChild(row);
+    var todayTot=(S.waterLog||[]).filter(function(e){return e.date===logDate()}).reduce(function(a,e){return a+(e.amt||0)},0);
+    var tot=el('div',{s:'color:var(--tx4);font-size:10px;margin-top:7px;text-align:center'});tot.textContent=(todayTot/1000).toFixed(2)+'L '+L('logged','logat');pop.appendChild(tot);
+  }else{
+    var row2=el('div',{s:'display:flex;gap:6px'});
+    var gIn=el('input',{c:'inp',type:'number',s:'flex:1;font-size:13px',ph:S.profile.weight?String(S.profile.weight)+' kg':'kg',val:S._qlWeight||''});gIn.oninput=function(){S._qlWeight=this.value};
+    var gBtn=el('button',{c:'btn bp',s:'font-size:12px;flex-shrink:0'});gBtn.textContent=L('Save','Salvează');
+    gBtn.onclick=function(){var v=+S._qlWeight;if(!v)return;var _ld=logDate();S.progress=S.progress.filter(function(x){return x.date!==_ld});S.progress.push({id:String(Date.now()),date:_ld,weight:v,bf:null});S.progress.sort(function(a,b){return a.date.localeCompare(b.date)});DB.save('progress',S.progress);if(_ld>=(S.progress.length?S.progress[S.progress.length-1].date:_ld)){S.profile.weight=v;DB.save('profile',S.profile);S.metrics=Calc.getM(S.profile);}addXP('Progres logat',10);S._qlWeight='';try{pushClanEvent('weight')}catch(e){}try{refreshStreak()}catch(e){}notify(L('Weight logged','Greutate logată'),v+' kg',1700,null,'done');S._qlOpen=false;S._qlInput=null;render();};
+    row2.appendChild(gIn);row2.appendChild(gBtn);pop.appendChild(row2);
+  }
+  return pop;
+}
 function mkQuickLogFab(){
   if(!S.profile)return el('div',{s:'display:none'});
   var wrap=el('div',null);
   if(S._qlOpen){
-    var back=el('div',{c:'qlfab-back'});back.onclick=function(){S._qlOpen=false;render()};wrap.appendChild(back);
-    var sheet=el('div',{c:'qlfab-sheet'});
-    var hd=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:9px'});var hi=el('span',{s:'color:var(--ac-l);display:inline-flex'});hi.appendChild(ic('bolt',14));hd.appendChild(hi);var ht=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:700'});ht.textContent=L('Quick log','Înregistrare rapidă');hd.appendChild(ht);sheet.appendChild(hd);
-    sheet.appendChild(mkLogDateRow());
-    // Instant water
-    var wLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px'});wLbl.textContent=L('Water','Apă');sheet.appendChild(wLbl);
-    var wRow=el('div',{s:'display:flex;gap:6px;margin-bottom:11px'});
-    [250,500,750].forEach(function(ml){var b=el('button',{c:'qlfab-act',s:'flex:1;flex-direction:row;gap:3px;padding:9px 4px'});b.appendChild(ic('droplet',13));b.appendChild(document.createTextNode('+'+ml));b.onclick=function(){S.waterLog.push({id:String(Date.now()),date:logDate(),amt:ml});DB.save('waterLog',S.waterLog);try{refreshStreak()}catch(e){}notify(L('Water logged','Apă logată'),'+'+ml+'ml',1800,null,'done');render();};wRow.appendChild(b);});
-    sheet.appendChild(wRow);
-    // Instant weight
-    var gLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px'});gLbl.textContent=L('Weight','Greutate');sheet.appendChild(gLbl);
-    var gRow=el('div',{s:'display:flex;gap:6px;margin-bottom:11px'});
-    var gIn=el('input',{c:'inp',type:'number',s:'flex:1;font-size:13px',ph:S.profile.weight?String(S.profile.weight):'kg',val:S._qlWeight||''});gIn.oninput=function(){S._qlWeight=this.value};
-    var gBtn=el('button',{c:'btn bp',s:'font-size:12px;flex-shrink:0',disabled:!S._qlWeight});gBtn.textContent=L('Save','Salvează');
-    gBtn.onclick=function(){var v=+S._qlWeight;if(!v)return;var _ld=logDate();S.progress=S.progress.filter(function(x){return x.date!==_ld});S.progress.push({id:String(Date.now()),date:_ld,weight:v,bf:null});S.progress.sort(function(a,b){return a.date.localeCompare(b.date)});DB.save('progress',S.progress);if(_ld>=(S.progress.length?S.progress[S.progress.length-1].date:_ld)){S.profile.weight=v;DB.save('profile',S.profile);S.metrics=Calc.getM(S.profile);}addXP('Progres logat',10);S._qlWeight='';try{pushClanEvent('weight')}catch(e){}try{refreshStreak()}catch(e){}notify(L('Weight logged','Greutate logată'),v+' kg',1800,null,'done');render();};
-    gRow.appendChild(gIn);gRow.appendChild(gBtn);sheet.appendChild(gRow);
-    // Shortcuts to full loggers
-    var sLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px'});sLbl.textContent=L('Open a logger','Deschide un jurnal');sheet.appendChild(sLbl);
-    var grid=el('div',{c:'qlfab-grid'});
-    [['nutr','apple',L('Meal','Masă'),function(){S.nav='nutr';S.ntab='j';}],['sport','barbell',L('Workout','Antren.'),function(){S.nav='sport';S.strTab='gen';}],['stat','moon',L('Sleep','Somn'),function(){S.nav='stat';S.wellTab='s';}],['progr','ruler',L('Measure','Măsuri'),function(){S.nav='progr';S.ptab='ms';}]].forEach(function(it){
-      var b=el('button',{c:'qlfab-act'});b.appendChild(ic(it[1],18));var t=el('span');t.textContent=it[2];b.appendChild(t);
-      b.onclick=function(){it[3]();S._qlOpen=false;render();};grid.appendChild(b);
-    });
-    sheet.appendChild(grid);
-    wrap.appendChild(sheet);
+    var back=el('div',{c:'qlfab-back'});back.onclick=function(){S._qlOpen=false;S._qlInput=null;render()};wrap.appendChild(back);
+    if(S._qlInput){wrap.appendChild(_qlInputPopover(S._qlInput));}
+    else{
+      var dial=el('div',{c:'qld-wrap'});
+      var items=[
+        ['droplet','#38bdf8',L('Water','Apă'),function(){S._qlInput='water';render();}],
+        ['scale','#a78bfa',L('Weight','Greutate'),function(){S._qlInput='weight';render();}],
+        ['apple','#34d399',L('Meal','Masă'),function(){S.nav='nutr';S.ntab='j';S._qlOpen=false;render();}],
+        ['barbell','#fb923c',L('Workout','Antren.'),function(){S.nav='sport';S.strTab='gen';S._qlOpen=false;render();}],
+        ['moon','#818cf8',L('Sleep','Somn'),function(){S.nav='stat';S.wellTab='s';S._qlOpen=false;render();}],
+        ['ruler','#f472b6',L('Measure','Măsuri'),function(){S.nav='progr';S.ptab='ms';S._qlOpen=false;render();}]
+      ];
+      items.forEach(function(it,i){
+        var b=el('button',{c:'qld-item',s:'animation-delay:'+(i*0.045).toFixed(3)+'s'});
+        var lbl=el('span',{c:'lbl'});lbl.textContent=it[2];
+        var dot=el('span',{c:'dot',s:'background:linear-gradient(135deg,'+it[1]+','+it[1]+'bb)'});dot.appendChild(ic(it[0],19));
+        b.appendChild(lbl);b.appendChild(dot);b.onclick=it[3];dial.appendChild(b);
+      });
+      wrap.appendChild(dial);
+    }
   }
-  var fab=el('button',{c:'qlfab'+(S._qlOpen?' open':''),s:'',title:L('Quick log','Înregistrare rapidă')});fab.appendChild(ic('plus',26));
-  fab.onclick=function(){S._qlOpen=!S._qlOpen;render()};
+  var fab=el('button',{c:'qlfab'+(S._qlOpen?' open':''),title:L('Quick log','Înregistrare rapidă')});fab.appendChild(ic('plus',26));
+  fab.onclick=function(){if(S._qlInput){S._qlInput=null;render();return;}S._qlOpen=!S._qlOpen;render();};
   wrap.appendChild(fab);
   return wrap;
 }
@@ -935,6 +975,22 @@ function authDelete(cb){
 DB.load('uiLang').then(function(v){if(v){S.lang=v;try{render()}catch(e){}}});
 DB.load('adminPatch').then(function(v){if(v&&typeof v==='object')S._adminPatch=v;});
 try{firstLaunchDate();}catch(e){} // stamp first-launch date once
+// Global tactile ripple on primary buttons (pure visual, no layout impact).
+document.addEventListener('pointerdown',function(e){
+  try{
+    var b=e.target&&e.target.closest&&e.target.closest('.btn,.tb,.qbtn,.wqb,.qld-item,.ob2,.wq,.qlfab-act');
+    if(!b||b.disabled)return;
+    var rect=b.getBoundingClientRect();if(!rect.width)return;
+    var size=Math.max(rect.width,rect.height);
+    var r=document.createElement('span');r.className='ripple';
+    r.style.width=r.style.height=size+'px';
+    r.style.left=((e.clientX||rect.left+rect.width/2)-rect.left-size/2)+'px';
+    r.style.top=((e.clientY||rect.top+rect.height/2)-rect.top-size/2)+'px';
+    if(getComputedStyle(b).position==='static')b.style.position='relative';
+    b.style.overflow='hidden';
+    b.appendChild(r);setTimeout(function(){try{r.remove()}catch(_){}} ,600);
+  }catch(_){}
+},true);
 DB.load('uiMode').then(function(v){if(v){S.mode=v;try{render()}catch(e){}}});
 DB.load('uiTheme').then(function(v){if(v){S.theme=v;document.documentElement.setAttribute('data-theme',v);try{render()}catch(e){}}});
 DB.load('anthropicKey').then(function(k){if(k){S.anthropicKey=k}});
@@ -3253,6 +3309,17 @@ function vSport(){
         spList.appendChild(si);
       });
     });
+    // Allow a fully custom sport when the typed name isn't in the list.
+    var _typed=(S._spQ||'').trim();
+    if(_typed){
+      var _exists=SPORTS_CATS.some(function(cat){return cat.sports.some(function(sp){return sp.toLowerCase()===_typed.toLowerCase()})});
+      if(!_exists){
+        var addRow=el('div',{s:'padding:9px 12px;cursor:pointer;font-size:12px;color:var(--ac-l);display:flex;align-items:center;gap:6px;border-top:1px solid var(--bg1);font-weight:600'});
+        addRow.appendChild(ic('plus',13));addRow.appendChild(document.createTextNode(L('Add: ','Adaugă: ')+'"'+_typed+'"'));
+        addRow.onclick=function(){S.sportType=_typed;S._spDropOpen=false;S._spQ='';render()};
+        spList.appendChild(addRow);
+      }
+    }
     spDrop.appendChild(spList);
     sg.appendChild(spDrop);
     document.addEventListener('click',function _sdClose(){S._spDropOpen=false;render();document.removeEventListener('click',_sdClose)},{once:true});
