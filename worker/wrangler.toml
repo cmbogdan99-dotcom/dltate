@@ -2,13 +2,17 @@ name = "dl-siski-ai"
 main = "anthropic-proxy.js"
 compatibility_date = "2024-11-01"
 
-# Optional cost-control vars (uncomment / adjust as needed):
+# Free built-in Cloudflare AI (Llama). No key, no card. Used by default.
+[ai]
+binding = "AI"
+
+# Optional cost-control / quality vars (set in the dashboard or here):
 # [vars]
 # ALLOWED_ORIGIN = "https://your-app-domain"
 # MAX_TOKENS = "1024"
-# DAILY_CAP = "2000"
+# DAILY_CAP = "2000"      # needs the KV namespace below
 
-# For the optional KV-backed daily cap, create a namespace and bind it as RL:
+# Optional: for the daily cap, create a KV namespace and bind it as RL:
 # [[kv_namespaces]]
 # binding = "RL"
 # id = "<your-kv-namespace-id>"
