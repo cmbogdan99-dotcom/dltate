@@ -53,9 +53,9 @@ body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Robo
 .qld-wrap{position:fixed;right:21px;bottom:92px;z-index:61;display:flex;flex-direction:column-reverse;gap:12px;align-items:flex-end}
 .qld-item{display:flex;align-items:center;gap:10px;background:transparent;border:none;cursor:pointer;font-family:inherit;padding:0;opacity:0;transform:translateY(16px) scale(.7);animation:dialPop .44s cubic-bezier(.34,1.56,.64,1) forwards}
 .qld-item .lbl{background:var(--bg2);border:1px solid var(--bd);color:var(--tx1);font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;box-shadow:0 4px 14px rgba(0,0,0,.32);white-space:nowrap}
-.qld-item .dot{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.38);flex-shrink:0;transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
-.qld-item:hover .dot{transform:scale(1.14)}
-.qld-item:active .dot{transform:scale(.88)}
+.qld-item .qld-dot{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.38);flex-shrink:0;animation:none;transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.qld-item:hover .qld-dot{transform:scale(1.14)}
+.qld-item:active .qld-dot{transform:scale(.88)}
 @keyframes dialPop{to{opacity:1;transform:translateY(0) scale(1)}}
 .qld-pop{position:fixed;right:21px;bottom:92px;z-index:62;width:252px;max-width:calc(100vw - 42px);background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:13px;box-shadow:0 16px 48px rgba(2,6,23,.62);animation:popIn .28s cubic-bezier(.34,1.56,.64,1)}
 @keyframes popIn{from{opacity:0;transform:translateY(18px) scale(.82)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -378,7 +378,7 @@ function mkQuickLogFab(){
       items.forEach(function(it,i){
         var b=el('button',{c:'qld-item',s:'animation-delay:'+(i*0.045).toFixed(3)+'s'});
         var lbl=el('span',{c:'lbl'});lbl.textContent=it[2];
-        var dot=el('span',{c:'dot',s:'background:linear-gradient(135deg,'+it[1]+','+it[1]+'bb)'});dot.appendChild(ic(it[0],19));
+        var dot=el('span',{c:'qld-dot',s:'background:linear-gradient(135deg,'+it[1]+','+it[1]+'bb)'});dot.appendChild(ic(it[0],19));
         b.appendChild(lbl);b.appendChild(dot);b.onclick=it[3];dial.appendChild(b);
       });
       wrap.appendChild(dial);
