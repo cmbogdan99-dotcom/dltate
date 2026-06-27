@@ -255,6 +255,24 @@ function accountSinceDate(){
 }
 // Format a YYYY-MM-DD date as e.g. "May 2026" / "mai 2026".
 function fmtMonthYear(s){if(!s)return'';try{var d=new Date(s+'T00:00:00');return d.toLocaleDateString(S.lang==='en'?'en-US':'ro-RO',{month:'short',year:'numeric'});}catch(e){return s;}}
+// Localized relative date: "today" / "yesterday" / "3 days ago" / "2 weeks ago"
+// / "3 months ago" / "2 years ago". Falls back to month-year for old dates.
+function relDate(s){
+  if(!s)return'';
+  var en=S.lang==='en';
+  try{
+    var d=new Date(s+'T00:00:00'),now=new Date(TODAY+'T00:00:00');
+    var days=Math.round((now-d)/86400000);
+    if(days<=0)return en?'today':'azi';
+    if(days===1)return en?'yesterday':'ieri';
+    if(days<7)return en?(days+' days ago'):('acum '+days+' zile');
+    if(days<14)return en?'1 week ago':'acum o săptămână';
+    if(days<31){var w=Math.round(days/7);return en?(w+' weeks ago'):('acum '+w+' săptămâni');}
+    if(days<61)return en?'1 month ago':'acum o lună';
+    if(days<365){var mo=Math.round(days/30);return en?(mo+' months ago'):('acum '+mo+' luni');}
+    var y=Math.floor(days/365);return en?(y+(y===1?' year ago':' years ago')):('acum '+y+(y===1?' an':' ani'));
+  }catch(e){return fmtMonthYear(s);}
+}
 // Map a stored (Romanian-canonical) level name to the active UI language.
 var _LVL_EN={'Legendă':'Legend','Elite':'Elite','Avansat':'Advanced','Intermediar':'Intermediate','Începător':'Beginner','Nou':'New'};
 function lvlLabel(ro){if(!ro)ro='Nou';return S.lang==='en'?(_LVL_EN[ro]||ro):ro;}
@@ -978,13 +996,40 @@ function getPeriodXP(){
   S.xpPeriods=pp;DB.save('xpPeriods',pp);
   return{total:total,week:Math.max(0,total-pp.week.base),month:Math.max(0,total-pp.month.base),wk:wk,mk:mk};
 }
+// Workouts logged in the last 7 days (for the clan weekly challenge).
+function _wkWorkouts(){var d=new Date();d.setDate(d.getDate()-7);var c=d.toISOString().split('T')[0];return (S.workouts||[]).filter(function(w){return w.date>=c}).length;}
 function publishXP(){
   if(!S.profile||S.guest||!S.authUser)return;
   var pe=getPeriodXP(),lvl=getLvl();
   // Key by username (not UID) so one account = one leaderboard entry regardless of device/session
   var fbKey='users/'+_userKey();
-  RTDB.ref(fbKey).update({name:S._canonName||S.profile.name,username:S.authUser,code:PCODE,uid:UID,xp:pe.total,xpWeek:pe.week,xpMonth:pe.month,weekKey:pe.wk,monthKey:pe.mk,level:lvl.n,lastSeen:TODAY}).catch(function(){});
-  if(S.profile.gangCode)RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+S.authUser+'/xp').set(pe.total).catch(function(){});
+  RTDB.ref(fbKey).update({name:S._canonName||S.profile.name,username:S.authUser,code:PCODE,uid:UID,xp:pe.total,xpWeek:pe.week,xpMonth:pe.month,weekKey:pe.wk,monthKey:pe.mk,level:lvl.n,lastSeen:TODAY,createdAt:accountSinceDate()}).catch(function(){});
+  // Auto-sync full clan member stats on every XP change (no manual button).
+  // Only mutable stats are touched — role/joined/since are preserved.
+  if(S.profile.gangCode){
+    var mu={name:S._canonName||S.profile.name,nick:S.profile.gangNick||S.profile.name,username:S.authUser,xp:pe.total,level:lvl.n,emoji:lvl.e,workouts:(S.workouts||[]).length,wkWorkouts:_wkWorkouts(),updated:TODAY,lastActive:TODAY,weight:S.profile.shareWeight?S.profile.weight:null,since:accountSinceDate()};
+    RTDB.ref('sh/gang/'+S.profile.gangCode+'/'+S.authUser).update(mu).catch(function(){});
+  }
+}
+// Root-cause duplicate fix: when an account is signed in, fold any stale
+// device-UID-keyed clan record into the username key and delete the UID one,
+// so one account is always a single clan entry.
+function migrateClanMembership(){
+  if(!S.authUser||S.guest||!S.profile||!S.profile.gangCode||S.authUser===UID)return;
+  var code=S.profile.gangCode;
+  RTDB.ref('sh/gang/'+code+'/'+UID).get().then(function(s){
+    if(!s.exists())return;var old=s.val()||{};
+    RTDB.ref('sh/gang/'+code+'/'+S.authUser).get().then(function(s2){
+      var cur=s2.val()||{};var merged=Object.assign({},old,cur);
+      merged.xp=Math.max(old.xp||0,cur.xp||0);
+      if(old.role==='owner'||cur.role==='owner')merged.role='owner';
+      if(old.joined&&(!cur.joined||old.joined<cur.joined))merged.joined=old.joined;
+      merged.username=S.authUser;
+      RTDB.ref('sh/gang/'+code+'/'+S.authUser).set(merged).then(function(){RTDB.ref('sh/gang/'+code+'/'+UID).remove().catch(function(){});}).catch(function(){});
+      // also fix clan meta ownerUid if it pointed at the old UID key
+      RTDB.ref('sh/gang/'+code+'/meta/ownerUid').get().then(function(s3){if(s3.val()===UID)RTDB.ref('sh/gang/'+code+'/meta/ownerUid').set(S.authUser).catch(function(){});}).catch(function(){});
+    }).catch(function(){});
+  }).catch(function(){});
 }
 // ── Canonical account identity ────────────────────────────────────────────
 // One username == one permanent profile (name). The cloud copy at
@@ -1013,7 +1058,7 @@ function _enterApp(prof){
   S.profile=prof;S.metrics=Calc.getM(prof);S._canonName=prof.name;
   Promise.all(['progress','food','workouts','waterLog','sleepLog','measurements','photos','doneChals','chat','friends','notifs','xpLog'].map(function(k){return DB.load(k)})).then(function(r){
     S.progress=r[0]||[];S.food=r[1]||[];S.workouts=r[2]||[];S.waterLog=r[3]||[];S.sleepLog=r[4]||[];S.measurements=r[5]||[];S.photos=r[6]||[];S.doneChals=r[7]||[];S.chat=r[8]||[];S.friends=r[9]||[];S.notifs=r[10]||[];S.xpLog=r[11]||[];
-    S.view='app';syncUserToFB();cloudProfileSync();if(prof.gangCode)setupGangListener(prof.gangCode);render();
+    S.view='app';syncUserToFB();cloudProfileSync();if(prof.gangCode){setupGangListener(prof.gangCode);try{migrateClanMembership()}catch(e){}}render();
   }).catch(function(){S.view='app';render()});
 }
 // Resolve the logged-in account to its canonical identity, then open the app.
@@ -3675,10 +3720,9 @@ function vGang(){
   if(isOwner){var owBadge=el('span',{c:'badge badge-owner'});owBadge.appendChild(ic('crown',9));owBadge.appendChild(document.createTextNode(' Fondator'));clanNameRow.appendChild(owBadge);}
   else if(isAdmin){var admBadge=el('span',{c:'badge badge-admin'});admBadge.appendChild(ic('shield',9));admBadge.appendChild(document.createTextNode(' Admin'));clanNameRow.appendChild(admBadge);}
   myHL.appendChild(clanNameRow);var myNickTxt=el('div',{s:'color:var(--tx4);font-size:11px;margin-top:3px'});myNickTxt.textContent='Porecla: '+p.gangNick+' · Cod: '+p.gangCode;myHL.appendChild(myNickTxt);
+  // Clan stats auto-sync on every XP/workout change (publishXP) — no manual button.
+  try{if(S.authUser&&!S.guest)publishXP();}catch(e){}
   var myHR=el('div',{s:'display:flex;gap:5px;flex-shrink:0'});
-  var syncB=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});syncB.appendChild(ic('refresh',10));syncB.appendChild(document.createTextNode(' '+L('Update','Actualizează')));
-  syncB.onclick=function(){var _ck=S.authUser||UID;var md2={nick:p.gangNick,name:p.name,username:S.authUser||'',xp:xp,level:lvl.n,emoji:lvl.e,workouts:S.workouts.length,weight:p.weight,goal:(GOALS.filter(function(g){return g.id===p.goal})[0]||{label:p.goal}).label,updated:TODAY,role:myRole,joined:myMember?myMember.joined:TODAY,since:(myMember&&myMember.since)||accountSinceDate()};RTDB.ref('sh/gang/'+p.gangCode+'/'+_ck).set(md2).catch(function(){});if(S.authUser&&_ck!==UID)RTDB.ref('sh/gang/'+p.gangCode+'/'+UID).remove().catch(function(){});notify(L('Updated','Actualizat'),L('Your clan stats were refreshed.','Statisticile au fost actualizate in Clan.'),2500);};
-  myHR.appendChild(syncB);
   if(isOwner){
     var renBtn=el('button',{c:'btn bg',s:'font-size:10px;padding:4px 8px'});renBtn.appendChild(ic('edit',10));renBtn.onclick=function(){var nn=prompt('Nume nou Clan:',clanName);if(!nn||!nn.trim())return;RTDB.ref('sh/gang/'+p.gangCode+'/meta/name').set(nn.trim()).then(function(){notify('Redenumit','Clanul se numeste acum "'+nn.trim()+'".',3000)}).catch(function(){});};myHR.appendChild(renBtn);
     var curPublic=meta.isPublic!==false;
@@ -3703,8 +3747,21 @@ function vGang(){
   var lbHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between'});
   var lbTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});lbTitle.textContent=bom('Clasament Clan','Cine trage mai tare?');var lbCount=el('div',{s:'color:var(--tx5);font-size:11px'});lbCount.textContent=members.length+(members.length===1?L(' member',' membru'):L(' members',' membri'));lbHdr.appendChild(lbTitle);lbHdr.appendChild(lbCount);lbCard.appendChild(lbHdr);
   var sorted=members.slice().sort(function(a,b){return(b.xp||0)-(a.xp||0)});
-  if(sorted.length){sorted.forEach(function(m3,i){var isMe=m3._uid===(S.authUser||UID)||(S.authUser&&m3.username===S.authUser);var mRole=m3.role||'member';var mIsOwn=mRole==='owner'||(meta.ownerUid&&m3._uid===meta.ownerUid);var mIsAdm=mRole==='admin';var r=el('div',{c:'gmember',s:isMe?'background:var(--ac-glow)':''});var rRk=el('div',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:12px;width:24px;flex-shrink:0;text-align:center'});rRk.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);var rAv=el('div',{s:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg3);overflow:hidden'});if(isMe){avatarSelfInto(rAv);}else{rAv.textContent=S.mode==='bom'?(m3.emoji||'👤'):initialOf(m3.nick||m3.name);}var rI=el('div',{s:'flex:1;min-width:0'});var rNRow=el('div',{s:'display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:1px'});var rN2=el('div',{s:'color:'+(isMe?'var(--ac-l)':'var(--tx1)')+';font-size:12px;font-weight:'+(isMe?'700':'500')});rN2.textContent=(m3.nick||m3.name)+(isMe?L(' (you)',' (tu)'):'');rNRow.appendChild(rN2);if(mIsOwn){var ob2=el('span',{c:'badge badge-owner'});ob2.appendChild(ic('crown',9));ob2.title='Fondator';rNRow.appendChild(ob2);}else if(mIsAdm){var ab2=el('span',{c:'badge badge-admin'});ab2.appendChild(ic('shield',9));ab2.title='Admin';rNRow.appendChild(ab2);}rI.appendChild(rNRow);var rSub=el('div',{s:'color:var(--tx5);font-size:10px'});var _since=m3.since||m3.joined;rSub.textContent=lvlLabel(m3.level||'Nou')+(m3.workouts?' · '+m3.workouts+L(' workouts',' antren.'):'')+(_since?' · '+L('since ','din ')+fmtMonthYear(_since):'');rI.appendChild(rSub);var rXP=el('div',{s:'text-align:right;flex-shrink:0'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:13px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';var rW3=el('div',{s:'color:var(--tx5);font-size:10px'});rW3.textContent=m3.weight?fmt(m3.weight,1)+'kg':'';rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rAv);r.appendChild(rI);r.appendChild(rXP);if(!isMe&&isAdmin&&!mIsOwn){var actDiv=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-left:6px'});if(isOwner){var promBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px'});promBtn.textContent=mIsAdm?'→Mbru':'→Admin';promBtn.onclick=(function(uid,wasA){return function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+uid+'/role').set(wasA?'member':'admin').then(function(){notify('OK','Rolul a fost schimbat.',2000)}).catch(function(){});};})(m3._uid,mIsAdm);actDiv.appendChild(promBtn);}if(isOwner||(!mIsAdm&&isAdmin)){var kickBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px;color:var(--er);border-color:rgba(248,113,113,.3)'});kickBtn.textContent='Kick';kickBtn.onclick=(function(uid,nm){return function(){if(!confirm('Elimini pe '+nm+'?'))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+uid).remove().then(function(){notify('Eliminat',nm+' a fost scos.',2000)}).catch(function(){});};})(m3._uid,m3.nick||m3.name);actDiv.appendChild(kickBtn);}if(actDiv.children.length)r.appendChild(actDiv);}lbCard.appendChild(r);});var topXP=sorted[0]?sorted[0].xp||0:1;var myXPInClan=myMember?myMember.xp||0:xp;if(topXP>0&&!isOwner&&myXPInClan<topXP){var gap=topXP-myXPInClan;var gapDiv=el('div',{s:'padding:8px 13px;border-top:1px solid var(--bg1)'});var gapTxt=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});gapTxt.textContent=bom('Distanta fata de lider: '+gap+' XP','Boss-ul e cu '+gap+' XP mai sus!');var gapBar=el('div',{s:'height:4px;background:var(--bg3);border-radius:99px;overflow:hidden'});var gapFill=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+Math.round(myXPInClan/topXP*100)+'%'});gapBar.appendChild(gapFill);gapDiv.appendChild(gapTxt);gapDiv.appendChild(gapBar);lbCard.appendChild(gapDiv);}}else{var em3=el('div',{s:'text-align:center;padding:28px;color:var(--tx5);font-size:11px'});em3.appendChild(ic('users',32));var em3t=el('div',{s:'margin-top:8px'});em3t.textContent=bom('Esti singurul. Trimite codul: ','Esti singur, boss! Codul: ')+p.gangCode;em3.appendChild(em3t);lbCard.appendChild(em3);}
-  return mkSec(h1,myCard,lbCard)
+  if(sorted.length){sorted.forEach(function(m3,i){var isMe=m3._uid===(S.authUser||UID)||(S.authUser&&m3.username===S.authUser);var mRole=m3.role||'member';var mIsOwn=mRole==='owner'||(meta.ownerUid&&m3._uid===meta.ownerUid);var mIsAdm=mRole==='admin';var r=el('div',{c:'gmember',s:isMe?'background:var(--ac-glow)':''});var rRk=el('div',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:12px;width:24px;flex-shrink:0;text-align:center'});rRk.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);var rAv=el('div',{s:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg3);overflow:hidden'});if(isMe){avatarSelfInto(rAv);}else{rAv.textContent=S.mode==='bom'?(m3.emoji||'👤'):initialOf(m3.nick||m3.name);}var rI=el('div',{s:'flex:1;min-width:0'});var rNRow=el('div',{s:'display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:1px'});var rN2=el('div',{s:'color:'+(isMe?'var(--ac-l)':'var(--tx1)')+';font-size:12px;font-weight:'+(isMe?'700':'500')});rN2.textContent=(m3.nick||m3.name)+(isMe?L(' (you)',' (tu)'):'');rNRow.appendChild(rN2);if(mIsOwn){var ob2=el('span',{c:'badge badge-owner'});ob2.appendChild(ic('crown',9));ob2.title='Fondator';rNRow.appendChild(ob2);}else if(mIsAdm){var ab2=el('span',{c:'badge badge-admin'});ab2.appendChild(ic('shield',9));ab2.title='Admin';rNRow.appendChild(ab2);}rI.appendChild(rNRow);var rSub=el('div',{s:'color:var(--tx5);font-size:10px'});var _since=m3.since||m3.joined;rSub.textContent=lvlLabel(m3.level||'Nou')+(m3.workouts?' · '+m3.workouts+L(' workouts',' antren.'):'')+(_since?' · '+L('joined ','intrat ')+relDate(_since):'');rI.appendChild(rSub);var rXP=el('div',{s:'text-align:right;flex-shrink:0'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:13px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';var rW3=el('div',{s:'color:var(--tx5);font-size:10px'});rW3.textContent=m3.weight?fmt(m3.weight,1)+'kg':'';rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rAv);r.appendChild(rI);r.appendChild(rXP);if(!isMe&&isAdmin&&!mIsOwn){var actDiv=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-left:6px'});if(isOwner){var promBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px'});promBtn.textContent=mIsAdm?'→Mbru':'→Admin';promBtn.onclick=(function(uid,wasA){return function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+uid+'/role').set(wasA?'member':'admin').then(function(){notify('OK','Rolul a fost schimbat.',2000)}).catch(function(){});};})(m3._uid,mIsAdm);actDiv.appendChild(promBtn);}if(isOwner||(!mIsAdm&&isAdmin)){var kickBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px;color:var(--er);border-color:rgba(248,113,113,.3)'});kickBtn.textContent='Kick';kickBtn.onclick=(function(uid,nm){return function(){if(!confirm('Elimini pe '+nm+'?'))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+uid).remove().then(function(){notify('Eliminat',nm+' a fost scos.',2000)}).catch(function(){});};})(m3._uid,m3.nick||m3.name);actDiv.appendChild(kickBtn);}if(actDiv.children.length)r.appendChild(actDiv);}lbCard.appendChild(r);});var topXP=sorted[0]?sorted[0].xp||0:1;var myXPInClan=myMember?myMember.xp||0:xp;if(topXP>0&&!isOwner&&myXPInClan<topXP){var gap=topXP-myXPInClan;var gapDiv=el('div',{s:'padding:8px 13px;border-top:1px solid var(--bg1)'});var gapTxt=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});gapTxt.textContent=bom('Distanta fata de lider: '+gap+' XP','Boss-ul e cu '+gap+' XP mai sus!');var gapBar=el('div',{s:'height:4px;background:var(--bg3);border-radius:99px;overflow:hidden'});var gapFill=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+Math.round(myXPInClan/topXP*100)+'%'});gapBar.appendChild(gapFill);gapDiv.appendChild(gapTxt);gapDiv.appendChild(gapBar);lbCard.appendChild(gapDiv);}}else{var em3=el('div',{s:'text-align:center;padding:28px;color:var(--tx5);font-size:11px'});em3.appendChild(ic('users',32));var em3t=el('div',{s:'margin-top:8px'});em3t.textContent=bom('Esti singurul. Trimite codul: ','Esti singur, boss! Codul: ')+p.gangCode;em3.appendChild(em3t);lbCard.appendChild(em3);}
+  // ── Weekly clan challenge + momentum
+  var wkWk=members.reduce(function(a,m){return a+(m.wkWorkouts||0)},0);
+  var activeWk=members.filter(function(m){return m.lastActive&&m.lastActive>=_daysAgoISO(7)}).length||(members.length?1:0);
+  var wkTarget=Math.max(5,members.length*3);
+  var wkPct=Math.min(100,Math.round(wkWk/wkTarget*100));
+  var chalCard=el('div',{c:'card cp'});
+  var chalH=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:8px'});var chalHi=el('span',{s:'color:#fbbf24;display:inline-flex'});chalHi.appendChild(ic('flame',13));chalH.appendChild(chalHi);var chalHt=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600'});chalHt.textContent=bom(L('Weekly clan goal','Provocarea săptămânii'),'Sarcina pe săptămână, boss');chalH.appendChild(chalHt);chalCard.appendChild(chalH);
+  var chalSub=el('div',{s:'color:var(--tx4);font-size:10px;margin-bottom:7px'});chalSub.textContent=L('Log '+wkTarget+' clan workouts this week','Loghează '+wkTarget+' antrenamente de Clan săptămâna asta');chalCard.appendChild(chalSub);
+  var chalBarWrap=el('div',{s:'height:8px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-bottom:6px'});var chalBar=el('div',{s:'height:100%;border-radius:99px;background:linear-gradient(90deg,var(--ac),#fbbf24);width:'+wkPct+'%;transition:width .4s'});chalBarWrap.appendChild(chalBar);chalCard.appendChild(chalBarWrap);
+  var chalStats=el('div',{s:'display:flex;justify-content:space-between;color:var(--tx3);font-size:10px'});
+  var cs1=el('span');cs1.textContent=wkWk+'/'+wkTarget+L(' workouts',' antrenamente');var cs2=el('span');cs2.textContent=activeWk+L(' active this week',' activi săptămâna asta');
+  chalStats.appendChild(cs1);chalStats.appendChild(cs2);chalCard.appendChild(chalStats);
+  if(wkPct>=100){var chalDone=el('div',{s:'margin-top:7px;color:#34d399;font-size:11px;display:flex;align-items:center;gap:5px'});chalDone.appendChild(ic('circle-check',13));chalDone.appendChild(document.createTextNode(L('Goal reached — great work, clan!','Obiectiv atins — bravo, Clan!')));chalCard.appendChild(chalDone);}
+  return mkSec(h1,myCard,chalCard,lbCard)
 }
 
 // Structured chat renderer — turns plain text with newlines into well-spaced
@@ -4108,7 +4165,7 @@ function vAdmin(){
     var av=el('div',{s:'width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--bg3);color:var(--tx2)'});av.textContent=(u.name||u.username||'?').charAt(0).toUpperCase();
     var info=el('div',{s:'flex:1;min-width:0'});
     var nm=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});nm.textContent=u.name+(u.username.toLowerCase()==='cemebeu'?L(' (you)',' (tu)'):'');info.appendChild(nm);
-    var sub=el('div',{s:'color:var(--tx4);font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});sub.textContent='@'+u.username+' · '+L(_lvlName(u.xp),_lvlName(u.xp))+(u.gang?' · '+(DEMO_CLANS[u.gang]?DEMO_CLANS[u.gang].name:u.gang):'')+' · '+L('joined ','înscris ')+_daysAgoISO(u.joined);info.appendChild(sub);
+    var sub=el('div',{s:'color:var(--tx4);font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});sub.textContent='@'+u.username+' · '+lvlLabel(_lvlName(u.xp))+(u.gang?' · '+(DEMO_CLANS[u.gang]?DEMO_CLANS[u.gang].name:u.gang):'')+' · '+L('joined ','înscris ')+relDate(_daysAgoISO(u.joined));info.appendChild(sub);
     var xpW=el('div',{s:'text-align:right;flex-shrink:0;min-width:54px'});var xpV=el('div',{s:'color:#fbbf24;font-weight:800;font-size:12px;font-family:ui-monospace,monospace'});xpV.textContent=u.xp+' XP';xpW.appendChild(xpV);
     // controls
     var ctr=el('div',{s:'display:flex;gap:3px;flex-shrink:0'});
@@ -4133,11 +4190,44 @@ function vAdmin(){
     row.appendChild(info);row.appendChild(xpV);ccBody.appendChild(row);
   });
   clansCard.appendChild(ccBody);
+  // ── Cloud accounts cleanup (real Firebase accounts)
+  var cloudCard=el('div',{c:'card',s:'padding:0;overflow:hidden'});
+  var cloudH=el('div',{s:'padding:9px 13px;border-bottom:1px solid var(--bd);color:var(--tx2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between'});
+  var cloudHt=el('span');cloudHt.textContent=L('Cloud accounts','Conturi cloud');cloudH.appendChild(cloudHt);
+  var cloudHint=el('span',{s:'color:var(--tx5);font-size:9px;font-weight:400;text-transform:none;letter-spacing:0'});cloudHint.textContent=L('delete stale / test accounts','șterge conturi vechi / de test');cloudH.appendChild(cloudHint);
+  cloudCard.appendChild(cloudH);
+  var cloudBody=el('div',null);var cloudLoad=el('div',{s:'text-align:center;padding:16px;color:var(--tx4);font-size:11px'});cloudLoad.textContent=L('Loading…','Se încarcă…');cloudBody.appendChild(cloudLoad);cloudCard.appendChild(cloudBody);
+  var _ce=_renderEpoch;
+  RTDB.ref('users').get().then(function(snap){
+    if(_renderEpoch!==_ce)return;
+    var rows=[];snap.forEach(function(c){var v=c.val();if(!v)return;rows.push({key:c.key,v:v});});
+    rows.sort(function(a,b){return (b.v.lastSeen||'').localeCompare(a.v.lastSeen||'')});
+    while(cloudBody.firstChild)cloudBody.removeChild(cloudBody.firstChild);
+    if(!rows.length){var em=el('div',{s:'text-align:center;padding:16px;color:var(--tx4);font-size:11px'});em.textContent=L('No cloud accounts found.','Niciun cont în cloud.');cloudBody.appendChild(em);return;}
+    rows.forEach(function(rw){
+      var v=rw.v;var isTest=/^(test|tester|demo|guest|vizitator|fake|asd|qwe|aaa|xxx)/i.test(v.username||'');
+      var stale=v.lastSeen&&v.lastSeen<_daysAgoISO(60);
+      var row=el('div',{s:'display:flex;align-items:center;gap:9px;padding:8px 12px;border-bottom:1px solid var(--bg1)'});
+      var info=el('div',{s:'flex:1;min-width:0'});
+      var nm=el('div',{s:'color:var(--tx1);font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});nm.textContent=(v.name||v.username||'?')+(isTest?' ⚠':'');info.appendChild(nm);
+      var sub=el('div',{s:'color:var(--tx4);font-size:9.5px'});sub.textContent='@'+(v.username||'—')+' · '+(v.xp||0)+' XP · '+(v.lastSeen?L('seen ','văzut ')+relDate(v.lastSeen):L('no activity','fără activitate'))+(stale?L(' · stale',' · vechi'):'');info.appendChild(sub);
+      var delB=el('button',{s:'flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(248,113,113,.35);border-radius:6px;background:none;cursor:pointer;color:#f87171'});delB.title=L('Delete account','Șterge contul');delB.appendChild(ic('trash',13));
+      delB.onclick=(function(key,uname){return function(){
+        if(uname&&uname.toLowerCase()==='cemebeu'){notify(L('Blocked','Blocat'),L('You can’t delete the admin account.','Nu poți șterge contul de admin.'),3000);return;}
+        if(!confirm(L('Permanently delete account "'+(uname||key)+'" from the cloud?','Ștergi definitiv contul „'+(uname||key)+'" din cloud?')))return;
+        RTDB.ref('users/'+key).remove().catch(function(){});
+        RTDB.ref('accounts/'+key).remove().catch(function(){});
+        notify(L('Deleted','Șters'),L('Account removed from the cloud.','Cont eliminat din cloud.'),2500);
+        row.style.opacity='0.4';delB.disabled=true;
+      };})(rw.key,v.username);
+      row.appendChild(info);row.appendChild(delB);cloudBody.appendChild(row);
+    });
+  }).catch(function(){while(cloudBody.firstChild)cloudBody.removeChild(cloudBody.firstChild);var er=el('div',{s:'text-align:center;padding:16px;color:var(--tx4);font-size:11px'});er.textContent=L('Couldn’t load cloud accounts (offline?).','Nu am putut încărca conturile (offline?).');cloudBody.appendChild(er);});
   // ── Reset
   var resetCard=el('div',{c:'card cp'});
   var resetHint=el('div',{s:'color:var(--tx4);font-size:10px;margin-bottom:7px;line-height:1.4'});resetHint.textContent=L('Admin edits are stored locally on this device and override the demo roster. Reset restores the original values.','Modificările admin sunt salvate local pe acest dispozitiv și suprascriu lista demo. Resetarea readuce valorile originale.');resetCard.appendChild(resetHint);
   var resetBtn=el('button',{s:'background:none;border:1px solid rgba(248,113,113,.35);color:#f87171;font-size:11px;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px'});resetBtn.appendChild(ic('refresh',12));resetBtn.appendChild(document.createTextNode(L('Reset all admin changes','Resetează toate modificările')));resetBtn.onclick=function(){if(confirm(L('Reset all admin edits?','Resetezi toate modificările?'))){_clearAdminPatch();render();}};resetCard.appendChild(resetBtn);
-  return mkSec(h1,statsCard,usersCard,clansCard,resetCard);
+  return mkSec(h1,statsCard,usersCard,clansCard,cloudCard,resetCard);
 }
 function vProf(){
   var p=S.profile,m=S.metrics,lvl=getLvl(),xp=getXP();
@@ -4149,8 +4239,9 @@ function vProf(){
   var pE=el('div',{s:'width:42px;height:42px;border-radius:11px;background:var(--ac-glow);border:1px solid var(--ac-glow);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden'});avatarSelfInto(pE);
   var pI=el('div',null);var pN=el('div',{s:'color:var(--tx1);font-size:14px;font-weight:700'});pN.textContent=p.name+(p.gangNick?' ('+p.gangNick+')':'');
   var pL=el('div',{s:'color:'+lvl.c+';font-size:11px;font-weight:600'});pL.textContent=lvl.n+' \u00b7 '+xp+' XP';
-  var pS=el('div',{s:'color:var(--tx4);font-size:11px'});pS.textContent=p.age+' ani \u00b7 '+(p.sex==='M'?'Masculin':'Feminin')+' \u00b7 '+p.height+'cm';
-  pI.appendChild(pN);pI.appendChild(pL);pI.appendChild(pS);pTop.appendChild(pE);pTop.appendChild(pI);pc.appendChild(pTop);
+  var pS=el('div',{s:'color:var(--tx4);font-size:11px'});pS.textContent=p.age+L(' yrs',' ani')+' \u00b7 '+(p.sex==='M'?L('Male','Masculin'):L('Female','Feminin'))+' \u00b7 '+p.height+'cm';
+  var pMS=el('div',{s:'color:var(--tx5);font-size:10px;margin-top:2px;display:flex;align-items:center;gap:4px'});pMS.appendChild(ic('calendar',10));pMS.appendChild(document.createTextNode(L('Member since ','Membru din ')+fmtMonthYear(accountSinceDate())));
+  pI.appendChild(pN);pI.appendChild(pL);pI.appendChild(pS);pI.appendChild(pMS);pTop.appendChild(pE);pTop.appendChild(pI);pc.appendChild(pTop);
   if(S.editing){
     // Preserve draft across re-renders (e.g., clicking allergy checkbox triggers render)
     if(!S._editDraft){S._editDraft={weight:p.weight,targetWeight:p.targetWeight,sleepHours:p.sleepHours,trainingFrequency:p.trainingFrequency,sportHoursWeek:p.sportHoursWeek||3,cookTimeDay:p.cookTimeDay||30,workHoursDay:p.workHoursDay||8,goal:p.goal,mealContext:p.mealContext||'acasa',allergies:(p.allergies||[]).slice(),avoidedFoods:p.avoidedFoods||'',preferredSports:(p.preferredSports||[]).slice()};}
@@ -4325,6 +4416,15 @@ function vProf(){
     lb.textContent=opt.l;lb.onclick=function(){S.lang=opt.v;DB.save('uiLang',opt.v);render()};
     langRow2.appendChild(lb);
   });uiCard.appendChild(langRow2);
+  // Privacy: share weight in clan (default off)
+  var privL=el('div',{s:'font-size:10px;color:var(--tx4);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em'});privL.textContent=L('Privacy','Confidențialitate');uiCard.appendChild(privL);
+  var swRow=el('div',{s:'display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg2);border-radius:8px;padding:8px 10px'});
+  var swT=el('div',{s:'flex:1;min-width:0'});var swT1=el('div',{s:'color:var(--tx2);font-size:11px;font-weight:600'});swT1.textContent=L('Show my weight in clan','Arată greutatea în Clan');var swT2=el('div',{s:'color:var(--tx5);font-size:9.5px'});swT2.textContent=L('Off by default — only clanmates would see it','Implicit oprit — ar vedea-o doar membrii Clanului');swT.appendChild(swT1);swT.appendChild(swT2);
+  var swOn=!!p.shareWeight;
+  var swBtn=el('button',{s:'flex-shrink:0;width:40px;height:22px;border-radius:99px;border:none;cursor:pointer;position:relative;transition:background .15s;background:'+(swOn?'var(--ac)':'var(--bg3)')});
+  var swKnob=el('span',{s:'position:absolute;top:2px;left:'+(swOn?'20px':'2px')+';width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s'});swBtn.appendChild(swKnob);
+  swBtn.onclick=function(){p.shareWeight=!p.shareWeight;DB.save('profile',p);try{if(S.authUser&&!S.guest)publishXP()}catch(e){}render();};
+  swRow.appendChild(swT);swRow.appendChild(swBtn);uiCard.appendChild(swRow);
   var adminCard=null;
   if(isAdmin()){
     adminCard=el('div',{c:'card cp',s:'cursor:pointer;border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.06)'});
