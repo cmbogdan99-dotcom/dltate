@@ -7,15 +7,18 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4AA;</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Backgrounds — deep slate */
-  --bg:#08090e;--bg1:#0f1018;--bg2:#161824;--bg3:#1c1f2e;--bd:#272b40;
-  /* Text — high contrast */
-  --tx1:#f2f4ff;--tx2:#9aa4c4;--tx2b:#b4bcda;--tx3:#828dba;--tx4:#646e9e;--tx5:#525d8a;
-  /* Accent: electric blue */
-  --ac:#4f7ef7;--ac-h:#3b6ef0;--ac-l:#93b4fc;--ac-glow:rgba(79,126,247,.18);
+  /* ── "Ember on Graphite" — warm charcoal + molten ember accent ── */
+  /* Backgrounds — warm graphite (no blue cast) */
+  --bg:#0c0b09;--bg1:#131110;--bg2:#1b1815;--bg3:#252019;--bd:#2f2921;
+  /* Text — warm ivory scale */
+  --tx1:#f4f1ea;--tx2:#b9b2a3;--tx2b:#cdc6b6;--tx3:#9a9181;--tx4:#7b7365;--tx5:#645d51;
+  /* Accent: molten ember */
+  --ac:#e8632c;--ac-h:#d4551f;--ac-l:#ff9d6b;--ac-glow:rgba(232,99,44,.16);--ac-glow2:rgba(232,99,44,.45);
+  /* Ambient aura tints */
+  --aura1:rgba(232,99,44,.07);--aura2:rgba(251,191,36,.05);
   /* Semantic */
   --or:#f97316;--or-l:#fb923c;
   --su:#34d399;
@@ -25,26 +28,30 @@
   --fu:#e879f9;
 }
 [data-theme="light"]{
-  --bg:#f0f4ff;--bg1:#ffffff;--bg2:#e4eaff;--bg3:#ccd6fa;--bd:#93b4fc55;
-  --tx1:#0a1128;--tx2:#1e3060;--tx2b:#2a4490;--tx3:#34539e;--tx4:#3f63c4;--tx5:#5e80cf;
+  --bg:#f3efe7;--bg1:#fdfbf6;--bg2:#ebe4d7;--bg3:#dcd2c0;--bd:#d2c8b4;
+  --tx1:#211d16;--tx2:#4d453a;--tx2b:#3a332a;--tx3:#5f5747;--tx4:#786e5b;--tx5:#8d8371;
+  --ac:#d4551f;--ac-h:#c04a18;--ac-l:#b3430f;--ac-glow:rgba(212,85,31,.14);--ac-glow2:rgba(212,85,31,.4);
+  --aura1:rgba(212,85,31,.06);--aura2:rgba(180,140,40,.05);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Roboto,ui-sans-serif,system-ui,sans-serif;font-size:14px}
-#app{min-height:100dvh;background:var(--bg)}
+body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Roboto,ui-sans-serif,system-ui,sans-serif;font-size:14px;transition:background-color .3s ease,color .3s ease}
+h1{font-family:'Sora','Noto Sans',sans-serif;letter-spacing:-.02em}
+/* Ambient ember aura — a soft warm glow instead of a flat template background */
+#app{min-height:100dvh;background:radial-gradient(1100px 700px at 88% -12%,var(--aura1),transparent 62%),radial-gradient(820px 560px at -8% 108%,var(--aura2),transparent 58%),var(--bg)}
 .wrap{display:flex;height:100dvh;overflow:hidden}
 .sb{width:172px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--bg1);display:flex;flex-direction:column;transition:width .18s ease}
 .sb-h{padding:11px 10px;border-bottom:1px solid var(--bg1);display:flex;align-items:center;gap:7px}
-.lb{width:25px;height:25px;border-radius:7px;background:var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lb{width:25px;height:25px;border-radius:7px;background:linear-gradient(135deg,var(--ac),var(--wa));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px var(--ac-glow2)}
 .sb-n{flex:1;padding:5px 4px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
 .sb-grp{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx5);padding:10px 11px 3px}
-.qlfab{position:fixed;right:18px;bottom:24px;width:56px;height:56px;border-radius:50%;background:var(--ac);color:#fff;border:none;box-shadow:0 8px 26px rgba(45,106,79,.45),0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:62;display:flex;align-items:center;justify-content:center;transition:transform .26s cubic-bezier(.34,1.56,.64,1),background .15s}
+.qlfab{position:fixed;right:18px;bottom:24px;width:56px;height:56px;border-radius:50%;background:linear-gradient(145deg,var(--ac-l) -60%,var(--ac) 55%);color:#fff;border:none;box-shadow:0 8px 26px var(--ac-glow2),0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:62;display:flex;align-items:center;justify-content:center;transition:transform .26s cubic-bezier(.34,1.56,.64,1),background .15s}
 .qlfab:hover{transform:scale(1.08)}
 .qlfab:active{transform:scale(.92)}
 .qlfab.open{transform:rotate(135deg);background:var(--bg3)}
 .qlfab.open:hover{transform:rotate(135deg) scale(1.08)}
 /* One-shot attention pulse — runs twice then stops (no infinite loop). */
 .attn{animation:attnPulse 1.25s cubic-bezier(.4,0,.2,1) 2}
-@keyframes attnPulse{0%{box-shadow:0 0 0 0 rgba(45,106,79,.5)}70%{box-shadow:0 0 0 11px rgba(45,106,79,0)}100%{box-shadow:0 0 0 0 rgba(45,106,79,0)}}
+@keyframes attnPulse{0%{box-shadow:0 0 0 0 var(--ac-glow2)}70%{box-shadow:0 0 0 11px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .attn-amber{animation:attnPulseA 1.25s cubic-bezier(.4,0,.2,1) 2}
 @keyframes attnPulseA{0%{box-shadow:0 0 0 0 rgba(251,191,36,.55)}70%{box-shadow:0 0 0 11px rgba(251,191,36,0)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
 .qlfab-back{position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:59;animation:fadeIn .18s}
@@ -74,11 +81,15 @@ body{background:var(--bg);color:var(--tx1);font-family:'Noto Sans',Segoe UI,Robo
 .uc:hover{background:var(--bg2)}
 .mc{flex:1;overflow-y:auto;min-width:0}
 .sec{padding:14px;display:flex;flex-direction:column;gap:10px;animation:pageIn .18s ease both}
-.card{background:var(--bg1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease}
-.card:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(45,106,79,.10)}
+/* Staggered cascade: each card glides in with a tiny delay when switching views */
+.sec>*{animation:slideUp .28s cubic-bezier(.22,1,.36,1) both}
+.sec>*:nth-child(2){animation-delay:.035s}.sec>*:nth-child(3){animation-delay:.07s}.sec>*:nth-child(4){animation-delay:.105s}
+.sec>*:nth-child(5){animation-delay:.14s}.sec>*:nth-child(6){animation-delay:.175s}.sec>*:nth-child(n+7){animation-delay:.21s}
+.card{background:var(--bg1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background-color .3s ease}
+.card:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 6px 28px var(--ac-glow);border-color:var(--bg3)}
 .cp{padding:13px}
 .inp{width:100%;background:var(--bg2);border:1px solid var(--bg3);border-radius:8px;padding:7px 11px;color:var(--tx1);font-size:12px;outline:none;font-family:inherit;box-sizing:border-box;transition:border-color .13s}
-.inp:focus{border-color:var(--ac)}
+.inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac-glow)}
 .inp::placeholder{color:var(--tx5)}
 .inp-err{border-color:var(--er) !important;background:rgba(248,113,113,.05) !important}
 input[type="number"].inp::-webkit-outer-spin-button,input[type="number"].inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -193,24 +204,22 @@ input[type="number"].inp{-moz-appearance:textfield}
 /* Clan role badges */
 .badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:99px;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .badge-owner{background:rgba(251,191,36,.18);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
-.badge-admin{background:rgba(79,126,247,.18);color:var(--ac-l);border:1px solid rgba(79,126,247,.3)}
+.badge-admin{background:var(--ac-glow);color:var(--ac-l);border:1px solid var(--ac-glow2)}
 /* Streak calendar */
 .scal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .scal-cell{height:14px;border-radius:3px;background:var(--bg3);transition:background .1s,outline .1s;cursor:default;position:relative}
 .scal-cell:hover{outline:2px solid var(--ac);outline-offset:1px;z-index:1}
 .scal-cell.today{outline:1px solid var(--tx4);outline-offset:1px}
 .scal-cell.s0{background:var(--bg3)}
-.scal-cell.s1{background:rgba(79,126,247,.25)}
-.scal-cell.s2{background:rgba(79,126,247,.5)}
-.scal-cell.s3{background:rgba(79,126,247,.75)}
+.scal-cell.s1{background:rgba(232,99,44,.28)}
+.scal-cell.s2{background:rgba(232,99,44,.52)}
+.scal-cell.s3{background:rgba(232,99,44,.76)}
 .scal-cell.s4{background:var(--ac)}
 /* Readiness score */
 .rdy-ring{position:relative;width:80px;height:80px;flex-shrink:0}
 .rdy-ring svg{transform:rotate(-90deg)}
 .rdy-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-/* Card hover glow */
-.card{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
-.card:hover{transform:translateY(-1px);box-shadow:0 4px 24px rgba(79,126,247,.08);border-color:var(--bg3)}
+/* (duplicate .card hover rules merged into the base .card definition above) */
 /* Member row */
 .gmember{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--bg1);transition:background .1s}
 .gmember:hover{background:var(--bg2)}
@@ -231,6 +240,10 @@ input[type="number"].inp{-moz-appearance:textfield}
 .pgrid-cell img{width:100%;height:100%;object-fit:cover;display:block}
 .pgrid-lbl{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;font-size:9px;padding:14px 4px 4px;text-align:center;line-height:1.3;white-space:pre-line}
 .pgrid-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);border:none;color:#fff;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+/* Accessibility: respect users who prefer less motion */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style>
 <div id="app"><div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;background:var(--bg);color:var(--tx4);font-size:12px">Se încarcă...</div></div>
 <script>
@@ -1165,10 +1178,10 @@ var EN_DICT={};
 ['Prima inregistrare de aliment','First food log'],['10 inregistrari aliment','10 food logs'],['Primul log de apa','First water log'],['7 zile hidratare completa','7 days full hydration'],['Prima inregistrare somn','First sleep log'],['7 nopti calitate ≥4','7 nights quality ≥4'],['5 inregistrari greutate','5 weight logs'],['30 inregistrari greutate','30 weight logs'],['Primul antrenament','First workout'],['10 antrenamente','10 workouts'],['50 antrenamente','50 workouts'],['Prima masuratoare','First measurement'],['10 seturi masuratori','10 measurement sets'],['Clan','Clan'],['Ai intrat într-un Clan','You joined a Clan'],['Prima provocare completata','First challenge completed'],['10 provocari completate','10 challenges completed'],['Quart din drum parcurs','A quarter of the way'],['50% din obiectiv atins','50% of goal reached'],['Ai atins greutatea țintă!','You reached your target weight!'],['Prima poza de progres marcata','First progress photo saved'],
 ['Bea 2L de apa','Drink 2L of water'],['Inregistreaza micul dejun, pranzul si cina','Log breakfast, lunch and dinner'],['Inregistreaza un antrenament','Log a workout'],['≥7h somn cu calitate ≥4','≥7h sleep with quality ≥4'],['5 antrenamente saptamana asta','5 workouts this week'],['Inregistreaza mancare 5 zile','Log food for 5 days'],['2L apa in fiecare zi','2L water every day'],
 ['Grăsime %','Body fat %'],['Grăsime','Body fat'],['Țintă greutate','Target weight'],['Țintă calorii','Target calories'],['Sport/săpt.','Sport/wk'],['Gătit/zi','Cooking/day'],['Interfață','Interface'],['Aspect','Appearance'],['Cont','Account'],['Date','Data'],['Notițe (opțional)','Notes (optional)'],['Notițe (opțional)...','Notes (optional)...'],['Înregistrează antrenament','Log workout'],['Salvează antrenamentul','Save workout'],['Salvează antrenamentul, tata!','Save workout'],['Durată (min) *','Duration (min) *'],['Intensitate (1-10)','Intensity (1-10)'],['Intensitate','Intensity'],['Tip sport','Sport type'],['Fără antrenamente','No workouts'],['fără antrenamente','no workouts'],['Niciun antrenament','No workouts'],['Parțial','Partial'],['Mese+Apă','Meals+Water'],['Mese/Apă','Meals/Water'],['Apă','Water'],['Estimat','Estimated'],['Real','Actual'],['Prognoză','Forecast'],['Țintă','Target'],['Adaugă în Profil →','Add in Profile →'],['Vezi în Nutriție →','See in Nutrition →'],
-['Echipă','Team'],['Mese','Meals'],['Acasă','Home'],['Acasă (gătești)','Home (you cook)'],['Restaurant / livrare','Restaurant / delivery'],['Mixt (50/50)','Mixed (50/50)'],['Meal prep (pregătești în avans)','Meal prep (prepared ahead)'],['Restaurant','Restaurant'],['Mixt','Mixed'],['Sport/săpt','Sport/wk'],['Gătit','Cooking'],['Muncă/zi','Work/day'],['Frecvență antrenament','Training frequency'],['Ore somn','Sleep hours'],['Glicemie','Blood glucose'],['Alimente evitate','Avoided foods'],['Context masă','Meal context'],['Salut, ','Hi, '],
+['Echipă','Team'],['Mese','Meals'],['Acasă','Home'],['Acasă (gătești)','Home (you cook)'],['Restaurant / livrare','Restaurant / delivery'],['Mixt (50/50)','Mixed (50/50)'],['Meal prep (pregătești în avans)','Meal prep (prepared ahead)'],['Restaurant','Restaurant'],['Mixt','Mixed'],['Sport/săpt','Sport/wk'],['Gătit','Cooking'],['Muncă/zi','Work/day'],['Frecvență antrenament','Training frequency'],['Ore somn','Sleep hours'],['Glicemie','Blood glucose'],['Alimente evitate','Avoided foods'],['Context masă','Meal context'],['Salut, ','Hi, '],['Recompense','Rewards'],
 ['Ștergere cont: elimină permanent contul și toate datele din cloud (ireversibil).','Account deletion: permanently removes the account and all cloud data (irreversible).'],['Șterge cont & date cloud','Delete account & cloud data'],['Schimbă username / parolă','Change username / password'],['Resetare date locale','Reset local data'],['Șterge toate datele locale (alimente, sport, somn, progres). Contul rămâne intact — datele din cloud nu sunt afectate.','Delete all local data (food, exercise, sleep, progress). The account stays intact — cloud data is not affected.'],['Șterge datele locale','Delete local data'],['Date','Data'],['Cont','Account']
 ].forEach(function(pr){EN_DICT[_normTxt(pr[0])]=pr[1];});
-var EN_TOKENS=[[/Începător/g,'Beginner'],[/Intermediar/g,'Intermediate'],[/Avansat/g,'Advanced'],[/Legendă/g,'Legend'],[/ jucători/g,' players'],[/ jucător/g,' player'],[/\(vizitator\)/g,'(guest)'],[/ antren\./g,' workouts'],[/Top global ·/gi,'Global top ·'],[/Top săptămânal ·/gi,'Weekly top ·'],[/Top lunar ·/gi,'Monthly top ·'],[/Top clanuri ·/gi,'Top clans ·'],[/ membri /g,' members '],[/ membri$/g,' members'],[/Distanța față de lider:/g,'Gap to leader:'],[/Spre /g,'Next: '],[/Săptămâna asta/gi,'This week'],[/Luna asta/gi,'This month'],[/antrenamente/gi,'workouts'],[/antrenament/gi,'workout'],[/realizări/gi,'achievements'],[/realizare/gi,'achievement'],[/provocări/gi,'challenges'],[/provocare/gi,'challenge'],[/zi consecutive/g,'day streak'],[/zile consecutive/g,'day streak'],[/x\/săpt\./g,'x/wk'],[/x\/săpt\b/g,'x/wk'],[/ ore\b/g,' hours'],[/\bmin\/zi/g,'min/day'],[/\bore\/zi/g,'hours/day']];
+var EN_TOKENS=[[/Începător/g,'Beginner'],[/Intermediar/g,'Intermediate'],[/Avansat/g,'Advanced'],[/Legendă/g,'Legend'],[/ jucători/g,' players'],[/ jucător/g,' player'],[/\(vizitator\)/g,'(guest)'],[/ antren\./g,' workouts'],[/Top global ·/gi,'Global top ·'],[/Top săptămânal ·/gi,'Weekly top ·'],[/Top lunar ·/gi,'Monthly top ·'],[/Top clanuri ·/gi,'Top clans ·'],[/ membri /g,' members '],[/ membri$/g,' members'],[/Distanța față de lider:/g,'Gap to leader:'],[/Spre /g,'Next: '],[/Săptămâna asta/gi,'This week'],[/Luna asta/gi,'This month'],[/antrenamente/gi,'workouts'],[/antrenament/gi,'workout'],[/realizări/gi,'achievements'],[/realizare/gi,'achievement'],[/provocări/gi,'challenges'],[/provocare/gi,'challenge'],[/zi consecutive/g,'day streak'],[/zile consecutive/g,'day streak'],[/Pierdere de gr[ăa]sime/gi,'Fat loss'],[/Pierdere agresiv[ăa]/gi,'Aggressive loss'],[/Mas[ăa] muscular[ăa]/gi,'Muscle gain'],[/Men[țt]inere/gi,'Maintenance'],[/Recompozi[țt]ie/gi,'Recomposition'],[/x\/săpt\./g,'x/wk'],[/x\/săpt\b/g,'x/wk'],[/ ore\b/g,' hours'],[/\bmin\/zi/g,'min/day'],[/\bore\/zi/g,'hours/day']];
 function _trPat(t){var m;
   if(m=t.match(/^(\d+)\s+membri$/))return m[1]+' members';
   if(m=t.match(/^(\d+)\/(\d+)\s+azi$/))return m[1]+'/'+m[2]+' today';
@@ -1222,14 +1235,14 @@ function mkGauge(cons,tgt){
   var rem=Math.max(tgt-cons,0);
   var ns='http://www.w3.org/2000/svg';
   var svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 136 136');svg.setAttribute('width','136');svg.setAttribute('height','136');
-  var bgClr=getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim()||'#1e293b';
+  var bgClr=getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim()||'#1b1815';
   var bg=document.createElementNS(ns,'circle');['cx','cy','r','fill','stroke','stroke-width'].forEach(function(a,i){bg.setAttribute(a,[cx,cy,r,'none',bgClr,'11'][i])});svg.appendChild(bg);
   var arc=document.createElementNS(ns,'circle');[['cx',cx],['cy',cy],['r',r],['fill','none'],['stroke',col],['stroke-width','11'],['stroke-linecap','round'],['stroke-dasharray',String(circ)],['stroke-dashoffset',String(off)],['transform','rotate(-90 '+cx+' '+cy+')']].forEach(function(a){arc.setAttribute(a[0],a[1])});arc.style.transition='stroke-dashoffset .8s ease';svg.appendChild(arc);
   function tx(x,y,txt,sz,fill,fw){var t2=document.createElementNS(ns,'text');[['x',x],['y',y],['text-anchor','middle'],['fill',fill],['font-size',sz],['font-family','ui-monospace,monospace']].forEach(function(a){t2.setAttribute(a[0],String(a[1]))});if(fw)t2.setAttribute('font-weight',fw);t2.textContent=String(txt);return t2}
   var cs=getComputedStyle(document.documentElement);
   var cTx1=cs.getPropertyValue('--tx1').trim()||'#f1f5f9';
   var cTx3=cs.getPropertyValue('--tx3').trim()||'#94a3b8';
-  var cTx4=cs.getPropertyValue('--tx4').trim()||'#64748b';
+  var cTx4=cs.getPropertyValue('--tx4').trim()||'#948a79';
   svg.appendChild(tx(cx,cx-4,rem,22,cTx1,'700'));
   svg.appendChild(tx(cx,cx+10,'kcal ramase',8,cTx3,'400'));
   svg.appendChild(tx(cx,cx+21,Math.round(cons)+'/'+tgt,7,cTx4,'400'));
@@ -1251,7 +1264,7 @@ function spendXP(cost,reason){
 }
 // Active 2x-XP power-up?
 function doubleXpActive(){return !!(S.profile&&S.profile.dblXpUntil&&S.profile.dblXpUntil>=TODAY);}
-function getLvl(){var x=getXP();var bom=S.mode==='bom';if(x>=5000)return{n:'Legend\u0103',c:'#fbbf24',e:bom?'\uD83D\uDC51':'L'};if(x>=2000)return{n:'Elite',c:'#a78bfa',e:bom?'\u26A1':'E'};if(x>=1000)return{n:'Avansat',c:'#38bdf8',e:bom?'\uD83D\uDCAA':'A'};if(x>=400)return{n:'Intermediar',c:'#34d399',e:bom?'\uD83C\uDF1F':'I'};if(x>=100)return{n:'\u00CEncep\u0103tor',c:'#94a3b8',e:bom?'\uD83C\uDF31':'N'};return{n:'Nou',c:'#64748b',e:bom?'\uD83D\uDC76':'0'}}
+function getLvl(){var x=getXP();var bom=S.mode==='bom';if(x>=5000)return{n:'Legend\u0103',c:'#fbbf24',e:bom?'\uD83D\uDC51':'L'};if(x>=2000)return{n:'Elite',c:'#a78bfa',e:bom?'\u26A1':'E'};if(x>=1000)return{n:'Avansat',c:'#38bdf8',e:bom?'\uD83D\uDCAA':'A'};if(x>=400)return{n:'Intermediar',c:'#34d399',e:bom?'\uD83C\uDF1F':'I'};if(x>=100)return{n:'\u00CEncep\u0103tor',c:'#94a3b8',e:bom?'\uD83C\uDF31':'N'};return{n:'Nou',c:'#948a79',e:bom?'\uD83D\uDC76':'0'}}
 function weekKey(d){d=d?new Date(d):new Date();var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);var ys=new Date(Date.UTC(t.getUTCFullYear(),0,1));var wk=Math.ceil((((t-ys)/86400000)+1)/7);return t.getUTCFullYear()+'-W'+(wk<10?'0'+wk:wk)}
 function monthKey(d){d=d?new Date(d):new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 // Computes XP earned in the current week/month, resetting the baseline when the period rolls over.
@@ -1458,9 +1471,9 @@ function shareProfileCard(){
   var p=S.profile;if(!p)return;
   var lvl=getLvl(),xp=getXP(),m=S.metrics||Calc.getM(p),info=getStreakInfo();
   var W=640,H=360,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
-  var g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#0b1220');g.addColorStop(1,'#103027');x.fillStyle=g;x.fillRect(0,0,W,H);
-  x.fillStyle='#2d6a4f';x.fillRect(0,0,W,6);
-  x.fillStyle='#7dd3a8';x.font='600 15px system-ui,sans-serif';x.fillText('DL. SISKI',32,44);
+  var g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#0c0b09');g.addColorStop(1,'#2a1509');x.fillStyle=g;x.fillRect(0,0,W,H);
+  var gb=x.createLinearGradient(0,0,W,0);gb.addColorStop(0,'#e8632c');gb.addColorStop(1,'#fbbf24');x.fillStyle=gb;x.fillRect(0,0,W,6);
+  x.fillStyle='#ff9d6b';x.font='600 15px system-ui,sans-serif';x.fillText('DL. SISKI',32,44);
   x.fillStyle='#f1f5f9';x.font='800 40px system-ui,sans-serif';x.fillText((p.name||'Athlete').slice(0,18),32,98);
   x.fillStyle=(lvl.c&&lvl.c[0]==='#')?lvl.c:'#fbbf24';x.font='700 19px system-ui,sans-serif';x.fillText(lvl.n+'  ·  '+xp+' XP',32,128);
   var stats=[[L('Streak','Streak'),info.streak+L('d','z')],['BMI',m.bmi?m.bmi.toFixed(1):'—'],[L('Body fat','Grăsime'),m.bf?Math.round(m.bf)+'%':'—'],[L('Workouts','Antren.'),String((S.workouts||[]).length)]];
@@ -1472,7 +1485,7 @@ function shareProfileCard(){
     x.fillStyle='#94a3b8';x.font='600 12px system-ui,sans-serif';x.fillText(String(st[0]).toUpperCase(),px+16,py+74);
   });
   if(p.targetWeight){x.fillStyle='#94a3b8';x.font='600 13px system-ui,sans-serif';x.fillText(L('Goal: ','Țintă: ')+p.targetWeight+'kg',360,200);x.fillStyle='#f1f5f9';x.font='800 26px system-ui,sans-serif';x.fillText((p.weight||'—')+' kg',360,232);}
-  x.fillStyle='#64748b';x.font='400 13px system-ui,sans-serif';x.fillText(L('Your body. Understood.','Corpul tău. Înțeles.'),32,H-22);
+  x.fillStyle='#948a79';x.font='400 13px system-ui,sans-serif';x.fillText(L('Your body. Understood.','Corpul tău. Înțeles.'),32,H-22);
   try{c.toBlob(function(blob){
     if(!blob){notify(L('Error','Eroare'),L('Could not generate the image.','Nu am putut genera imaginea.'),2500);return;}
     var file=null;try{file=new File([blob],'dl-siski-stats.png',{type:'image/png'});}catch(e){}
@@ -1520,13 +1533,13 @@ function mkStreakCalendar(){
 }
 
 function lookupOFF(barcode,cb){fetch('https://world.openfoodfacts.org/api/v2/product/'+barcode+'?fields=product_name,brands,nutriments,image_front_small_url').then(function(r){return r.json()}).then(function(data){if(data.status!==1){cb(null);return;}var pr=data.product,n=pr.nutriments||{};cb({name:pr.product_name||(pr.brands?pr.brands+' ('+barcode+')':'Produs '+barcode),brand:pr.brands||'',c:Math.round(n['energy-kcal_100g']||n['energy-kcal']||0),p:Math.round(n.proteins_100g||0),f:Math.round(n.fat_100g||0),h:Math.round(n.carbohydrates_100g||0),img:pr.image_front_small_url||null,barcode:barcode});}).catch(function(){cb(null);});}
-function openBarcodeScanner(){var overlay=document.createElement('div');overlay.className='bc-overlay';var hint=document.createElement('div');hint.className='bc-hint';overlay.appendChild(hint);var stream=null;function doCleanup(){if(stream)stream.getTracks().forEach(function(t){t.stop()});if(overlay.parentNode)overlay.parentNode.removeChild(overlay);}var closeB=document.createElement('button');closeB.className='bc-act';closeB.textContent='Anuleaza';closeB.onclick=doCleanup;overlay.appendChild(closeB);function clearPhotoUI(){overlay.querySelectorAll('.bc-pui').forEach(function(n){n.parentNode&&n.parentNode.removeChild(n);});}function doLookup(code){clearPhotoUI();hint.textContent='Se cauta: '+code+'...';lookupOFF(code,function(prod){doCleanup();if(prod){S.barcodeResult=prod;try{render()}catch(e){}}else{notify('Produs negasit','Nu am gasit date pentru '+code);}});}function showManual(pre){clearPhotoUI();hint.textContent=pre||'Introduceti codul de bare:';var row=document.createElement('div');row.style.cssText='display:flex;gap:6px;margin-top:6px';var mi=document.createElement('input');mi.style.cssText='padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#f1f5f9;font-size:14px;font-family:inherit;width:180px;text-align:center';mi.placeholder='ex: 5941234567890';mi.type='text';mi.inputMode='numeric';var mib=document.createElement('button');mib.className='bc-act';mib.textContent='Cauta';mib.onclick=function(){var c=mi.value.trim();if(!c)return;mib.textContent='...';mib.disabled=true;doLookup(c);};row.appendChild(mi);row.appendChild(mib);overlay.insertBefore(row,closeB);setTimeout(function(){mi.focus()},80);}function tryDetectFromBlob(blob){if(!('BarcodeDetector' in window)){showManual('Camera nu detecteaza automat. Introduceti codul:');return;}createImageBitmap(blob).then(function(bmp){return new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']}).detect(bmp);}).then(function(codes){if(codes&&codes.length){doLookup(codes[0].rawValue);}else{showManual('Cod nedetectat. Fotografiati mai clar sau introduceti manual:');}}).catch(function(){showManual('Eroare detectie. Introduceti codul manual:');});}function showPhotoCapture(){hint.textContent='Fotografiati codul de bare:';var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';fi.className='bc-pui';fi.onchange=function(){if(!fi.files||!fi.files[0])return;hint.textContent='Se analizeaza imaginea...';tryDetectFromBlob(fi.files[0]);};var camBtn=document.createElement('button');camBtn.className='bc-act bc-pui';camBtn.textContent='Deschide Camera';camBtn.style.marginTop='4px';camBtn.onclick=function(){fi.click();};var manBtn=document.createElement('button');manBtn.className='bc-act bc-pui';manBtn.textContent='Introduceti manual';manBtn.style.marginTop='4px';manBtn.onclick=function(){showManual('Introduceti codul de bare:');};overlay.insertBefore(fi,closeB);overlay.insertBefore(camBtn,closeB);overlay.insertBefore(manBtn,closeB);}document.body.appendChild(overlay);var _vcCleanup=function(){doCleanup();};document.addEventListener('visibilitychange',function _vc(){if(document.hidden){_vcCleanup();document.removeEventListener('visibilitychange',_vc);}},{once:false});var hasBD='BarcodeDetector' in window;var hasGUM=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);if(hasBD&&hasGUM){var frame=document.createElement('div');frame.className='bc-frame';var video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;var reticle=document.createElement('div');reticle.className='bc-reticle';frame.appendChild(video);frame.appendChild(reticle);overlay.insertBefore(frame,hint);hint.textContent='Indreptati camera spre codul de bare...';var photoBtn=document.createElement('button');photoBtn.className='bc-act bc-pui';photoBtn.textContent='Fotografiaza in schimb';photoBtn.style.marginTop='6px';photoBtn.onclick=function(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null;}if(frame.parentNode)frame.parentNode.removeChild(frame);showPhotoCapture();};overlay.insertBefore(photoBtn,closeB);navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}}).then(function(s){stream=s;video.srcObject=s;var bd=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});var active=true;var can=document.createElement('canvas');var ctx=can.getContext('2d');(function tick(){if(!active)return;if(!video.videoWidth)return setTimeout(tick,200);can.width=video.videoWidth;can.height=video.videoHeight;ctx.drawImage(video,0,0);bd.detect(can).then(function(codes){if(!active)return;if(codes.length){active=false;stream.getTracks().forEach(function(t){t.stop()});stream=null;doLookup(codes[0].rawValue);}else setTimeout(tick,350);}).catch(function(){if(active)setTimeout(tick,400);});})();}).catch(function(){if(frame.parentNode)frame.parentNode.removeChild(frame);showPhotoCapture();});return;}showPhotoCapture();}
+function openBarcodeScanner(){var overlay=document.createElement('div');overlay.className='bc-overlay';var hint=document.createElement('div');hint.className='bc-hint';overlay.appendChild(hint);var stream=null;function doCleanup(){if(stream)stream.getTracks().forEach(function(t){t.stop()});if(overlay.parentNode)overlay.parentNode.removeChild(overlay);}var closeB=document.createElement('button');closeB.className='bc-act';closeB.textContent='Anuleaza';closeB.onclick=doCleanup;overlay.appendChild(closeB);function clearPhotoUI(){overlay.querySelectorAll('.bc-pui').forEach(function(n){n.parentNode&&n.parentNode.removeChild(n);});}function doLookup(code){clearPhotoUI();hint.textContent='Se cauta: '+code+'...';lookupOFF(code,function(prod){doCleanup();if(prod){S.barcodeResult=prod;try{render()}catch(e){}}else{notify('Produs negasit','Nu am gasit date pentru '+code);}});}function showManual(pre){clearPhotoUI();hint.textContent=pre||'Introduceti codul de bare:';var row=document.createElement('div');row.style.cssText='display:flex;gap:6px;margin-top:6px';var mi=document.createElement('input');mi.style.cssText='padding:8px 12px;border-radius:8px;border:1px solid #2f2921;background:#1b1815;color:#f1f5f9;font-size:14px;font-family:inherit;width:180px;text-align:center';mi.placeholder='ex: 5941234567890';mi.type='text';mi.inputMode='numeric';var mib=document.createElement('button');mib.className='bc-act';mib.textContent='Cauta';mib.onclick=function(){var c=mi.value.trim();if(!c)return;mib.textContent='...';mib.disabled=true;doLookup(c);};row.appendChild(mi);row.appendChild(mib);overlay.insertBefore(row,closeB);setTimeout(function(){mi.focus()},80);}function tryDetectFromBlob(blob){if(!('BarcodeDetector' in window)){showManual('Camera nu detecteaza automat. Introduceti codul:');return;}createImageBitmap(blob).then(function(bmp){return new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']}).detect(bmp);}).then(function(codes){if(codes&&codes.length){doLookup(codes[0].rawValue);}else{showManual('Cod nedetectat. Fotografiati mai clar sau introduceti manual:');}}).catch(function(){showManual('Eroare detectie. Introduceti codul manual:');});}function showPhotoCapture(){hint.textContent='Fotografiati codul de bare:';var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';fi.className='bc-pui';fi.onchange=function(){if(!fi.files||!fi.files[0])return;hint.textContent='Se analizeaza imaginea...';tryDetectFromBlob(fi.files[0]);};var camBtn=document.createElement('button');camBtn.className='bc-act bc-pui';camBtn.textContent='Deschide Camera';camBtn.style.marginTop='4px';camBtn.onclick=function(){fi.click();};var manBtn=document.createElement('button');manBtn.className='bc-act bc-pui';manBtn.textContent='Introduceti manual';manBtn.style.marginTop='4px';manBtn.onclick=function(){showManual('Introduceti codul de bare:');};overlay.insertBefore(fi,closeB);overlay.insertBefore(camBtn,closeB);overlay.insertBefore(manBtn,closeB);}document.body.appendChild(overlay);var _vcCleanup=function(){doCleanup();};document.addEventListener('visibilitychange',function _vc(){if(document.hidden){_vcCleanup();document.removeEventListener('visibilitychange',_vc);}},{once:false});var hasBD='BarcodeDetector' in window;var hasGUM=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);if(hasBD&&hasGUM){var frame=document.createElement('div');frame.className='bc-frame';var video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;var reticle=document.createElement('div');reticle.className='bc-reticle';frame.appendChild(video);frame.appendChild(reticle);overlay.insertBefore(frame,hint);hint.textContent='Indreptati camera spre codul de bare...';var photoBtn=document.createElement('button');photoBtn.className='bc-act bc-pui';photoBtn.textContent='Fotografiaza in schimb';photoBtn.style.marginTop='6px';photoBtn.onclick=function(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null;}if(frame.parentNode)frame.parentNode.removeChild(frame);showPhotoCapture();};overlay.insertBefore(photoBtn,closeB);navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}}).then(function(s){stream=s;video.srcObject=s;var bd=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});var active=true;var can=document.createElement('canvas');var ctx=can.getContext('2d');(function tick(){if(!active)return;if(!video.videoWidth)return setTimeout(tick,200);can.width=video.videoWidth;can.height=video.videoHeight;ctx.drawImage(video,0,0);bd.detect(can).then(function(codes){if(!active)return;if(codes.length){active=false;stream.getTracks().forEach(function(t){t.stop()});stream=null;doLookup(codes[0].rawValue);}else setTimeout(tick,350);}).catch(function(){if(active)setTimeout(tick,400);});})();}).catch(function(){if(frame.parentNode)frame.parentNode.removeChild(frame);showPhotoCapture();});return;}showPhotoCapture();}
 function resizePhoto(file,cb){var reader=new FileReader();reader.onload=function(ev){var img=new Image();img.onload=function(){var MAX=480,w=img.width,h=img.height;if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>=w&&h>MAX){w=Math.round(w*MAX/h);h=MAX;}var can=document.createElement('canvas');can.width=w;can.height=h;can.getContext('2d').drawImage(img,0,0,w,h);cb(can.toDataURL('image/jpeg',0.78));};img.src=ev.target.result;};reader.readAsDataURL(file);}
 function resizeForAI(file,cb){var reader=new FileReader();reader.onload=function(ev){var img=new Image();img.onload=function(){var MAX=900,w=img.width,h=img.height;if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}var can=document.createElement('canvas');can.width=w;can.height=h;can.getContext('2d').drawImage(img,0,0,w,h);cb(can.toDataURL('image/jpeg',0.82));};img.src=ev.target.result;};reader.readAsDataURL(file);}
 function openScreenshotScanner(mode){
   /* mode: 'sport' | 'nutr' */
   var overlay=document.createElement('div');overlay.className='bc-overlay';
-  var card=document.createElement('div');card.style.cssText='background:var(--bg2,#1e293b);border-radius:16px;padding:20px;max-width:340px;width:92%;display:flex;flex-direction:column;gap:12px;';
+  var card=document.createElement('div');card.style.cssText='background:var(--bg2,#1b1815);border-radius:16px;padding:20px;max-width:340px;width:92%;display:flex;flex-direction:column;gap:12px;';
   var hdr=document.createElement('div');hdr.style.cssText='color:#f1f5f9;font-size:14px;font-weight:700;text-align:center';
   hdr.textContent=mode==='sport'?'Scaneaza screenshot activitate':'Scaneaza screenshot nutritie';
   var sub=document.createElement('div');sub.style.cssText='color:#94a3b8;font-size:11px;text-align:center;line-height:1.5';
@@ -2171,7 +2184,7 @@ function vMain(){
   }
   sbF.appendChild(uc);
   if(S.guest&&!coll){
-    var gBanner=el('div',{s:'margin:6px 6px 0;padding:7px 9px;background:rgba(45,106,79,.12);border:1px solid rgba(45,106,79,.25);border-radius:8px;cursor:pointer'});
+    var gBanner=el('div',{s:'margin:6px 6px 0;padding:7px 9px;background:var(--ac-glow);border:1px solid var(--ac-glow2);border-radius:8px;cursor:pointer'});
     gBanner.onclick=function(){S.guest=false;S.view='login';S.loginTab='register';render()};
     var gT=el('div',{s:'color:var(--ac-l);font-size:10px;font-weight:600;margin-bottom:2px'});gT.textContent=L('Guest mode','Mod vizitator');
     var gS=el('div',{s:'color:var(--tx4);font-size:10px;line-height:1.4'});gS.textContent=L('Create an account for sync & social →','Creează cont pentru sync & social →');
@@ -2187,7 +2200,7 @@ function vMain(){
       wrap.appendChild(row);return wrap;
     }
     sbExtras.appendChild(_togRow(L('Mode','Mod'),[{v:'normal',l:'Normal'}].concat(S.lang==='ro'?[{v:'bom',l:'Bombardier'}]:[]),S.mode,function(v){S.mode=v;DB.save('uiMode',v);render();}));
-    sbExtras.appendChild(_togRow('Temă',[{v:'dark',l:'Dark'},{v:'light',l:'Light'}],S.theme,function(v){S.theme=v;DB.save('uiTheme',v);render();}));
+    sbExtras.appendChild(_togRow(L('Theme','Temă'),[{v:'dark',l:'Dark'},{v:'light',l:'Light'}],S.theme,function(v){S.theme=v;DB.save('uiTheme',v);render();}));
     sbExtras.appendChild(_togRow(L('Language','Limbă'),[{v:'en',l:'EN'},{v:'ro',l:'RO'}],S.lang||'en',function(v){S.lang=v;DB.save('uiLang',v);render();}));
     sbF.appendChild(sbExtras);
   }
@@ -2214,15 +2227,15 @@ function vMain(){
     var lvlIco=el('div',{s:'font-size:52px;margin-bottom:10px;line-height:1;display:flex;align-items:center;justify-content:center'});
     if(S.mode==='bom'){lvlIco.textContent=getLvl().e;}else{var _liEl=ic(lvlIconMap[S.newLevel]||'star',56);_liEl.style.color=lvlC;lvlIco.appendChild(_liEl);}
     var lvlBadge=el('div',{s:'display:inline-block;background:'+lvlC+'22;color:'+lvlC+';border:1px solid '+lvlC+'55;border-radius:99px;padding:3px 11px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px'});
-    lvlBadge.textContent=bom('Nivel nou!','Ai avansat, boss!');
-    var lvlN=el('div',{s:'color:'+lvlC+';font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px'});lvlN.textContent=S.newLevel;
+    lvlBadge.textContent=B('New level!','Nivel nou!','Ai avansat, boss!');
+    var lvlN=el('div',{s:'color:'+lvlC+';font-size:28px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px'});lvlN.textContent=lvlLabel(S.newLevel);
     var lvlSub=el('div',{s:'color:var(--tx3);font-size:12px;line-height:1.5;margin-bottom:8px'});
-    lvlSub.textContent=bom('Ai atins nivelul „'+S.newLevel+'"! Continuă să progresezi și vei debloca nivelul următor.','Ai ajuns „'+S.newLevel+'", tati! Continuă așa și ajungi în vârf, boss!');
+    lvlSub.textContent=B('You reached the "'+lvlLabel(S.newLevel)+'" level! Keep progressing to unlock the next one.','Ai atins nivelul „'+S.newLevel+'"! Continuă să progresezi și vei debloca nivelul următor.','Ai ajuns „'+S.newLevel+'", tati! Continuă așa și ajungi în vârf, boss!');
     /* Recent achievements earned */
     var recentAchs=(S.xpLog||[]).filter(function(e){return e.reason&&e.reason.indexOf('Realizare:')===0}).slice(-3).reverse();
     if(recentAchs.length){
       var achBox=el('div',{s:'background:var(--bg1);border-radius:10px;padding:8px 10px;margin-bottom:10px;text-align:left'});
-      var achBoxLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});achBoxLbl.textContent='Realizări deblocate';
+      var achBoxLbl=el('div',{s:'color:var(--tx5);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px'});achBoxLbl.textContent=L('Achievements unlocked','Realizări deblocate');
       achBox.appendChild(achBoxLbl);
       recentAchs.forEach(function(e){
         var achRow=el('div',{s:'display:flex;align-items:center;gap:6px;margin-bottom:3px'});
@@ -2234,12 +2247,12 @@ function vMain(){
       lvlCard.appendChild(achBox);
     }
     var lvlXP=el('div',{s:'color:'+lvlC+';font-size:14px;font-weight:700;margin-bottom:18px;font-family:ui-monospace,monospace'});
-    lvlXP.textContent=getXP()+' XP total';
+    lvlXP.textContent=getXP()+L(' XP total',' XP total');
     var btnRow=el('div',{s:'display:flex;gap:8px;justify-content:center;flex-direction:column;align-items:center'});
     var lvlClose=el('button',{s:'padding:10px 32px;background:'+lvlC+';color:#000;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit'});
-    lvlClose.textContent=bom('Continuă','Merge, tati!');lvlClose.onclick=function(){S.newLevel=null;render()};
+    lvlClose.textContent=B('Continue','Continuă','Merge, tati!');lvlClose.onclick=function(){S.newLevel=null;render()};
     var lvlAch=el('button',{s:'padding:6px 14px;background:transparent;color:var(--tx4);border:none;border-radius:9px;cursor:pointer;font-size:11px;font-family:inherit;text-decoration:underline'});
-    lvlAch.textContent='Vezi realizările mele';lvlAch.onclick=function(){S.newLevel=null;S.nav='ach';render()};
+    lvlAch.textContent=L('View my achievements','Vezi realizările mele');lvlAch.onclick=function(){S.newLevel=null;S.nav='ach';render()};
     btnRow.appendChild(lvlClose);btnRow.appendChild(lvlAch);
     lvlCard.appendChild(lvlIco);lvlCard.appendChild(lvlBadge);lvlCard.appendChild(lvlN);lvlCard.appendChild(lvlSub);lvlCard.appendChild(lvlXP);lvlCard.appendChild(btnRow);
     lvlOverlay.appendChild(lvlCard);wrap.appendChild(lvlOverlay);
@@ -2541,7 +2554,7 @@ function vDash(){
   calRow.appendChild(mCard);
   // Stats row
   var sg=el('div',{c:'g4'});
-  sg.appendChild(mkStatCard('Grasime',fmt(m.bf)+'%',m.bf?((m.bf<25&&p.sex==='M')||(m.bf<32&&p.sex==='F')?'var(--su)':'#f87171'):'#64748b'));
+  sg.appendChild(mkStatCard('Grasime',fmt(m.bf)+'%',m.bf?((m.bf<25&&p.sex==='M')||(m.bf<32&&p.sex==='F')?'var(--su)':'#f87171'):'#948a79'));
   sg.appendChild(mkStatCard('Masa slaba',fmt(m.lbm)+'kg','#38bdf8'));
   sg.appendChild(mkStatCard('FFMI',m.ffmi?fmt(m.ffmi):'\u2014','#a78bfa'));
   sg.appendChild(mkStatCard('Apa',(tw/1000).toFixed(2)+'L','#38bdf8'));
@@ -2738,7 +2751,7 @@ function vDash(){
   strHdr.appendChild(strTitle);strHdr.appendChild(strBadge);strCard.appendChild(strHdr);
   strCard.appendChild(mkStreakCalendar());
   var strLeg=el('div',{s:'display:flex;align-items:center;gap:8px;margin-top:7px'});
-  var legItems=[{c:'var(--bg3)',l:'Inactiv'},{c:'rgba(79,126,247,.5)',l:'Parțial'},{c:'var(--ac)',l:'Antrenament'}];
+  var legItems=[{c:'var(--bg3)',l:'Inactiv'},{c:'rgba(232,99,44,.52)',l:'Parțial'},{c:'var(--ac)',l:'Antrenament'}];
   legItems.forEach(function(li){var lRow=el('div',{s:'display:flex;align-items:center;gap:4px'});var lDot=el('div',{s:'width:9px;height:9px;border-radius:2px;background:'+li.c});var lTxt=el('div',{s:'color:var(--tx4);font-size:11px'});lTxt.textContent=li.l;lRow.appendChild(lDot);lRow.appendChild(lTxt);strLeg.appendChild(lRow)});
   strCard.appendChild(strLeg);
   return mkSec(hdrDiv,m.warn?el('div',{s:'background:rgba(92,60,0,.1);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 11px;font-size:11px;color:#fde68a'}):null,mkStreakCard(),rdyCard,calRow,sg,wCard,gCard2,(S.mode==='bom'&&typeof bCard!=='undefined'?bCard:null),overCard,strCard,getRec('dash'),progCard,recCard,aiCard)
@@ -2896,7 +2909,7 @@ function vNutr(){
   addCard.appendChild(mkLogDateRow());
   if(S.barcodeResult){
     var br=S.barcodeResult;
-    var brCard=el('div',{s:'background:var(--bg2);border:1px solid rgba(79,126,247,.35);border-radius:9px;padding:10px 12px;margin-bottom:6px'});
+    var brCard=el('div',{s:'background:var(--bg2);border:1px solid var(--ac-glow2);border-radius:9px;padding:10px 12px;margin-bottom:6px'});
     var brTop=el('div',{s:'display:flex;align-items:center;gap:10px;margin-bottom:8px'});
     if(br.img){var brImg=el('img',{s:'width:48px;height:48px;border-radius:7px;object-fit:contain;background:#fff;flex-shrink:0'});brImg.src=br.img;brTop.appendChild(brImg);}
     var brInfo=el('div',{s:'flex:1;min-width:0'});var brName=el('div',{s:'color:var(--tx1);font-size:12px;font-weight:600;margin-bottom:2px'});brName.textContent=br.name;var brSub=el('div',{s:'color:var(--tx5);font-size:10px'});brSub.textContent=(br.brand?br.brand+' · ':'')+br.barcode;brInfo.appendChild(brName);brInfo.appendChild(brSub);brTop.appendChild(brInfo);
@@ -3236,8 +3249,8 @@ function mkForecastCard(){
     setTimeout(function(){var ctx=document.getElementById('fcch');if(!ctx)return;if(CR.fcch){try{CR.fcch.destroy()}catch(e2){}}CR.fcch=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[
       {label:bom('Real','Real'),data:dActual,borderColor:'#34d399',borderWidth:2,pointRadius:2,fill:false,tension:.3},
       {label:bom('Prognoză','Prognoză'),data:dFore,borderColor:fcCol,borderWidth:2,borderDash:[5,4],pointRadius:0,fill:false,tension:.3},
-      {label:bom('Țintă','Țintă'),data:f.tgt!=null?dTgt:[],borderColor:'#64748b',borderWidth:1,borderDash:[2,3],pointRadius:0,fill:false}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:9},boxWidth:10}},tooltip:{backgroundColor:'#1e293b',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#334155',borderWidth:1}},scales:{x:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:8},maxTicksLimit:7}},y:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}}}}})},60);
+      {label:bom('Țintă','Țintă'),data:f.tgt!=null?dTgt:[],borderColor:'#948a79',borderWidth:1,borderDash:[2,3],pointRadius:0,fill:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#948a79',font:{size:9},boxWidth:10}},tooltip:{backgroundColor:'#1b1815',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#2f2921',borderWidth:1}},scales:{x:{grid:{color:'rgba(127,115,101,.12)'},ticks:{color:'#8a8172',font:{size:8},maxTicksLimit:7}},y:{grid:{color:'rgba(127,115,101,.12)'},ticks:{color:'#8a8172',font:{size:9}}}}}})},60);
   }
   // Adaptive TDEE + self-correcting calorie recommendation
   if(f.measuredTDEE){
@@ -3298,7 +3311,7 @@ function vProgr(){
     var chartDiv=null;
     if(pl.length>1){
       chartDiv=el('div',{c:'card cp'});var cw=el('div',{s:'position:relative;height:130px'});var can=el('canvas',{id:'wch'});cw.appendChild(can);chartDiv.appendChild(cw);
-      setTimeout(function(){var ctx=document.getElementById('wch');if(!ctx)return;if(CR.wch){try{CR.wch.destroy()}catch(e2){}}CR.wch=new Chart(ctx,{type:'line',data:{labels:pl.slice(-20).map(function(e){return fmtD(e.date)}),datasets:[{label:'kg',data:pl.slice(-20).map(function(e){return e.weight}),borderColor:'var(--su)',borderWidth:2,pointBackgroundColor:'var(--su)',pointRadius:2.5,fill:true,backgroundColor:'rgba(74,222,128,.05)',tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e293b',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#334155',borderWidth:1}},scales:{x:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}},y:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}}}}})},50);
+      setTimeout(function(){var ctx=document.getElementById('wch');if(!ctx)return;if(CR.wch){try{CR.wch.destroy()}catch(e2){}}CR.wch=new Chart(ctx,{type:'line',data:{labels:pl.slice(-20).map(function(e){return fmtD(e.date)}),datasets:[{label:'kg',data:pl.slice(-20).map(function(e){return e.weight}),borderColor:'var(--su)',borderWidth:2,pointBackgroundColor:'var(--su)',pointRadius:2.5,fill:true,backgroundColor:'rgba(74,222,128,.05)',tension:.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1b1815',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#2f2921',borderWidth:1}},scales:{x:{grid:{color:'rgba(127,115,101,.12)'},ticks:{color:'#8a8172',font:{size:9}}},y:{grid:{color:'rgba(127,115,101,.12)'},ticks:{color:'#8a8172',font:{size:9}}}}}})},50);
     }
     var lf=el('div',{c:'card cp'});var lfH=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:500;margin-bottom:7px'});lfH.textContent=L('Log weight','\u00cenregistreaz\u0103 greutatea');lf.appendChild(lfH);lf.appendChild(mkLogDateRow());
     var g2=el('div',{c:'g2',s:'margin-bottom:6px'});
@@ -3348,7 +3361,7 @@ function vProgr(){
     var mChart=null;
     if(ml.length>1){
       mChart=el('div',{c:'card cp'});var mcw=el('div',{s:'position:relative;height:130px'});var mcan=el('canvas',{id:'mch'});mcw.appendChild(mcan);mChart.appendChild(mcw);
-      setTimeout(function(){var ctx=document.getElementById('mch');if(!ctx)return;if(CR.mch){try{CR.mch.destroy()}catch(e2){}}var ds=mKeys.filter(function(mk){return ml.some(function(e){return e[mk.k]})}).map(function(mk){return{label:mk.l,data:ml.slice(-15).map(function(e){return e[mk.k]||null}),borderColor:mk.c,borderWidth:1.5,pointRadius:2,fill:false,tension:.35,spanGaps:true}});CR.mch=new Chart(ctx,{type:'line',data:{labels:ml.slice(-15).map(function(e){return fmtD(e.date)}),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:9},boxWidth:10}},tooltip:{backgroundColor:'#1e293b',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#334155',borderWidth:1}},scales:{x:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}},y:{grid:{color:'#0f172a'},ticks:{color:'#475569',font:{size:9}}}}}})},50);
+      setTimeout(function(){var ctx=document.getElementById('mch');if(!ctx)return;if(CR.mch){try{CR.mch.destroy()}catch(e2){}}var ds=mKeys.filter(function(mk){return ml.some(function(e){return e[mk.k]})}).map(function(mk){return{label:mk.l,data:ml.slice(-15).map(function(e){return e[mk.k]||null}),borderColor:mk.c,borderWidth:1.5,pointRadius:2,fill:false,tension:.35,spanGaps:true}});CR.mch=new Chart(ctx,{type:'line',data:{labels:ml.slice(-15).map(function(e){return fmtD(e.date)}),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#948a79',font:{size:9},boxWidth:10}},tooltip:{backgroundColor:'#1b1815',titleColor:'#94a3b8',bodyColor:'#f1f5f9',borderColor:'#2f2921',borderWidth:1}},scales:{x:{grid:{color:'rgba(127,115,101,.12)'},ticks:{color:'#8a8172',font:{size:9}}},y:{grid:{color:'rgba(127,115,101,.12)'},ticks:{color:'#8a8172',font:{size:9}}}}}})},50);
     }
     return mkSec(hdr,mStats,mf2,mChart)
   }
@@ -3888,7 +3901,7 @@ function mkSeasonPodium(){
     var myCode=S.profile?S.profile.gangCode:'';
     arr.slice(0,3).forEach(function(cl,i){
       var medal=['🥇','🥈','🥉'][i];
-      var row=el('div',{s:'display:flex;align-items:center;gap:10px;padding:6px 2px'+(cl.code===myCode?';background:rgba(79,126,247,.08);border-radius:8px':'')});
+      var row=el('div',{s:'display:flex;align-items:center;gap:10px;padding:6px 2px'+(cl.code===myCode?';background:var(--ac-glow);border-radius:8px':'')});
       var md=el('div',{s:'font-size:18px;width:26px;text-align:center;flex-shrink:0'});md.textContent=medal;
       var nm=el('div',{s:'flex:1;min-width:0;color:var(--tx1);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});nm.textContent=cl.name+(cl.code===myCode?L(' (yours)',' (al tău)'):'');
       var sc=el('div',{s:'color:#fbbf24;font-weight:800;font-size:13px;font-family:ui-monospace,monospace;flex-shrink:0'});sc.textContent=cl.score+' XP';
@@ -3978,7 +3991,7 @@ function vTop(){
       if(!users.length){var em2=el('div',{s:'text-align:center;padding:22px;color:var(--tx4);font-size:11px'});em2.textContent=period==='all'?'Nimeni nu a sincronizat încă XP.':'Niciun XP câștigat în această perioadă încă.';lBody.appendChild(em2);return}
       users.forEach(function(ent,i){
         var u=ent.u,isMe=(u.uid===UID)||(!!S.authUser&&u.username&&u.username.toLowerCase()===S.authUser.toLowerCase());
-        var row=el('div',{s:'display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--bg1)'+(isMe?';background:rgba(79,126,247,.08)':'')+(i<3?';background:linear-gradient(90deg,'+RANK_META[i].bg+',transparent 72%)':'')});
+        var row=el('div',{s:'display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--bg1)'+(isMe?';background:var(--ac-glow)':'')+(i<3?';background:linear-gradient(90deg,'+RANK_META[i].bg+',transparent 72%)':'')});
         row.appendChild(rankBadge(i));
         var ri=el('div',{s:'flex:1;min-width:0'});
         var rn=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});rn.textContent=(u.name||u.username||L('Anonymous','Anonim'))+(isMe?L(' (you)',' (tu)'):'');glowName(rn,i);
@@ -4013,7 +4026,7 @@ function vTop(){
       var myCode=S.profile?S.profile.gangCode:'';
       clans.forEach(function(cl,i){
         var isMyClan=cl.code===myCode;
-        var row=el('div',{s:'display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--bg1)'+(isMyClan?';background:rgba(79,126,247,.08)':'')+(i<3?';background:linear-gradient(90deg,'+RANK_META[i].bg+',transparent 72%)':'')});
+        var row=el('div',{s:'display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--bg1)'+(isMyClan?';background:var(--ac-glow)':'')+(i<3?';background:linear-gradient(90deg,'+RANK_META[i].bg+',transparent 72%)':'')});
         row.appendChild(rankBadge(i));
         var ri=el('div',{s:'flex:1;min-width:0'});
         var rn=el('div',{s:'color:var(--tx1);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'});rn.textContent=cl.name+(isMyClan?L(' (yours)',' (al tău)'):'');glowName(rn,i);
@@ -4162,7 +4175,7 @@ function vGang(){
   var myRole=myMember?myMember.role||'member':'member';
   var meta=S.gangMeta||{};
   var isOwner=myRole==='owner'||(meta.ownerUid&&meta.ownerUid===UID);
-  var isAdmin=isOwner||myRole==='admin';
+  var isClanAdmin=isOwner||myRole==='admin'; // NOTE: do not name this isAdmin — it would shadow the global isAdmin() (app-admin check)
   var clanName=meta.name||p.gangCode;
   var myCard=el('div',{c:'card cp'});
   var myH=el('div',{s:'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'});
@@ -4170,7 +4183,7 @@ function vGang(){
   var clanNameRow=el('div',{s:'display:flex;align-items:center;gap:7px;flex-wrap:wrap'});
   var clanNameTxt=el('div',{s:'color:var(--tx1);font-size:15px;font-weight:700'});clanNameTxt.textContent=clanName;clanNameRow.appendChild(clanNameTxt);
   if(isOwner){var owBadge=el('span',{c:'badge badge-owner'});owBadge.appendChild(ic('crown',9));owBadge.appendChild(document.createTextNode(' Fondator'));clanNameRow.appendChild(owBadge);}
-  else if(isAdmin){var admBadge=el('span',{c:'badge badge-admin'});admBadge.appendChild(ic('shield',9));admBadge.appendChild(document.createTextNode(' Admin'));clanNameRow.appendChild(admBadge);}
+  else if(isClanAdmin){var admBadge=el('span',{c:'badge badge-admin'});admBadge.appendChild(ic('shield',9));admBadge.appendChild(document.createTextNode(' Admin'));clanNameRow.appendChild(admBadge);}
   myHL.appendChild(clanNameRow);var myNickTxt=el('div',{s:'color:var(--tx4);font-size:11px;margin-top:3px'});myNickTxt.textContent='Porecla: '+p.gangNick+' · Cod: '+p.gangCode;myHL.appendChild(myNickTxt);
   // Clan stats auto-sync on every XP/workout change (publishXP) — no manual button.
   try{if(S.authUser&&!S.guest)publishXP();}catch(e){}
@@ -4199,7 +4212,7 @@ function vGang(){
   var lbHdr=el('div',{s:'padding:10px 13px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between'});
   var lbTitle=el('div',{s:'color:var(--tx2);font-size:12px;font-weight:600'});lbTitle.textContent=bom('Clasament Clan','Cine trage mai tare?');var lbCount=el('div',{s:'color:var(--tx5);font-size:11px'});lbCount.textContent=members.length+(members.length===1?L(' member',' membru'):L(' members',' membri'));lbHdr.appendChild(lbTitle);lbHdr.appendChild(lbCount);lbCard.appendChild(lbHdr);
   var sorted=members.slice().sort(function(a,b){return(b.xp||0)-(a.xp||0)});
-  if(sorted.length){sorted.forEach(function(m3,i){var isMe=m3._uid===(S.authUser||UID)||(S.authUser&&m3.username===S.authUser);var mRole=m3.role||'member';var mIsOwn=mRole==='owner'||(meta.ownerUid&&m3._uid===meta.ownerUid);var mIsAdm=mRole==='admin';var r=el('div',{c:'gmember',s:isMe?'background:var(--ac-glow)':''});var rRk=el('div',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:12px;width:24px;flex-shrink:0;text-align:center'});rRk.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);var rAv=el('div',{s:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg3);overflow:hidden'});if(isMe){avatarSelfInto(rAv);}else{rAv.textContent=S.mode==='bom'?(m3.emoji||'👤'):initialOf(m3.nick||m3.name);}var rI=el('div',{s:'flex:1;min-width:0'});var rNRow=el('div',{s:'display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:1px'});var rN2=el('div',{s:'color:'+(isMe?'var(--ac-l)':'var(--tx1)')+';font-size:12px;font-weight:'+(isMe?'700':'500')});rN2.textContent=(m3.nick||m3.name)+(isMe?L(' (you)',' (tu)'):'');rNRow.appendChild(rN2);if(mIsOwn){var ob2=el('span',{c:'badge badge-owner'});ob2.appendChild(ic('crown',9));ob2.title='Fondator';rNRow.appendChild(ob2);}else if(mIsAdm){var ab2=el('span',{c:'badge badge-admin'});ab2.appendChild(ic('shield',9));ab2.title='Admin';rNRow.appendChild(ab2);}rI.appendChild(rNRow);var rSub=el('div',{s:'color:var(--tx5);font-size:10px'});var _since=m3.since||m3.joined;rSub.textContent=lvlLabel(m3.level||'Nou')+(m3.workouts?' · '+m3.workouts+L(' workouts',' antren.'):'')+(_since?' · '+L('joined ','intrat ')+relDate(_since):'');rI.appendChild(rSub);var rXP=el('div',{s:'text-align:right;flex-shrink:0'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:13px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';var rW3=el('div',{s:'color:var(--tx5);font-size:10px'});rW3.textContent=m3.weight?fmt(m3.weight,1)+'kg':'';rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rAv);r.appendChild(rI);r.appendChild(rXP);if(!isMe&&isAdmin&&!mIsOwn){var actDiv=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-left:6px'});if(isOwner){var promBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px'});promBtn.textContent=mIsAdm?'→Mbru':'→Admin';promBtn.onclick=(function(uid,wasA){return function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+uid+'/role').set(wasA?'member':'admin').then(function(){notify('OK','Rolul a fost schimbat.',2000)}).catch(function(){});};})(m3._uid,mIsAdm);actDiv.appendChild(promBtn);}if(isOwner||(!mIsAdm&&isAdmin)){var kickBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px;color:var(--er);border-color:rgba(248,113,113,.3)'});kickBtn.textContent='Kick';kickBtn.onclick=(function(uid,nm){return function(){if(!confirm('Elimini pe '+nm+'?'))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+uid).remove().then(function(){notify('Eliminat',nm+' a fost scos.',2000)}).catch(function(){});};})(m3._uid,m3.nick||m3.name);actDiv.appendChild(kickBtn);}if(actDiv.children.length)r.appendChild(actDiv);}lbCard.appendChild(r);});var topXP=sorted[0]?sorted[0].xp||0:1;var myXPInClan=myMember?myMember.xp||0:xp;if(topXP>0&&!isOwner&&myXPInClan<topXP){var gap=topXP-myXPInClan;var gapDiv=el('div',{s:'padding:8px 13px;border-top:1px solid var(--bg1)'});var gapTxt=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});gapTxt.textContent=bom('Distanta fata de lider: '+gap+' XP','Boss-ul e cu '+gap+' XP mai sus!');var gapBar=el('div',{s:'height:4px;background:var(--bg3);border-radius:99px;overflow:hidden'});var gapFill=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+Math.round(myXPInClan/topXP*100)+'%'});gapBar.appendChild(gapFill);gapDiv.appendChild(gapTxt);gapDiv.appendChild(gapBar);lbCard.appendChild(gapDiv);}}else{var em3=el('div',{s:'text-align:center;padding:28px;color:var(--tx5);font-size:11px'});em3.appendChild(ic('users',32));var em3t=el('div',{s:'margin-top:8px'});em3t.textContent=bom('Esti singurul. Trimite codul: ','Esti singur, boss! Codul: ')+p.gangCode;em3.appendChild(em3t);lbCard.appendChild(em3);}
+  if(sorted.length){sorted.forEach(function(m3,i){var isMe=m3._uid===(S.authUser||UID)||(S.authUser&&m3.username===S.authUser);var mRole=m3.role||'member';var mIsOwn=mRole==='owner'||(meta.ownerUid&&m3._uid===meta.ownerUid);var mIsAdm=mRole==='admin';var r=el('div',{c:'gmember',s:isMe?'background:var(--ac-glow)':''});var rRk=el('div',{s:'color:var(--tx4);font-family:ui-monospace,monospace;font-size:12px;width:24px;flex-shrink:0;text-align:center'});rRk.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);var rAv=el('div',{s:'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg3);overflow:hidden'});if(isMe){avatarSelfInto(rAv);}else{rAv.textContent=S.mode==='bom'?(m3.emoji||'👤'):initialOf(m3.nick||m3.name);}var rI=el('div',{s:'flex:1;min-width:0'});var rNRow=el('div',{s:'display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:1px'});var rN2=el('div',{s:'color:'+(isMe?'var(--ac-l)':'var(--tx1)')+';font-size:12px;font-weight:'+(isMe?'700':'500')});rN2.textContent=(m3.nick||m3.name)+(isMe?L(' (you)',' (tu)'):'');rNRow.appendChild(rN2);if(mIsOwn){var ob2=el('span',{c:'badge badge-owner'});ob2.appendChild(ic('crown',9));ob2.title='Fondator';rNRow.appendChild(ob2);}else if(mIsAdm){var ab2=el('span',{c:'badge badge-admin'});ab2.appendChild(ic('shield',9));ab2.title='Admin';rNRow.appendChild(ab2);}rI.appendChild(rNRow);var rSub=el('div',{s:'color:var(--tx5);font-size:10px'});var _since=m3.since||m3.joined;rSub.textContent=lvlLabel(m3.level||'Nou')+(m3.workouts?' · '+m3.workouts+L(' workouts',' antren.'):'')+(_since?' · '+L('joined ','intrat ')+relDate(_since):'');rI.appendChild(rSub);var rXP=el('div',{s:'text-align:right;flex-shrink:0'});var rX=el('div',{s:'color:#fbbf24;font-weight:700;font-size:13px;font-family:ui-monospace,monospace'});rX.textContent=(m3.xp||0)+' XP';var rW3=el('div',{s:'color:var(--tx5);font-size:10px'});rW3.textContent=m3.weight?fmt(m3.weight,1)+'kg':'';rXP.appendChild(rX);rXP.appendChild(rW3);r.appendChild(rRk);r.appendChild(rAv);r.appendChild(rI);r.appendChild(rXP);if(!isMe&&isClanAdmin&&!mIsOwn){var actDiv=el('div',{s:'display:flex;flex-direction:column;gap:3px;margin-left:6px'});if(isOwner){var promBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px'});promBtn.textContent=mIsAdm?'→Mbru':'→Admin';promBtn.onclick=(function(uid,wasA){return function(){RTDB.ref('sh/gang/'+p.gangCode+'/'+uid+'/role').set(wasA?'member':'admin').then(function(){notify('OK','Rolul a fost schimbat.',2000)}).catch(function(){});};})(m3._uid,mIsAdm);actDiv.appendChild(promBtn);}if(isOwner||(!mIsAdm&&isClanAdmin)){var kickBtn=el('button',{c:'btn bg',s:'font-size:9px;padding:2px 6px;color:var(--er);border-color:rgba(248,113,113,.3)'});kickBtn.textContent='Kick';kickBtn.onclick=(function(uid,nm){return function(){if(!confirm('Elimini pe '+nm+'?'))return;RTDB.ref('sh/gang/'+p.gangCode+'/'+uid).remove().then(function(){notify('Eliminat',nm+' a fost scos.',2000)}).catch(function(){});};})(m3._uid,m3.nick||m3.name);actDiv.appendChild(kickBtn);}if(actDiv.children.length)r.appendChild(actDiv);}lbCard.appendChild(r);});var topXP=sorted[0]?sorted[0].xp||0:1;var myXPInClan=myMember?myMember.xp||0:xp;if(topXP>0&&!isOwner&&myXPInClan<topXP){var gap=topXP-myXPInClan;var gapDiv=el('div',{s:'padding:8px 13px;border-top:1px solid var(--bg1)'});var gapTxt=el('div',{s:'color:var(--tx5);font-size:10px;margin-bottom:4px'});gapTxt.textContent=bom('Distanta fata de lider: '+gap+' XP','Boss-ul e cu '+gap+' XP mai sus!');var gapBar=el('div',{s:'height:4px;background:var(--bg3);border-radius:99px;overflow:hidden'});var gapFill=el('div',{s:'height:100%;border-radius:99px;background:var(--ac);width:'+Math.round(myXPInClan/topXP*100)+'%'});gapBar.appendChild(gapFill);gapDiv.appendChild(gapTxt);gapDiv.appendChild(gapBar);lbCard.appendChild(gapDiv);}}else{var em3=el('div',{s:'text-align:center;padding:28px;color:var(--tx5);font-size:11px'});em3.appendChild(ic('users',32));var em3t=el('div',{s:'margin-top:8px'});em3t.textContent=bom('Esti singurul. Trimite codul: ','Esti singur, boss! Codul: ')+p.gangCode;em3.appendChild(em3t);lbCard.appendChild(em3);}
   // ── Weekly clan challenge + momentum
   var wkWk=members.reduce(function(a,m){return a+(m.wkWorkouts||0)},0);
   // XP-boost perk: members spend XP to add to the weekly goal (boost feed events this week).
@@ -4707,7 +4720,8 @@ function vAdmin(){
 // ── Rewards hub: Training Base, Shop, Wagers (spend XP) ─────────────────────
 function cz(o){return o?(S.lang==='en'?o.en:o.ro):'';}
 var COSMETIC_ACCENTS=[
-  {id:'emerald',name:{en:'Emerald',ro:'Smarald'},cost:0,ac:'#2d6a4f',acl:'#34d399',glow:'rgba(45,106,79,.18)'},
+  // id stays 'emerald' for saved-profile compatibility — it means "app default" (now Ember).
+  {id:'emerald',name:{en:'Ember',ro:'Jar'},cost:0,ac:'#e8632c',acl:'#ff9d6b',glow:'rgba(232,99,44,.16)'},
   {id:'ocean',name:{en:'Ocean',ro:'Ocean'},cost:300,ac:'#0e7490',acl:'#38bdf8',glow:'rgba(14,116,144,.20)'},
   {id:'violet',name:{en:'Violet',ro:'Violet'},cost:700,ac:'#6d28d9',acl:'#a78bfa',glow:'rgba(109,40,217,.20)'},
   {id:'crimson',name:{en:'Crimson',ro:'Stacojiu'},cost:1200,ac:'#b91c1c',acl:'#f87171',glow:'rgba(185,28,28,.20)'},
@@ -4745,8 +4759,8 @@ var WAGER_TEMPLATES=[
 // Apply the chosen accent cosmetic by overriding CSS vars (called from render).
 function applyCosmetics(){
   try{var c=(S.profile&&S.profile.cosmetics)||{};var acc=null;COSMETIC_ACCENTS.forEach(function(a){if(a.id===c.accent)acc=a;});var root=document.documentElement;
-  if(acc&&acc.id!=='emerald'){root.style.setProperty('--ac',acc.ac);root.style.setProperty('--ac-l',acc.acl);root.style.setProperty('--ac-glow',acc.glow);}
-  else{root.style.removeProperty('--ac');root.style.removeProperty('--ac-l');root.style.removeProperty('--ac-glow');}}catch(e){}
+  if(acc&&acc.id!=='emerald'){root.style.setProperty('--ac',acc.ac);root.style.setProperty('--ac-h',acc.ac);root.style.setProperty('--ac-l',acc.acl);root.style.setProperty('--ac-glow',acc.glow);root.style.setProperty('--ac-glow2',acc.glow.replace(/\.\d+\)/,'.45)'));}
+  else{['--ac','--ac-h','--ac-l','--ac-glow','--ac-glow2'].forEach(function(v){root.style.removeProperty(v)});}}catch(e){}
 }
 function activeTitle(){var c=(S.profile&&S.profile.cosmetics)||{};if(!c.title)return'';var t=null;COSMETIC_TITLES.forEach(function(x){if(x.id===c.title)t=x;});return t?cz(t.name):'';}
 // Wager progress + auto-settlement
