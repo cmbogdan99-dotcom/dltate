@@ -16,7 +16,8 @@
  * Anthropic shape { content:[{ type:'text', text }] } so the app needs no change.
  */
 
-const CF_TEXT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const CF_TEXT_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+const CF_FALLBACK_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 export default {
@@ -94,7 +95,16 @@ export default {
         const out = await env.AI.run(env.CF_MODEL || CF_TEXT_MODEL, { messages: msgs, max_tokens: maxTokens });
         const text = (out && (out.response || out.result)) || '';
         return json({ content: [{ type: 'text', text }] }, 200, cors);
-      } catch (e) { return json({ error: 'workers_ai_error', content: [{ type: 'text', text: '' }] }, 502, cors); }
+      } catch (e) {
+        // Primary model may be retired — try the fallback before giving up
+        try {
+          const out = await env.AI.run(CF_FALLBACK_MODEL, { messages: msgs, max_tokens: maxTokens });
+          const text = (out && (out.response || out.result)) || '';
+          return json({ content: [{ type: 'text', text }] }, 200, cors);
+        } catch (e2) {
+          return json({ error: 'workers_ai_error', detail: String((e2 && e2.message) || e2), content: [{ type: 'text', text: '' }] }, 502, cors);
+        }
+      }
     }
 
     return json({ error: 'no_backend_configured' }, 500, cors);

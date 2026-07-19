@@ -290,7 +290,7 @@ var TODAY=new Date().toISOString().split('T')[0];
 // ALL users with NO per-user API key. The Worker keeps the real key secret
 // server-side (never shipped to the browser). Leave '' to keep per-user keys.
 // Worker code + setup: see worker/anthropic-proxy.js and worker/README.md.
-var AI_PROXY='';
+var AI_PROXY='https://dltate.cmbogdan99.workers.dev';
 function aiProxyOn(){return !!(AI_PROXY&&/^https?:\/\//.test(AI_PROXY));}
 // True when the Claude coach is usable (shared proxy or a personal key).
 function anthropicReady(){return aiProxyOn()||!!S.anthropicKey;}
